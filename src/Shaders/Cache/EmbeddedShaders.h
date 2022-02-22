@@ -12,6 +12,26 @@
 #include "Default_vs_spv.h"
 #include "Default_vs_essl.h"
 #ifdef WIN32
+#include "Quad_vs_dx9.h"
+#include "Quad_vs_dx11.h"
+#endif
+#include "Quad_vs_glsl.h"
+#ifdef __APPLE__
+#include "Quad_vs_mtl.h"
+#endif
+#include "Quad_vs_spv.h"
+#include "Quad_vs_essl.h"
+#ifdef WIN32
+#include "Advect_fs_dx9.h"
+#include "Advect_fs_dx11.h"
+#endif
+#include "Advect_fs_glsl.h"
+#ifdef __APPLE__
+#include "Advect_fs_mtl.h"
+#endif
+#include "Advect_fs_spv.h"
+#include "Advect_fs_essl.h"
+#ifdef WIN32
 #include "Default_fs_dx9.h"
 #include "Default_fs_dx11.h"
 #endif
@@ -21,3 +41,63 @@
 #endif
 #include "Default_fs_spv.h"
 #include "Default_fs_essl.h"
+#ifdef WIN32
+#include "Divergence_fs_dx9.h"
+#include "Divergence_fs_dx11.h"
+#endif
+#include "Divergence_fs_glsl.h"
+#ifdef __APPLE__
+#include "Divergence_fs_mtl.h"
+#endif
+#include "Divergence_fs_spv.h"
+#include "Divergence_fs_essl.h"
+#ifdef WIN32
+#include "Gradient_fs_dx9.h"
+#include "Gradient_fs_dx11.h"
+#endif
+#include "Gradient_fs_glsl.h"
+#ifdef __APPLE__
+#include "Gradient_fs_mtl.h"
+#endif
+#include "Gradient_fs_spv.h"
+#include "Gradient_fs_essl.h"
+#ifdef WIN32
+#include "Jacobi_fs_dx9.h"
+#include "Jacobi_fs_dx11.h"
+#endif
+#include "Jacobi_fs_glsl.h"
+#ifdef __APPLE__
+#include "Jacobi_fs_mtl.h"
+#endif
+#include "Jacobi_fs_spv.h"
+#include "Jacobi_fs_essl.h"
+#ifdef WIN32
+#include "PaintDensity_fs_dx9.h"
+#include "PaintDensity_fs_dx11.h"
+#endif
+#include "PaintDensity_fs_glsl.h"
+#ifdef __APPLE__
+#include "PaintDensity_fs_mtl.h"
+#endif
+#include "PaintDensity_fs_spv.h"
+#include "PaintDensity_fs_essl.h"
+#ifdef WIN32
+#include "PaintVelocity_fs_dx9.h"
+#include "PaintVelocity_fs_dx11.h"
+#endif
+#include "PaintVelocity_fs_glsl.h"
+#ifdef __APPLE__
+#include "PaintVelocity_fs_mtl.h"
+#endif
+#include "PaintVelocity_fs_spv.h"
+#include "PaintVelocity_fs_essl.h"
+#ifdef WIN32
+#include "RenderRT_fs_dx9.h"
+#include "RenderRT_fs_dx11.h"
+#endif
+#include "RenderRT_fs_glsl.h"
+#ifdef __APPLE__
+#include "RenderRT_fs_mtl.h"
+#endif
+#include "RenderRT_fs_spv.h"
+#include "RenderRT_fs_essl.h"

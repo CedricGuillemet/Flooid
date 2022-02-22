@@ -2,7 +2,7 @@
 #include "bgfx_utils.h"
 #include "imgui/imgui.h"
 #include "Shaders.h"
-
+#include "Flooid.h"
 namespace App
 {
 	
@@ -312,6 +312,8 @@ public:
 	bgfx::ProgramHandle m_program;
     bgfx::UniformHandle m_worldUniform;
     bgfx::UniformHandle m_viewProjectionUniform;
+    
+    Flooid m_flooid;
 };
 
 } // namespace

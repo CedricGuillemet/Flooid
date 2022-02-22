@@ -15,11 +15,11 @@ function (AddShaders extension type dx11Profile)
         get_filename_component(FILE_NAME ${SHADER} NAME_WE)
         get_filename_component(FILE_NAME_EXT ${SHADER} EXT)
 
-        if(${FILE_NAME_EXT} STREQUAL ".${extension}")
-            
-
+        if(${FILE_NAME_EXT} STREQUAL ".${extension}")        
 if(WIN32)
             set(SHADER_OUTPUT_TARGET "${shaders_output}/${FILE_NAME}_${extension}_dx11.h")
+            message(${SHADER_OUTPUT_TARGET})
+
             add_custom_command(
                 OUTPUT ${SHADER_OUTPUT_TARGET}
                 COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o ${SHADER_OUTPUT_TARGET} --platform windows -p ${dx11Profile} -O 3 --type ${type} --bin2c ${FILE_NAME}_${extension}_dx11
@@ -33,6 +33,8 @@ if(WIN32)
 elseif(APPLE OR (UNIX AND NOT EMSCRIPTEN))
             message("Compiling shaders on MacOS. HLSL will not be built.")
             set(SHADER_OUTPUT_TARGET "${shaders_output}/${FILE_NAME}_${extension}_mtl.h")
+            message(${SHADER_OUTPUT_TARGET})
+
             add_custom_command(
                 OUTPUT ${SHADER_OUTPUT_TARGET}
                 #COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o ${SHADER_OUTPUT_TARGET} --platform windows -p ${dx11Profile} -O 3 --type ${type} --bin2c ${FILE_NAME}_${extension}_dx11
