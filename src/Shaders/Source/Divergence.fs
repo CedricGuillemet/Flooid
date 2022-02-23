@@ -11,10 +11,10 @@ void main()
     vec2 dx = vec2(1.0 / 256.0, 0.0);
     vec2 dy = vec2(0.0, 1.0 / 256.0);
 
-    float wL = texture2D(s_texVelocity, vUV - dx).x;
-    float wR = texture2D(s_texVelocity, vUV + dx).x;
-    float wB = texture2D(s_texVelocity, vUV - dy).y;
-    float wT = texture2D(s_texVelocity, vUV + dy).y;
+    float wL = texture2D(s_texVelocity, v_texcoord0 - dx).x;
+    float wR = texture2D(s_texVelocity, v_texcoord0 + dx).x;
+    float wB = texture2D(s_texVelocity, v_texcoord0 - dy).y;
+    float wT = texture2D(s_texVelocity, v_texcoord0 + dy).y;
 
     float scale = 0.5 / 1.; // 0.5 / gridscale
     float divergence = scale * (wR - wL + wT - wB);

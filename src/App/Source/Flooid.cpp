@@ -3,6 +3,7 @@
 #include "Flooid.h"
 #include <stdint.h>
 
+bgfx::VertexLayout Flooid::QuadVertex::ms_layout;
 Flooid::Flooid()
 {
     QuadVertex::Init();
