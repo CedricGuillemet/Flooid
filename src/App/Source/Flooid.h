@@ -6,8 +6,11 @@ public:
     struct Parameters
     {
         int m_iterationCount;
+        float x, y;
+        bool lButDown, rButDown;
     };
 
+    void Init();
     void Tick(const Parameters& parameters);
     
 
@@ -41,4 +44,11 @@ public:
     bgfx::UniformHandle m_texColorUniform;
     bgfx::UniformHandle m_texPressureUniform;
 
+    bgfx::ProgramHandle m_renderRTProgram;
+    bgfx::ProgramHandle m_advectProgram;
+    bgfx::ProgramHandle m_divergenceProgram;
+    bgfx::ProgramHandle m_gradientProgram;
+    bgfx::ProgramHandle m_jacobiProgram;
+    bgfx::ProgramHandle m_paintDensityProgram;
+    bgfx::ProgramHandle m_paintVelocityProgram;
 };

@@ -142,6 +142,8 @@ public:
 		// Create program from shaders.
 		m_program = LoadProgram("Default_vs", "Default_fs");
 
+		m_flooid.Init();
+
 		HideLoader();
 	}
 
@@ -256,7 +258,7 @@ public:
 				, 0
 				);
 
-            editTransform(view, proj, m_world);
+            //editTransform(view, proj, m_world);
 			ImGui::End();
 
 			imguiEndFrame();
@@ -275,7 +277,7 @@ public:
 
             // Set view 0 default viewport.
             bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height) );
-
+			/*
 			uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
 
 			// Set vertex and index buffer.
@@ -287,7 +289,14 @@ public:
 
 			// Submit primitive for rendering to view 0.
 			bgfx::submit(0, m_program);
-
+			*/
+			auto& io = ImGui::GetIO();
+			Flooid::Parameters parameters{};
+			parameters.x = io.MousePos.x / io.DisplaySize.x;
+			parameters.y = io.MousePos.y / io.DisplaySize.y;
+			parameters.lButDown = io.MouseDown[0];
+			parameters.rButDown = io.MouseDown[1];
+			m_flooid.Tick(parameters);
 			// Advance to next frame. Rendering thread will be kicked to
 			// process submitted rendering primitives.
 			bgfx::frame();
