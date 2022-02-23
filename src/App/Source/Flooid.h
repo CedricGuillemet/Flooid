@@ -7,6 +7,7 @@ public:
     {
         int m_iterationCount;
         float x, y;
+        float dx, dy;
         bool lButDown, rButDown;
     };
 
@@ -31,6 +32,7 @@ public:
 	bgfx::IndexBufferHandle m_ibh;
 	bgfx::ProgramHandle m_drawRTProgram;
     bgfx::FrameBufferHandle m_RT1;
+    bgfx::FrameBufferHandle m_RT2;
     
     
     bgfx::UniformHandle m_brushUniform;

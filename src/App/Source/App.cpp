@@ -294,6 +294,8 @@ public:
 			Flooid::Parameters parameters{};
 			parameters.x = io.MousePos.x / io.DisplaySize.x;
 			parameters.y = io.MousePos.y / io.DisplaySize.y;
+			parameters.dx = io.MouseDelta.x / io.DisplaySize.x;
+			parameters.dy = io.MouseDelta.y / io.DisplaySize.y;
 			parameters.lButDown = io.MouseDown[0];
 			parameters.rButDown = io.MouseDown[1];
 			m_flooid.Tick(parameters);

@@ -35,6 +35,7 @@ void Flooid::Init()
 
     
     m_RT1 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
+    m_RT2 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
 
     
     m_brushUniform = bgfx::createUniform("brush", bgfx::UniformType::Vec4);
@@ -61,19 +62,32 @@ void Flooid::Tick(const Parameters& parameters)
 {
     const uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_ALWAYS;
 
-    // paint density
-    float brush[4] = { parameters.x, parameters.y, 0.2f, parameters.lButDown ? 0.5f : 0.f};
-    bgfx::setUniform(m_brushUniform, brush);
+    // uniforms
     float brushColor[4] = { 1.f, 1.f, 1.f, 1.f };
     bgfx::setUniform(m_brushColorUniform, brushColor);
+    float brushDirection[4] = {parameters.dx, parameters.dy, 0.f, 0.f};
+    bgfx::setUniform(m_brushDirectionUniform, brushDirection);
+
+    // paint density
+    float brushDensity[4] = { parameters.x, parameters.y, 0.2f, parameters.lButDown ? 0.5f : 0.f };
+    bgfx::setUniform(m_brushUniform, brushDensity);
 
     bgfx::setViewFrameBuffer(1, m_RT1);
     bgfx::setViewRect(1, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
-
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_ADD);
     bgfx::submit(1, m_paintDensityProgram);
+
+    // paint velocity
+    float brushVelocity[4] = { parameters.x, parameters.y, 0.2f, parameters.rButDown ? 0.5f : 0.f };
+    bgfx::setUniform(m_brushUniform, brushVelocity);
+    bgfx::setViewFrameBuffer(2, m_RT2);
+    bgfx::setViewRect(2, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state | BGFX_STATE_BLEND_ALPHA);
+    bgfx::submit(2, m_paintVelocityProgram);
 
     // draw RT
     
@@ -83,5 +97,6 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state);
     bgfx::setTexture(0, m_texColorUniform, bgfx::getTexture(m_RT1));
+    bgfx::setTexture(1, m_texVelocityUniform, bgfx::getTexture(m_RT2));
     bgfx::submit(0, m_renderRTProgram);
 }
