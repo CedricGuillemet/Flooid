@@ -60,7 +60,7 @@ void Flooid::Init()
 
 void Flooid::Tick(const Parameters& parameters)
 {
-    const uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_ALWAYS;
+    const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 
     // uniforms
     float brushColor[4] = { 1.f, 1.f, 1.f, 1.f };
