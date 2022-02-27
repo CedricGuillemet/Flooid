@@ -37,12 +37,17 @@ void Flooid::Init()
     m_RT1 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
     m_RT2 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
 
+    m_RT1adv = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
+    m_RT2adv = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
+
     
     m_brushUniform = bgfx::createUniform("brush", bgfx::UniformType::Vec4);
     m_brushDirectionUniform = bgfx::createUniform("brushDirection", bgfx::UniformType::Vec4);
     m_brushColorUniform = bgfx::createUniform("brushColor", bgfx::UniformType::Vec4);
     m_alphaUniform = bgfx::createUniform("alpha", bgfx::UniformType::Vec4);
     m_betaUniform = bgfx::createUniform("beta", bgfx::UniformType::Vec4);
+    m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
+
     
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
@@ -67,7 +72,9 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setUniform(m_brushColorUniform, brushColor);
     float brushDirection[4] = {parameters.dx, parameters.dy, 0.f, 0.f};
     bgfx::setUniform(m_brushDirectionUniform, brushDirection);
-
+    float advection[4] = {1.f, 1.f, 1.f, 1.f};
+    bgfx::setUniform(m_advectionUniform, advection);
+    
     // paint density
     float brushDensity[4] = { parameters.x, parameters.y, 0.2f, parameters.lButDown ? 0.5f : 0.f };
     bgfx::setUniform(m_brushUniform, brushDensity);
@@ -88,15 +95,39 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_ALPHA);
     bgfx::submit(2, m_paintVelocityProgram);
+    
+    // advect paint
+    bgfx::setViewFrameBuffer(3, m_RT1adv);
+    bgfx::setViewRect(3, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state);
+    bgfx::setTexture(1, m_texAdvectUniform, bgfx::getTexture(m_RT1));
+    bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2));
+    bgfx::submit(3, m_advectProgram);
+
+    // advect velocity
+    bgfx::setViewFrameBuffer(4, m_RT2adv);
+    bgfx::setViewRect(4, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state);
+    bgfx::setTexture(1, m_texAdvectUniform, bgfx::getTexture(m_RT2));
+    bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2));
+    bgfx::submit(4, m_advectProgram);
 
     // draw RT
     
     //bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
-    //bgfx::setViewFrameBuffer
+    bgfx::setViewFrameBuffer(0, {bgfx::kInvalidHandle});
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state);
     bgfx::setTexture(0, m_texColorUniform, bgfx::getTexture(m_RT1));
     bgfx::setTexture(1, m_texVelocityUniform, bgfx::getTexture(m_RT2));
     bgfx::submit(0, m_renderRTProgram);
+    
+    // swap advect/vel
+    bx::swap(m_RT1, m_RT1adv);
+    bx::swap(m_RT2, m_RT2adv);
 }

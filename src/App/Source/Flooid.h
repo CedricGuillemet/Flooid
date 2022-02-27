@@ -33,13 +33,17 @@ public:
 	bgfx::ProgramHandle m_drawRTProgram;
     bgfx::FrameBufferHandle m_RT1;
     bgfx::FrameBufferHandle m_RT2;
-    
+    bgfx::FrameBufferHandle m_RT1adv;
+    bgfx::FrameBufferHandle m_RT2adv;
+
     
     bgfx::UniformHandle m_brushUniform;
     bgfx::UniformHandle m_brushDirectionUniform;
     bgfx::UniformHandle m_brushColorUniform;
     bgfx::UniformHandle m_alphaUniform;
     bgfx::UniformHandle m_betaUniform;
+    bgfx::UniformHandle m_advectionUniform;
+
     
     bgfx::UniformHandle m_texVelocityUniform;
     bgfx::UniformHandle m_texAdvectUniform;

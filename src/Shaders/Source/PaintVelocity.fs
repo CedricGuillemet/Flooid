@@ -10,5 +10,5 @@ uniform vec4 brushDirection; // xy direction
 void main()
 {
     float dist = 1. - distance(v_texcoord0, brush.xy) / brush.z;
-    gl_FragColor = vec4(brushDirection.xy * 100., 0., 1.) * max(dist * brush.w, 0.);
+    gl_FragColor = vec4(brushDirection.xy *  100., 0., dist) * max(dist * brush.w, 0.);
 }
