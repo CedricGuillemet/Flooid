@@ -4,6 +4,31 @@
 #include <stdint.h>
 #include "Shaders.h"
 
+/*
+ 
+ Advect
+  5-> 0 Vel
+ 6 -> 1 dens
+ Divergence
+ 0 -> 7
+ Clear 4
+ Jacobi
+ 4,7 x,b vel, dens -> 3
+ 3,7 -> 4
+
+ Gradient
+ 4,0 -> 5
+ 
+ */
+
+
+/*
+ 
+ - fluid works
+ - compute shader
+ -
+ */
+
 bgfx::VertexLayout Flooid::QuadVertex::ms_layout;
 Flooid::Flooid()
 {
@@ -40,6 +65,10 @@ void Flooid::Init()
     m_RT1adv = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
     m_RT2adv = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
 
+    m_RTdivergence = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
+    m_RTjacobi0 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
+    m_RTjacobi1 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, bgfx::TextureFormat::RG16F);
+    
     
     m_brushUniform = bgfx::createUniform("brush", bgfx::UniformType::Vec4);
     m_brushDirectionUniform = bgfx::createUniform("brushDirection", bgfx::UniformType::Vec4);
@@ -53,6 +82,7 @@ void Flooid::Init()
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
     m_texColorUniform = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
     m_texPressureUniform = bgfx::createUniform("s_texPressure", bgfx::UniformType::Sampler);
+    m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
 
     m_renderRTProgram = App::LoadProgram("Quad_vs", "RenderRT_fs");
     m_advectProgram = App::LoadProgram("Quad_vs", "Advect_fs");
@@ -76,7 +106,7 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setUniform(m_advectionUniform, advection);
     
     // paint density
-    float brushDensity[4] = { parameters.x, parameters.y, 0.2f, parameters.lButDown ? 0.5f : 0.f };
+    float brushDensity[4] = { parameters.x, parameters.y, 0.1f, parameters.lButDown ? 0.5f : 0.f };
     bgfx::setUniform(m_brushUniform, brushDensity);
 
     bgfx::setViewFrameBuffer(1, m_RT1);
@@ -87,7 +117,7 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::submit(1, m_paintDensityProgram);
 
     // paint velocity
-    float brushVelocity[4] = { parameters.x, parameters.y, 0.2f, parameters.rButDown ? 0.5f : 0.f };
+    float brushVelocity[4] = { parameters.x, parameters.y, 0.1f, parameters.rButDown ? 0.5f : 0.f };
     bgfx::setUniform(m_brushUniform, brushVelocity);
     bgfx::setViewFrameBuffer(2, m_RT2);
     bgfx::setViewRect(2, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
@@ -116,8 +146,50 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2));
     bgfx::submit(4, m_advectProgram);
 
-    // draw RT
+    // divergence
+    bgfx::setViewFrameBuffer(5, m_RTdivergence);
+    bgfx::setViewRect(5, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state);
+    bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2adv));
+    bgfx::submit(5, m_divergenceProgram);
+
+    // clear density
     
+    bgfx::setViewFrameBuffer(6, m_RTjacobi0);
+    bgfx::setViewRect(6, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    bgfx::setViewClear(6, BGFX_CLEAR_COLOR, 0x00FF0000);
+    bgfx::touch(6);
+
+    
+    // jacobi iteration
+    for(int i = 0; i < parameters.m_iterationCount; i++)
+    {
+        bgfx::ViewId viewId = 7 + i;
+        bgfx::setViewFrameBuffer(6, m_RTjacobi0);
+        bgfx::setVertexBuffer(0, m_vbh);
+        bgfx::setIndexBuffer(m_ibh);
+        bgfx::setState(state);
+        bgfx::setTexture(0, m_texDensityUniform, bgfx::getTexture(m_RTjacobi1));
+        bgfx::setTexture(1, m_texVelocityUniform, bgfx::getTexture(m_RTdivergence));
+        bgfx::submit(viewId, m_jacobiProgram);
+        
+        bx::swap(m_RTjacobi0, m_RTjacobi1);
+    }
+    
+    // gradient
+    bgfx::ViewId viewId = 6 + parameters.m_iterationCount;
+    bgfx::setViewFrameBuffer(viewId, m_RT2);
+    bgfx::setViewRect(viewId, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state);
+    bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2adv));
+    bgfx::setTexture(1, m_texPressureUniform, bgfx::getTexture(m_RTjacobi1));
+    bgfx::submit(viewId, m_jacobiProgram);
+    
+    // draw RT
     //bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
     bgfx::setViewFrameBuffer(0, {bgfx::kInvalidHandle});
     bgfx::setVertexBuffer(0, m_vbh);
@@ -129,5 +201,5 @@ void Flooid::Tick(const Parameters& parameters)
     
     // swap advect/vel
     bx::swap(m_RT1, m_RT1adv);
-    bx::swap(m_RT2, m_RT2adv);
+    //bx::swap(m_RT2, m_RT2adv);
 }

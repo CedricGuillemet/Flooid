@@ -35,6 +35,9 @@ public:
     bgfx::FrameBufferHandle m_RT2;
     bgfx::FrameBufferHandle m_RT1adv;
     bgfx::FrameBufferHandle m_RT2adv;
+    bgfx::FrameBufferHandle m_RTdivergence;
+    bgfx::FrameBufferHandle m_RTjacobi0;
+    bgfx::FrameBufferHandle m_RTjacobi1;
 
     
     bgfx::UniformHandle m_brushUniform;
@@ -49,6 +52,7 @@ public:
     bgfx::UniformHandle m_texAdvectUniform;
     bgfx::UniformHandle m_texColorUniform;
     bgfx::UniformHandle m_texPressureUniform;
+    bgfx::UniformHandle m_texDensityUniform;
 
     bgfx::ProgramHandle m_renderRTProgram;
     bgfx::ProgramHandle m_advectProgram;
