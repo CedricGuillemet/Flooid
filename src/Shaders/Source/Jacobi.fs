@@ -4,8 +4,8 @@ $input v_texcoord0
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER2D(s_texVelocity, 0);
-SAMPLER2D(s_texDensity, 1);
+SAMPLER2D(s_texVelocity, 0); // x
+SAMPLER2D(s_texDensity, 1); // b
 
 uniform float alpha;
 uniform float beta;
