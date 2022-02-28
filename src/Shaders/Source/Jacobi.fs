@@ -7,8 +7,7 @@ $input v_texcoord0
 SAMPLER2D(s_texVelocity, 0); // x
 SAMPLER2D(s_texDensity, 1); // b
 
-uniform float alpha;
-uniform float beta;
+uniform vec4 jacobiParameters;//alpha, beta
 
 void main()
 {
@@ -22,5 +21,5 @@ void main()
 
     vec4 bC = texture2D(s_texDensity, v_texcoord0);
 
-    gl_FragColor = (xL + xR + xB + xT + alpha * bC) / beta;
+    gl_FragColor = (xL + xR + xB + xT + jacobiParameters.x * bC) / jacobiParameters.y;
 }

@@ -73,8 +73,7 @@ void Flooid::Init()
     m_brushUniform = bgfx::createUniform("brush", bgfx::UniformType::Vec4);
     m_brushDirectionUniform = bgfx::createUniform("brushDirection", bgfx::UniformType::Vec4);
     m_brushColorUniform = bgfx::createUniform("brushColor", bgfx::UniformType::Vec4);
-    m_alphaUniform = bgfx::createUniform("alpha", bgfx::UniformType::Vec4);
-    m_betaUniform = bgfx::createUniform("beta", bgfx::UniformType::Vec4);
+    m_jacobiParametersUniform = bgfx::createUniform("alpha", bgfx::UniformType::Vec4);
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
 
     
@@ -104,6 +103,10 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setUniform(m_brushDirectionUniform, brushDirection);
     float advection[4] = {1.f, 1.f, 1.f, 1.f};
     bgfx::setUniform(m_advectionUniform, advection);
+
+    // jacobi
+    float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
+    bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
     
     // paint density
     float brushDensity[4] = { parameters.x, parameters.y, 0.1f, parameters.lButDown ? 0.5f : 0.f };
@@ -145,14 +148,14 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setTexture(1, m_texAdvectUniform, bgfx::getTexture(m_RT2));
     bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2));
     bgfx::submit(4, m_advectProgram);
-
+    
     // divergence
     bgfx::setViewFrameBuffer(5, m_RTdivergence);
     bgfx::setViewRect(5, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state);
-    bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2adv));
+    bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RT2adv), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::submit(5, m_divergenceProgram);
 
     // clear density
@@ -172,8 +175,8 @@ void Flooid::Tick(const Parameters& parameters)
         bgfx::setIndexBuffer(m_ibh);
         bgfx::setState(state);
         
-        bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RTjacobi0));
-        bgfx::setTexture(1, m_texDensityUniform, bgfx::getTexture(m_RTdivergence));
+        bgfx::setTexture(0, m_texVelocityUniform, bgfx::getTexture(m_RTjacobi0), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setTexture(1, m_texDensityUniform, bgfx::getTexture(m_RTdivergence), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
         bgfx::submit(viewId, m_jacobiProgram);
         
         bx::swap(m_RTjacobi0, m_RTjacobi1);
@@ -186,8 +189,8 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state);
-    bgfx::setTexture(0, m_texPressureUniform, bgfx::getTexture(m_RTjacobi0));
-    bgfx::setTexture(1, m_texVelocityUniform, bgfx::getTexture(m_RT2adv));
+    bgfx::setTexture(0, m_texPressureUniform, bgfx::getTexture(m_RTjacobi0), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texVelocityUniform, bgfx::getTexture(m_RT2adv), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::submit(viewId, m_gradientProgram);
     
     // draw RT

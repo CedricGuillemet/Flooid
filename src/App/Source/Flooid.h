@@ -43,8 +43,7 @@ public:
     bgfx::UniformHandle m_brushUniform;
     bgfx::UniformHandle m_brushDirectionUniform;
     bgfx::UniformHandle m_brushColorUniform;
-    bgfx::UniformHandle m_alphaUniform;
-    bgfx::UniformHandle m_betaUniform;
+    bgfx::UniformHandle m_jacobiParametersUniform;
     bgfx::UniformHandle m_advectionUniform;
 
     
