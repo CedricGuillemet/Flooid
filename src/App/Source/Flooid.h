@@ -30,7 +30,7 @@ public:
     };
 	bgfx::VertexBufferHandle m_vbh;
 	bgfx::IndexBufferHandle m_ibh;
-	bgfx::ProgramHandle m_drawRTProgram;
+
     bgfx::FrameBufferHandle m_RT1;
     bgfx::FrameBufferHandle m_RT2;
     bgfx::FrameBufferHandle m_RT1adv;

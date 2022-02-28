@@ -14,12 +14,12 @@ void main()
     vec2 dx = vec2(1.0 / 256.0, 0.0);
     vec2 dy = vec2(0.0, 1.0 / 256.0);
 
-    vec4 xL = texture2D(s_texVelocity, v_texcoord0 - dx);
-    vec4 xR = texture2D(s_texVelocity, v_texcoord0 + dx);
-    vec4 xB = texture2D(s_texVelocity, v_texcoord0 - dy);
-    vec4 xT = texture2D(s_texVelocity, v_texcoord0 + dy);
+    float xL = texture2D(s_texVelocity, v_texcoord0 - dx).x;
+    float xR = texture2D(s_texVelocity, v_texcoord0 + dx).x;
+    float xB = texture2D(s_texVelocity, v_texcoord0 - dy).x;
+    float xT = texture2D(s_texVelocity, v_texcoord0 + dy).x;
 
-    vec4 bC = texture2D(s_texDensity, v_texcoord0);
+    float bC = texture2D(s_texDensity, v_texcoord0).x;
 
-    gl_FragColor = (xL + xR + xB + xT + jacobiParameters.x * bC) / jacobiParameters.y;
+    gl_FragColor = vec4((xL + xR + xB + xT + jacobiParameters.x * bC) / jacobiParameters.y, 0., 0., 1.);
 }

@@ -13,6 +13,4 @@ void main()
 {
     vec2 uvAdvected = v_texcoord0 - advection.x * texture2D(s_texVelocity, v_texcoord0).xy;
     gl_FragColor = vec4(advection.y * texture2D(s_texAdvect, uvAdvected).xy, 0.0, 1.0);
-
-    //gl_FragColor = vec4(texture2D(s_texAdvect, v_texcoord0).xy, 0.0, 1.0);
 }
