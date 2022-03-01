@@ -6,6 +6,7 @@ public:
     struct Parameters
     {
         int m_iterationCount;
+        int m_display;
         float x, y;
         float dx, dy;
         bool lButDown, rButDown;
@@ -36,22 +37,22 @@ public:
     bgfx::FrameBufferHandle m_RT1adv;
     bgfx::FrameBufferHandle m_RT2adv;
     bgfx::FrameBufferHandle m_RTdivergence;
-    bgfx::FrameBufferHandle m_RTjacobi0;
-    bgfx::FrameBufferHandle m_RTjacobi1;
+    bgfx::FrameBufferHandle m_RTjacobi[2];
 
-    
     bgfx::UniformHandle m_brushUniform;
     bgfx::UniformHandle m_brushDirectionUniform;
     bgfx::UniformHandle m_brushColorUniform;
     bgfx::UniformHandle m_jacobiParametersUniform;
     bgfx::UniformHandle m_advectionUniform;
 
-    
     bgfx::UniformHandle m_texVelocityUniform;
     bgfx::UniformHandle m_texAdvectUniform;
     bgfx::UniformHandle m_texColorUniform;
     bgfx::UniformHandle m_texPressureUniform;
     bgfx::UniformHandle m_texDensityUniform;
+
+    bgfx::UniformHandle m_texJacoviUniform;
+    bgfx::UniformHandle m_texDivergenceUniform;
 
     bgfx::ProgramHandle m_renderRTProgram;
     bgfx::ProgramHandle m_advectProgram;
