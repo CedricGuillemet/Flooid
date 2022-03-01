@@ -5,10 +5,16 @@
 #include "Shaders.h"
 
 /*
- 
- - fluid works
  - compute shader
- -
+ - viscosity
+ - vorticity
+ - node based solving
+ - generator node
+ - speed generator
+ - gizmo
+ - rendering
+ - 3D
+ - node based graphics editing
  */
 
 bgfx::VertexLayout Flooid::QuadVertex::ms_layout;
