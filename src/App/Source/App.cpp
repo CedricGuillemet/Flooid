@@ -253,11 +253,14 @@ public:
                   ImVec2(m_width / 5.0f, m_height / 3.5f)
                 , ImGuiCond_FirstUseEver
                 );
+
+			static Flooid::Parameters parameters{};
+
 			ImGui::Begin("Transform"
 				, NULL
 				, 0
 				);
-
+			ImGui::Combo("Display", &parameters.m_display, "Density\0Velocity\0Divergence\0Pressure\0");
             //editTransform(view, proj, m_world);
 			ImGui::End();
 
@@ -291,7 +294,7 @@ public:
 			bgfx::submit(0, m_program);
 			*/
 			auto& io = ImGui::GetIO();
-			Flooid::Parameters parameters{};
+			
 			parameters.x = io.MousePos.x / io.DisplaySize.x;
 			parameters.y = io.MousePos.y / io.DisplaySize.y;
 			parameters.dx = io.MouseDelta.x / io.DisplaySize.x;

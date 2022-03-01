@@ -4,8 +4,8 @@ $input v_texcoord0
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER2D(s_texVelocity, 0);
-SAMPLER2D(s_texPressure, 1);
+SAMPLER2D(s_texPressure, 0);
+SAMPLER2D(s_texVelocity, 1);
 
 void main()
 {
