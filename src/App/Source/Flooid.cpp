@@ -6,24 +6,6 @@
 
 /*
  
- Advect
-  5-> 0 Vel
- 6 -> 1 dens
- Divergence
- 0 -> 7
- Clear 4
- Jacobi
- 4,7 x,b vel, dens -> 3
- 3,7 -> 4
-
- Gradient
- 4,0 -> 5
- 
- */
-
-
-/*
- 
  - fluid works
  - compute shader
  -
