@@ -109,10 +109,7 @@ void Flooid::Tick(const Parameters& parameters)
     // paint density
     float brushDensity[4] = { parameters.x, parameters.y, 0.1f, parameters.lButDown ? 0.1f : 0.f };
     bgfx::setUniform(m_brushUniform, brushDensity);
-
-    //Texture* texturePaintDensity = m_textureProvider.Acquire();
     m_densityTexture->BindAsTarget(1);
-    //bgfx::setViewFrameBuffer(1, m_RT1);
     bgfx::setViewRect(1, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
@@ -122,8 +119,6 @@ void Flooid::Tick(const Parameters& parameters)
     // paint velocity
     float brushVelocity[4] = { parameters.x, parameters.y, 0.1f, parameters.rButDown ? 0.5f : 0.f };
     bgfx::setUniform(m_brushUniform, brushVelocity);
-    //bgfx::setViewFrameBuffer(2, m_RT2);
-    //Texture* texturePaintVelocity = m_textureProvider.Acquire();
     m_velocityTexture->BindAsTarget(2);
     bgfx::setViewRect(2, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
     bgfx::setVertexBuffer(0, m_vbh);
