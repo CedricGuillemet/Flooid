@@ -55,10 +55,11 @@ public:
     bgfx::UniformHandle m_texDivergenceUniform;
 
     bgfx::ProgramHandle m_renderRTProgram;
-    bgfx::ProgramHandle m_advectProgram;
-    bgfx::ProgramHandle m_divergenceProgram;
-    bgfx::ProgramHandle m_gradientProgram;
-    bgfx::ProgramHandle m_jacobiProgram;
     bgfx::ProgramHandle m_paintDensityProgram;
     bgfx::ProgramHandle m_paintVelocityProgram;
+
+    bgfx::ProgramHandle m_divergenceCSProgram;
+    bgfx::ProgramHandle m_gradientCSProgram;
+    bgfx::ProgramHandle m_jacobiCSProgram;
+    bgfx::ProgramHandle m_advectCSProgram;
 };

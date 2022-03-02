@@ -22,25 +22,45 @@
 #include "Quad_vs_spv.h"
 #include "Quad_vs_essl.h"
 #ifdef WIN32
-#include "TestCompute_cs_dx9.h"
-#include "TestCompute_cs_dx11.h"
+#include "Advect_cs_dx9.h"
+#include "Advect_cs_dx11.h"
 #endif
-#include "TestCompute_cs_glsl.h"
+#include "Advect_cs_glsl.h"
 #ifdef __APPLE__
-#include "TestCompute_cs_mtl.h"
+#include "Advect_cs_mtl.h"
 #endif
-#include "TestCompute_cs_spv.h"
-#include "TestCompute_cs_essl.h"
+#include "Advect_cs_spv.h"
+#include "Advect_cs_essl.h"
 #ifdef WIN32
-#include "Advect_fs_dx9.h"
-#include "Advect_fs_dx11.h"
+#include "Divergence_cs_dx9.h"
+#include "Divergence_cs_dx11.h"
 #endif
-#include "Advect_fs_glsl.h"
+#include "Divergence_cs_glsl.h"
 #ifdef __APPLE__
-#include "Advect_fs_mtl.h"
+#include "Divergence_cs_mtl.h"
 #endif
-#include "Advect_fs_spv.h"
-#include "Advect_fs_essl.h"
+#include "Divergence_cs_spv.h"
+#include "Divergence_cs_essl.h"
+#ifdef WIN32
+#include "Gradient_cs_dx9.h"
+#include "Gradient_cs_dx11.h"
+#endif
+#include "Gradient_cs_glsl.h"
+#ifdef __APPLE__
+#include "Gradient_cs_mtl.h"
+#endif
+#include "Gradient_cs_spv.h"
+#include "Gradient_cs_essl.h"
+#ifdef WIN32
+#include "Jacobi_cs_dx9.h"
+#include "Jacobi_cs_dx11.h"
+#endif
+#include "Jacobi_cs_glsl.h"
+#ifdef __APPLE__
+#include "Jacobi_cs_mtl.h"
+#endif
+#include "Jacobi_cs_spv.h"
+#include "Jacobi_cs_essl.h"
 #ifdef WIN32
 #include "Default_fs_dx9.h"
 #include "Default_fs_dx11.h"
@@ -51,36 +71,6 @@
 #endif
 #include "Default_fs_spv.h"
 #include "Default_fs_essl.h"
-#ifdef WIN32
-#include "Divergence_fs_dx9.h"
-#include "Divergence_fs_dx11.h"
-#endif
-#include "Divergence_fs_glsl.h"
-#ifdef __APPLE__
-#include "Divergence_fs_mtl.h"
-#endif
-#include "Divergence_fs_spv.h"
-#include "Divergence_fs_essl.h"
-#ifdef WIN32
-#include "Gradient_fs_dx9.h"
-#include "Gradient_fs_dx11.h"
-#endif
-#include "Gradient_fs_glsl.h"
-#ifdef __APPLE__
-#include "Gradient_fs_mtl.h"
-#endif
-#include "Gradient_fs_spv.h"
-#include "Gradient_fs_essl.h"
-#ifdef WIN32
-#include "Jacobi_fs_dx9.h"
-#include "Jacobi_fs_dx11.h"
-#endif
-#include "Jacobi_fs_glsl.h"
-#ifdef __APPLE__
-#include "Jacobi_fs_mtl.h"
-#endif
-#include "Jacobi_fs_spv.h"
-#include "Jacobi_fs_essl.h"
 #ifdef WIN32
 #include "PaintDensity_fs_dx9.h"
 #include "PaintDensity_fs_dx11.h"
