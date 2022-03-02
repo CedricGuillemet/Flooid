@@ -5,19 +5,22 @@
 #include "Shaders.h"
 
 /*
- - compute shader
- - node based solving + texture allocator
+ - texture allocator
+ - compute shader : test only 1 viewid per node
+ - node based solving
  - viscosity node
  - vorticity node
  - generator node
  - speed node
  - paint density node
  - paint speed node
- - solver node
+ - solver nodes
+ - display node
  - gizmo
  - rendering
- - 3D
+ - 3D / camera
  - node based graphics editing
+ - save/load json
  */
 
 bgfx::VertexLayout Flooid::QuadVertex::ms_layout;
@@ -49,8 +52,8 @@ void Flooid::Init()
 
     m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(quadIndices, sizeof(quadIndices) ) );
 
-    //const auto texFormat = bgfx::TextureFormat::RG16F;
-    const auto texFormat = bgfx::TextureFormat::RGBA32F;
+    const auto texFormat = bgfx::TextureFormat::RG16F;
+    //const auto texFormat = bgfx::TextureFormat::RGBA32F;
     m_RT1 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat);
     m_RT2 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat);
 
