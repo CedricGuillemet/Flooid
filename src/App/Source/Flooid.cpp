@@ -6,11 +6,14 @@
 
 /*
  - compute shader
- - viscosity
- - vorticity
- - node based solving
+ - node based solving + texture allocator
+ - viscosity node
+ - vorticity node
  - generator node
- - speed generator
+ - speed node
+ - paint density node
+ - paint speed node
+ - solver node
  - gizmo
  - rendering
  - 3D
@@ -81,6 +84,9 @@ void Flooid::Init()
     m_jacobiProgram = App::LoadProgram("Quad_vs", "Jacobi_fs");
     m_paintDensityProgram = App::LoadProgram("Quad_vs", "PaintDensity_fs");
     m_paintVelocityProgram = App::LoadProgram("Quad_vs", "PaintVelocity_fs");
+
+
+    //auto cs = App::LoadProgram("TestCompute_cs", nullptr);
 }
 
 void Flooid::Tick(const Parameters& parameters)

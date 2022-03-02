@@ -68,7 +68,7 @@ endfunction()
     FILE(WRITE ${shaders_cpp_file} "#include \"EmbeddedShaders.h\"\n#include \"bgfx_utils.h\"\nstatic const bgfx::EmbeddedShader embeddedShaders[] =\n{\n")
 
     AddShaders("vs" "vertex" "vs_5_0")
-    AddShaders("cs" "compute" "ps_5_0")
+    AddShaders("cs" "compute" "cs_5_0")
     AddShaders("fs" "fragment" "ps_5_0")
 
     FILE(APPEND ${shaders_cpp_file} "BGFX_EMBEDDED_SHADER_END()\n};\n#include \"ShaderHelper.h\"\n")

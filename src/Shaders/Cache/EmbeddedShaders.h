@@ -22,6 +22,16 @@
 #include "Quad_vs_spv.h"
 #include "Quad_vs_essl.h"
 #ifdef WIN32
+#include "TestCompute_cs_dx9.h"
+#include "TestCompute_cs_dx11.h"
+#endif
+#include "TestCompute_cs_glsl.h"
+#ifdef __APPLE__
+#include "TestCompute_cs_mtl.h"
+#endif
+#include "TestCompute_cs_spv.h"
+#include "TestCompute_cs_essl.h"
+#ifdef WIN32
 #include "Advect_fs_dx9.h"
 #include "Advect_fs_dx11.h"
 #endif
