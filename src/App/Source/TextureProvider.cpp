@@ -1,8 +1,8 @@
 #include "TextureProvider.h"
 
+const int TEX_SIZE = 256;
 Texture::Texture()
 {
-    const int TEX_SIZE = 256;
     const auto texFormat = bgfx::TextureFormat::RG16F;
     m_renderTarget = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
 }
@@ -12,9 +12,15 @@ bgfx::TextureHandle Texture::GetTexture()
     return bgfx::getTexture(m_renderTarget);
 }
 
+TextureProvider::~TextureProvider()
+{
+    
+}
+
 void Texture::BindAsTarget(bgfx::ViewId viewId)
 {
     bgfx::setViewFrameBuffer(viewId, m_renderTarget);
+    bgfx::setViewRect(viewId, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
 }
 
 Texture* TextureProvider::Acquire()

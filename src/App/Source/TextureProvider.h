@@ -14,6 +14,7 @@ class TextureProvider
 {
 public:
     TextureProvider() {}
+    ~TextureProvider();
     
     Texture* Acquire();
     void Release(Texture* texture);
