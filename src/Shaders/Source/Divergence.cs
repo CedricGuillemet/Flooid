@@ -18,6 +18,6 @@ void main()
 
 	float scale = 0.5 / 1.; // 0.5 / gridscale
 	float divergence = scale * (wR - wL + wT - wB);
-
+    //divergence = 1.;
 	imageStore(s_divergenceOut, coord, vec4(divergence, 0, 0, 1));
 }

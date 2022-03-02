@@ -261,6 +261,7 @@ public:
 				, 0
 				);
 			ImGui::Combo("Display", &parameters.m_display, "Density\0Velocity\0Divergence\0Pressure\0");
+
             //editTransform(view, proj, m_world);
 			ImGui::End();
 

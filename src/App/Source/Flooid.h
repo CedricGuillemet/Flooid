@@ -1,3 +1,4 @@
+#include "TextureProvider.h"
 class Flooid
 {
 public:
@@ -31,14 +32,17 @@ public:
     };
 	bgfx::VertexBufferHandle m_vbh;
 	bgfx::IndexBufferHandle m_ibh;
-
+/*
     bgfx::FrameBufferHandle m_RT1;
     bgfx::FrameBufferHandle m_RT2;
     bgfx::FrameBufferHandle m_RT1adv;
     bgfx::FrameBufferHandle m_RT2adv;
     bgfx::FrameBufferHandle m_RTdivergence;
     bgfx::FrameBufferHandle m_RTjacobi[2];
-
+*/
+    Texture* m_densityTexture;
+    Texture* m_velocityTexture;
+    
     bgfx::UniformHandle m_brushUniform;
     bgfx::UniformHandle m_brushDirectionUniform;
     bgfx::UniformHandle m_brushColorUniform;
@@ -62,4 +66,6 @@ public:
     bgfx::ProgramHandle m_gradientCSProgram;
     bgfx::ProgramHandle m_jacobiCSProgram;
     bgfx::ProgramHandle m_advectCSProgram;
+    
+    TextureProvider m_textureProvider;
 };
