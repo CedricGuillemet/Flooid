@@ -6,8 +6,7 @@
 
 /*
  - texture allocator
- - compute shader : test only 1 viewid per node
- - node based solving
+  - node based solving
  - viscosity node
  - vorticity node
  - generator node
@@ -132,7 +131,7 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(5, m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    m_textureProvider.Release(advectedVelocity);
+    
 
     // clear density
     Texture* jacobi[2] = {m_textureProvider.Acquire(), m_textureProvider.Acquire()};
@@ -164,10 +163,11 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, m_velocityTexture->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(7, m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    bgfx::dispatch(8, m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     
     m_textureProvider.Release(jacobi[0]);
     m_textureProvider.Release(jacobi[1]);
+    m_textureProvider.Release(advectedVelocity);
     
     // draw RT
     //bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
@@ -175,23 +175,7 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state);
-/*    switch (parameters.m_display)
-    {
-    case 0:*/
-        bgfx::setTexture(0, m_texColorUniform, m_densityTexture->GetTexture());
-        /*break;
-    case 1:
-        bgfx::setTexture(0, m_texColorUniform, bgfx::getTexture(m_RT2));
-        break;
-    case 2:
-        bgfx::setTexture(0, m_texColorUniform, bgfx::getTexture(m_RTdivergence));
-        break;
-    case 3:
-        bgfx::setTexture(0, m_texColorUniform, bgfx::getTexture(m_RTjacobi[lastJacobiIndex]));
-        break;
-    }
-         */
-    
+    bgfx::setTexture(0, m_texColorUniform, m_densityTexture->GetTexture());
     bgfx::submit(0, m_renderRTProgram);
     
     // swap advect/vel
