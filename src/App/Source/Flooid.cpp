@@ -28,6 +28,7 @@ Flooid::Flooid()
 const int TEX_SIZE = 256;
 void Flooid::Init()
 {
+    m_renderer.Init();
     QuadVertex::Init();
 
     static QuadVertex quadVertices[] =
@@ -57,6 +58,7 @@ void Flooid::Init()
     m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
     m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
+    m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
 
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
@@ -79,12 +81,13 @@ void Flooid::Init()
     m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
     m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
+    m_velocityGenCSProgram = App::LoadProgram("VelocityGen_cs", nullptr);
 }
 
 void Flooid::Tick(const Parameters& parameters)
 {
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
-
+/*
     // uniforms
     float brushColor[4] = { 1.f, 1.f, 1.f, 1.f };
     bgfx::setUniform(m_brushColorUniform, brushColor);
@@ -98,9 +101,11 @@ void Flooid::Tick(const Parameters& parameters)
     float curl[4] = { 2.8f, 2.8f, 1.f, 1.f };
     bgfx::setUniform(m_curlUniform, curl);
 
-    float position[4] = {0.5f, 0.9f, 0.f, 0.1f};
+    float position[4] = {0.5f, 0.95f, 0.f, 0.03f};
     bgfx::setUniform(m_positionUniform, position);
     
+    float direction[4] = {0.f, -0.006f, 0.f, 0.f};
+    bgfx::setUniform(m_directionUniform, direction);
 
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
@@ -144,6 +149,10 @@ void Flooid::Tick(const Parameters& parameters)
     // density gen
     bgfx::setImage(0, advectedDensity->GetTexture(), 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(5, m_densityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+    // velocity gen
+    bgfx::setImage(0, advectedVelocity->GetTexture(), 0, bgfx::Access::ReadWrite);
+    bgfx::dispatch(5, m_velocityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
     // vorticity
     if (1)
@@ -217,4 +226,6 @@ void Flooid::Tick(const Parameters& parameters)
     // swap advect/vel
     m_textureProvider.Release(m_densityTexture);
     m_densityTexture = advectedDensity;
+    */
+    m_renderer.Render();
 }

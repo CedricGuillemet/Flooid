@@ -49,3 +49,17 @@ target_link_libraries(ImGuizmo imgui)
 target_include_directories(ImGuizmo
             PUBLIC "ImGuizmo"
             )
+
+################################################################
+### Immath
+
+file(GLOB IMMATH_SRC_FILES
+    Immath/Immath.h
+    Immath/Immath.cpp
+)
+
+add_library(Immath ${IMMATH_SRC_FILES})
+target_include_directories(Immath
+            PUBLIC "Immath"
+            )
+

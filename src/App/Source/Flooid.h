@@ -1,4 +1,6 @@
 #include "TextureProvider.h"
+#include "Renderer.h"
+
 class Flooid
 {
 public:
@@ -32,14 +34,7 @@ public:
     };
 	bgfx::VertexBufferHandle m_vbh;
 	bgfx::IndexBufferHandle m_ibh;
-/*
-    bgfx::FrameBufferHandle m_RT1;
-    bgfx::FrameBufferHandle m_RT2;
-    bgfx::FrameBufferHandle m_RT1adv;
-    bgfx::FrameBufferHandle m_RT2adv;
-    bgfx::FrameBufferHandle m_RTdivergence;
-    bgfx::FrameBufferHandle m_RTjacobi[2];
-*/
+
     Texture* m_densityTexture;
     Texture* m_velocityTexture;
     
@@ -51,6 +46,7 @@ public:
     bgfx::UniformHandle m_curlUniform;
     bgfx::UniformHandle m_epsilonUniform;
     bgfx::UniformHandle m_positionUniform;
+    bgfx::UniformHandle m_directionUniform;
 
     bgfx::UniformHandle m_texVelocityUniform;
     bgfx::UniformHandle m_texAdvectUniform;
@@ -58,7 +54,6 @@ public:
     bgfx::UniformHandle m_texPressureUniform;
     bgfx::UniformHandle m_texDensityUniform;
     bgfx::UniformHandle m_texVorticityUniform;
-    //bgfx::UniformHandle m_texDensityUniform;
 
     bgfx::UniformHandle m_texJacoviUniform;
     bgfx::UniformHandle m_texDivergenceUniform;
@@ -74,6 +69,8 @@ public:
     bgfx::ProgramHandle m_vorticityCSProgram;
     bgfx::ProgramHandle m_vorticityForceCSProgram;
     bgfx::ProgramHandle m_densityGenCSProgram;
+    bgfx::ProgramHandle m_velocityGenCSProgram;
     
     TextureProvider m_textureProvider;
+    Renderer m_renderer;
 };

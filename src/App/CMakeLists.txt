@@ -23,6 +23,7 @@ target_link_libraries(${EXE_NAME} bimg)
 target_link_libraries(${EXE_NAME} bgfx)
 target_link_libraries(${EXE_NAME} example-common)
 target_link_libraries(${EXE_NAME} Shaders)
+target_link_libraries(${EXE_NAME} Immath)
 
 if(MSVC)
     set_target_properties(${EXE_NAME} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")

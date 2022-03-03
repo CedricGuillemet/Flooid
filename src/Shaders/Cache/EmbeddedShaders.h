@@ -22,6 +22,16 @@
 #include "Quad_vs_spv.h"
 #include "Quad_vs_essl.h"
 #ifdef WIN32
+#include "Render_vs_dx9.h"
+#include "Render_vs_dx11.h"
+#endif
+#include "Render_vs_glsl.h"
+#ifdef __APPLE__
+#include "Render_vs_mtl.h"
+#endif
+#include "Render_vs_spv.h"
+#include "Render_vs_essl.h"
+#ifdef WIN32
 #include "Advect_cs_dx9.h"
 #include "Advect_cs_dx11.h"
 #endif
@@ -72,6 +82,16 @@
 #include "Jacobi_cs_spv.h"
 #include "Jacobi_cs_essl.h"
 #ifdef WIN32
+#include "VelocityGen_cs_dx9.h"
+#include "VelocityGen_cs_dx11.h"
+#endif
+#include "VelocityGen_cs_glsl.h"
+#ifdef __APPLE__
+#include "VelocityGen_cs_mtl.h"
+#endif
+#include "VelocityGen_cs_spv.h"
+#include "VelocityGen_cs_essl.h"
+#ifdef WIN32
 #include "Vorticity_cs_dx9.h"
 #include "Vorticity_cs_dx11.h"
 #endif
@@ -121,6 +141,16 @@
 #endif
 #include "PaintVelocity_fs_spv.h"
 #include "PaintVelocity_fs_essl.h"
+#ifdef WIN32
+#include "Render_fs_dx9.h"
+#include "Render_fs_dx11.h"
+#endif
+#include "Render_fs_glsl.h"
+#ifdef __APPLE__
+#include "Render_fs_mtl.h"
+#endif
+#include "Render_fs_spv.h"
+#include "Render_fs_essl.h"
 #ifdef WIN32
 #include "RenderRT_fs_dx9.h"
 #include "RenderRT_fs_dx11.h"
