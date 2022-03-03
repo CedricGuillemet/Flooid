@@ -5,8 +5,7 @@
 #include "Shaders.h"
 
 /*
- - texture allocator
-  - node based solving
+ - node based solving
  - viscosity node
  - vorticity node
  - generator node
@@ -56,6 +55,9 @@ void Flooid::Init()
     m_brushColorUniform = bgfx::createUniform("brushColor", bgfx::UniformType::Vec4);
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
+    m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
+    m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
+
 
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
@@ -64,6 +66,8 @@ void Flooid::Init()
     m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
     m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
+    m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
+    
 
     m_renderRTProgram = App::LoadProgram("Quad_vs", "RenderRT_fs");
     m_paintDensityProgram = App::LoadProgram("Quad_vs", "PaintDensity_fs");
@@ -73,6 +77,8 @@ void Flooid::Init()
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
     m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
+    m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
+    m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -86,6 +92,11 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setUniform(m_brushDirectionUniform, brushDirection);
     float advection[4] = {1.f, 1.f, 1.f, 1.f};
     bgfx::setUniform(m_advectionUniform, advection);
+
+    float epsilon[4] = { 0.0002f, 1.f, 1.f, 1.f };
+    bgfx::setUniform(m_epsilonUniform, epsilon);
+    float curl[4] = { 3.8f, 3.8f, 1.f, 1.f };
+    bgfx::setUniform(m_curlUniform, curl);
 
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
@@ -125,6 +136,24 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setTexture(1, m_texAdvectUniform, m_velocityTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
     bgfx::setImage(2, advectedVelocity->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(5, m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+    // vorticity
+    if (1)
+    {
+        Texture* vorticity = m_textureProvider.Acquire();
+        bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setImage(1, vorticity->GetTexture(), 0, bgfx::Access::Write);
+        bgfx::dispatch(5, m_vorticityCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+        Texture* vorticityForce = m_textureProvider.Acquire();
+        bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setTexture(1, m_texVorticityUniform, vorticity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setImage(2, vorticityForce->GetTexture(), 0, bgfx::Access::Write);
+        bgfx::dispatch(5, m_vorticityForceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+        m_textureProvider.Release(vorticity);
+        m_textureProvider.Release(advectedVelocity);
+        advectedVelocity = vorticityForce;
+    }
 
     // divergence
     Texture* divergence = m_textureProvider.Acquire();

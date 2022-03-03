@@ -48,12 +48,16 @@ public:
     bgfx::UniformHandle m_brushColorUniform;
     bgfx::UniformHandle m_jacobiParametersUniform;
     bgfx::UniformHandle m_advectionUniform;
+    bgfx::UniformHandle m_curlUniform;
+    bgfx::UniformHandle m_epsilonUniform;
 
     bgfx::UniformHandle m_texVelocityUniform;
     bgfx::UniformHandle m_texAdvectUniform;
     bgfx::UniformHandle m_texColorUniform;
     bgfx::UniformHandle m_texPressureUniform;
     bgfx::UniformHandle m_texDensityUniform;
+    bgfx::UniformHandle m_texVorticityUniform;
+    //bgfx::UniformHandle m_texDensityUniform;
 
     bgfx::UniformHandle m_texJacoviUniform;
     bgfx::UniformHandle m_texDivergenceUniform;
@@ -66,6 +70,8 @@ public:
     bgfx::ProgramHandle m_gradientCSProgram;
     bgfx::ProgramHandle m_jacobiCSProgram;
     bgfx::ProgramHandle m_advectCSProgram;
+    bgfx::ProgramHandle m_vorticityCSProgram;
+    bgfx::ProgramHandle m_vorticityForceCSProgram;
     
     TextureProvider m_textureProvider;
 };

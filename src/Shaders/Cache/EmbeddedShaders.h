@@ -62,6 +62,26 @@
 #include "Jacobi_cs_spv.h"
 #include "Jacobi_cs_essl.h"
 #ifdef WIN32
+#include "Vorticity_cs_dx9.h"
+#include "Vorticity_cs_dx11.h"
+#endif
+#include "Vorticity_cs_glsl.h"
+#ifdef __APPLE__
+#include "Vorticity_cs_mtl.h"
+#endif
+#include "Vorticity_cs_spv.h"
+#include "Vorticity_cs_essl.h"
+#ifdef WIN32
+#include "VorticityForce_cs_dx9.h"
+#include "VorticityForce_cs_dx11.h"
+#endif
+#include "VorticityForce_cs_glsl.h"
+#ifdef __APPLE__
+#include "VorticityForce_cs_mtl.h"
+#endif
+#include "VorticityForce_cs_spv.h"
+#include "VorticityForce_cs_essl.h"
+#ifdef WIN32
 #include "Default_fs_dx9.h"
 #include "Default_fs_dx11.h"
 #endif
