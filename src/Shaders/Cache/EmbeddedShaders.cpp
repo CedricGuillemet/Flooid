@@ -5,6 +5,7 @@ static const bgfx::EmbeddedShader embeddedShaders[] =
 BGFX_EMBEDDED_SHADER(Default_vs),
 BGFX_EMBEDDED_SHADER(Quad_vs),
 BGFX_EMBEDDED_SHADER(Advect_cs),
+BGFX_EMBEDDED_SHADER(DensityGen_cs),
 BGFX_EMBEDDED_SHADER(Divergence_cs),
 BGFX_EMBEDDED_SHADER(Gradient_cs),
 BGFX_EMBEDDED_SHADER(Jacobi_cs),

@@ -6,7 +6,6 @@
 
 /*
  - node based solving
- - viscosity node
  - vorticity node
  - generator node
  - speed node
@@ -57,7 +56,7 @@ void Flooid::Init()
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
     m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
     m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
-
+    m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
 
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
@@ -79,6 +78,7 @@ void Flooid::Init()
     m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
     m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
     m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
+    m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -95,8 +95,12 @@ void Flooid::Tick(const Parameters& parameters)
 
     float epsilon[4] = { 0.0002f, 1.f, 1.f, 1.f };
     bgfx::setUniform(m_epsilonUniform, epsilon);
-    float curl[4] = { 3.8f, 3.8f, 1.f, 1.f };
+    float curl[4] = { 2.8f, 2.8f, 1.f, 1.f };
     bgfx::setUniform(m_curlUniform, curl);
+
+    float position[4] = {0.5f, 0.9f, 0.f, 0.1f};
+    bgfx::setUniform(m_positionUniform, position);
+    
 
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
@@ -137,6 +141,10 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setImage(2, advectedVelocity->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(5, m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
+    // density gen
+    bgfx::setImage(0, advectedDensity->GetTexture(), 0, bgfx::Access::ReadWrite);
+    bgfx::dispatch(5, m_densityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
     // vorticity
     if (1)
     {
@@ -160,7 +168,6 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(5, m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    
 
     // clear density
     Texture* jacobi[2] = {m_textureProvider.Acquire(), m_textureProvider.Acquire()};

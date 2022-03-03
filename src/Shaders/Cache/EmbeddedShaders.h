@@ -32,6 +32,16 @@
 #include "Advect_cs_spv.h"
 #include "Advect_cs_essl.h"
 #ifdef WIN32
+#include "DensityGen_cs_dx9.h"
+#include "DensityGen_cs_dx11.h"
+#endif
+#include "DensityGen_cs_glsl.h"
+#ifdef __APPLE__
+#include "DensityGen_cs_mtl.h"
+#endif
+#include "DensityGen_cs_spv.h"
+#include "DensityGen_cs_essl.h"
+#ifdef WIN32
 #include "Divergence_cs_dx9.h"
 #include "Divergence_cs_dx11.h"
 #endif

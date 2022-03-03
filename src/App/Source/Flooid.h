@@ -50,6 +50,7 @@ public:
     bgfx::UniformHandle m_advectionUniform;
     bgfx::UniformHandle m_curlUniform;
     bgfx::UniformHandle m_epsilonUniform;
+    bgfx::UniformHandle m_positionUniform;
 
     bgfx::UniformHandle m_texVelocityUniform;
     bgfx::UniformHandle m_texAdvectUniform;
@@ -72,6 +73,7 @@ public:
     bgfx::ProgramHandle m_advectCSProgram;
     bgfx::ProgramHandle m_vorticityCSProgram;
     bgfx::ProgramHandle m_vorticityForceCSProgram;
+    bgfx::ProgramHandle m_densityGenCSProgram;
     
     TextureProvider m_textureProvider;
 };
