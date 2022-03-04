@@ -5,6 +5,8 @@
 #include "Shaders.h"
 
 /*
+ - inclined background
+ - raymarching lighting
  - node based solving
  - vorticity node
  - generator node
@@ -15,7 +17,6 @@
  - display node
  - gizmo
  - rendering
- - 3D / camera
  - node based graphics editing
  - save/load json
  */
@@ -64,7 +65,7 @@ void Flooid::Init()
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
     m_texColorUniform = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
     m_texPressureUniform = bgfx::createUniform("s_texPressure", bgfx::UniformType::Sampler);
-    m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
+    //m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
     m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
     m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
@@ -86,14 +87,18 @@ void Flooid::Init()
 
 void Flooid::Tick(const Parameters& parameters)
 {
+    if (parameters.lButDown)
+    {
+        m_renderer.Input(parameters.dx, parameters.dy);
+    }
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
-/*
+
     // uniforms
     float brushColor[4] = { 1.f, 1.f, 1.f, 1.f };
     bgfx::setUniform(m_brushColorUniform, brushColor);
     float brushDirection[4] = {parameters.dx, parameters.dy, 0.f, 0.f};
     bgfx::setUniform(m_brushDirectionUniform, brushDirection);
-    float advection[4] = {1.f, 1.f, 1.f, 1.f};
+    float advection[4] = {1.f, 0.997f, 1.f, 1.f};
     bgfx::setUniform(m_advectionUniform, advection);
 
     float epsilon[4] = { 0.0002f, 1.f, 1.f, 1.f };
@@ -101,16 +106,16 @@ void Flooid::Tick(const Parameters& parameters)
     float curl[4] = { 2.8f, 2.8f, 1.f, 1.f };
     bgfx::setUniform(m_curlUniform, curl);
 
-    float position[4] = {0.5f, 0.95f, 0.f, 0.03f};
+    float position[4] = {0.5f, 1.f, 0.f, 0.1f};
     bgfx::setUniform(m_positionUniform, position);
     
-    float direction[4] = {0.f, -0.006f, 0.f, 0.f};
+    float direction[4] = {0.f, -0.005f, 0.f, 0.f};
     bgfx::setUniform(m_directionUniform, direction);
 
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
-    
+    /*
     // paint density
     float brushDensity[4] = { parameters.x, parameters.y, 0.1f, parameters.lButDown ? 0.1f : 0.f };
     bgfx::setUniform(m_brushUniform, brushDensity);
@@ -128,7 +133,7 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_ADD);
     bgfx::submit(2, m_paintVelocityProgram);
-    
+    */
     // bunch of CS
     bgfx::setViewFrameBuffer(5, { bgfx::kInvalidHandle });
 
@@ -216,16 +221,19 @@ void Flooid::Tick(const Parameters& parameters)
     
     // draw RT
     //bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
-    bgfx::setViewFrameBuffer(0, {bgfx::kInvalidHandle});
+    /*bgfx::setViewFrameBuffer(0, {bgfx::kInvalidHandle});
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state);
     bgfx::setTexture(0, m_texColorUniform, m_densityTexture->GetTexture());
     bgfx::submit(0, m_renderRTProgram);
+    */
     
+    m_renderer.Render(m_densityTexture);
+
     // swap advect/vel
     m_textureProvider.Release(m_densityTexture);
     m_densityTexture = advectedDensity;
-    */
-    m_renderer.Render();
+    
+    
 }

@@ -12,6 +12,16 @@
 #include "Default_vs_spv.h"
 #include "Default_vs_essl.h"
 #ifdef WIN32
+#include "Ground_vs_dx9.h"
+#include "Ground_vs_dx11.h"
+#endif
+#include "Ground_vs_glsl.h"
+#ifdef __APPLE__
+#include "Ground_vs_mtl.h"
+#endif
+#include "Ground_vs_spv.h"
+#include "Ground_vs_essl.h"
+#ifdef WIN32
 #include "Quad_vs_dx9.h"
 #include "Quad_vs_dx11.h"
 #endif
@@ -121,6 +131,16 @@
 #endif
 #include "Default_fs_spv.h"
 #include "Default_fs_essl.h"
+#ifdef WIN32
+#include "Ground_fs_dx9.h"
+#include "Ground_fs_dx11.h"
+#endif
+#include "Ground_fs_glsl.h"
+#ifdef __APPLE__
+#include "Ground_fs_mtl.h"
+#endif
+#include "Ground_fs_spv.h"
+#include "Ground_fs_essl.h"
 #ifdef WIN32
 #include "PaintDensity_fs_dx9.h"
 #include "PaintDensity_fs_dx11.h"

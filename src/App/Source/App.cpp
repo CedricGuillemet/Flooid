@@ -294,6 +294,7 @@ public:
 			// Submit primitive for rendering to view 0.
 			bgfx::submit(0, m_program);
 			*/
+			m_flooid.SetDisplaySize(uint16_t(m_width), uint16_t(m_height));
 			auto& io = ImGui::GetIO();
 			
 			parameters.x = io.MousePos.x / io.DisplaySize.x;

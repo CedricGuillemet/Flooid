@@ -4,7 +4,10 @@ $input v_texcoord0
 #include "CommonFS.shader"
 #include "Common.shader"
 
+SAMPLER2D(s_texDensity,  0);
+
 void main()
 {
-    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+    vec4 density = texture2D(s_texDensity, v_texcoord0);
+    gl_FragColor = vec4(density.x, density.x, density.x, density.x *2.);
 }

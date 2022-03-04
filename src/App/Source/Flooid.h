@@ -16,6 +16,7 @@ public:
     };
 
     void Init();
+    void SetDisplaySize(uint16_t width, uint16_t height) { m_renderer.SetDisplaySize(width, height); }
     void Tick(const Parameters& parameters);
     
 
@@ -52,7 +53,7 @@ public:
     bgfx::UniformHandle m_texAdvectUniform;
     bgfx::UniformHandle m_texColorUniform;
     bgfx::UniformHandle m_texPressureUniform;
-    bgfx::UniformHandle m_texDensityUniform;
+    //bgfx::UniformHandle m_texDensityUniform;
     bgfx::UniformHandle m_texVorticityUniform;
 
     bgfx::UniformHandle m_texJacoviUniform;
