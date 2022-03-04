@@ -5,7 +5,6 @@
 #include "Shaders.h"
 
 /*
- - inclined background
  - raymarching lighting
  - node based solving
  - vorticity node

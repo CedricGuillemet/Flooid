@@ -6,15 +6,12 @@ struct Texture;
 class Renderer
 {
 public:
-    Renderer() : m_camera(bgfx::getCaps()->homogeneousDepth) {}
+    Renderer() : m_camera(bgfx::getCaps()->homogeneousDepth, 3.3f, 0.f) {}
     void Init();
     
     void Input(float dx, float dy) { m_camera.Input(dx, dy); }
     void SetDisplaySize(uint16_t width, uint16_t height) { m_camera.SetDisplaySize(width, height); }
     void Render(Texture* texture);
-private:
-    Camera m_camera;
-    
     
     struct Vertex
     {
@@ -31,6 +28,11 @@ private:
 
         static bgfx::VertexLayout ms_layout;
     };
+
+private:
+    Camera m_camera;
+    
+    
     bgfx::VertexBufferHandle m_vbh;
     bgfx::IndexBufferHandle m_ibh;
     bgfx::VertexBufferHandle m_vbhGround;
