@@ -4,7 +4,7 @@
 class Renderer
 {
 public:
-    Renderer() {}
+    Renderer() : m_camera(bgfx::getCaps()->homogeneousDepth) {}
     void Init();
     
     void Render();
