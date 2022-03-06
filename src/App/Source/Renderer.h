@@ -16,12 +16,14 @@ public:
     struct Vertex
     {
         float x,y,z;
+        float nx, ny, nz;
         float u, v;
         static void Init()
         {
             ms_layout
                 .begin()
                 .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
                 .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
                 .end();
         }

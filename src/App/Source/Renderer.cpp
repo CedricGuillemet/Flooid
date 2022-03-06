@@ -32,8 +32,9 @@ void GenerateCurvedGrid(std::vector<Renderer::Vertex>& vertices, std::vector<uin
     {
         const float t = float(i) / float(tesselationSegments);
         const float ng = t * Imm::PI * 0.5f + Imm::PI * 1.5f;
-        vertices.push_back({-halfWidth, sinf(ng) + 1.f, cosf(ng) + offsetZ, -halfWidth, t * quarterCircleLength});
-        vertices.push_back({ halfWidth, sinf(ng) + 1.f, cosf(ng) + offsetZ,  halfWidth, t * quarterCircleLength});
+        Imm::vec3 n{0.f, -sinf(ng), -cosf(ng)};
+        vertices.push_back({-halfWidth, sinf(ng) + 1.f, cosf(ng) + offsetZ, n.x, n.y, n.z, -halfWidth, t * quarterCircleLength});
+        vertices.push_back({ halfWidth, sinf(ng) + 1.f, cosf(ng) + offsetZ, n.x, n.y, n.z,  halfWidth, t * quarterCircleLength});
     }
     // ground
     static const int planIndices[] = {0,  2,  1, 1,  2,  3};
@@ -41,20 +42,20 @@ void GenerateCurvedGrid(std::vector<Renderer::Vertex>& vertices, std::vector<uin
     {
         indices.push_back(index + vertices.size());
     }
-    vertices.push_back({-halfWidth, 0.f,       0.0f + offsetZ, -halfWidth,       0.0f });
-    vertices.push_back({ halfWidth, 0.f,       0.0f + offsetZ,  halfWidth,       0.0f });
-    vertices.push_back({-halfWidth, 0.f, -halfDepth + offsetZ, -halfWidth, -halfDepth });
-    vertices.push_back({ halfWidth, 0.f, -halfDepth + offsetZ,  halfWidth, -halfDepth });
+    vertices.push_back({-halfWidth, 0.f,       0.0f + offsetZ, 0.f, 1.f, 0.f, -halfWidth,       0.0f });
+    vertices.push_back({ halfWidth, 0.f,       0.0f + offsetZ, 0.f, 1.f, 0.f,  halfWidth,       0.0f });
+    vertices.push_back({-halfWidth, 0.f, -halfDepth + offsetZ, 0.f, 1.f, 0.f, -halfWidth, -halfDepth });
+    vertices.push_back({ halfWidth, 0.f, -halfDepth + offsetZ, 0.f, 1.f, 0.f,  halfWidth, -halfDepth });
 
     for(auto index : planIndices)
     {
         indices.push_back(index + vertices.size());
     }
     
-    vertices.push_back({-halfWidth, 1.f,             1.0f + offsetZ, -halfWidth,  quarterCircleLength});
-    vertices.push_back({ halfWidth, 1.f,             1.0f + offsetZ,  halfWidth,  quarterCircleLength});
-    vertices.push_back({-halfWidth, 1.f + halfDepth, 1.0f + offsetZ, -halfWidth,  quarterCircleLength + halfDepth});
-    vertices.push_back({ halfWidth, 1.f + halfDepth, 1.0f + offsetZ,  halfWidth,  quarterCircleLength + halfDepth});
+    vertices.push_back({-halfWidth, 1.f,             1.0f + offsetZ, 0.f, 0.f, -1.f, -halfWidth,  quarterCircleLength});
+    vertices.push_back({ halfWidth, 1.f,             1.0f + offsetZ, 0.f, 0.f, -1.f,  halfWidth,  quarterCircleLength});
+    vertices.push_back({-halfWidth, 1.f + halfDepth, 1.0f + offsetZ, 0.f, 0.f, -1.f, -halfWidth,  quarterCircleLength + halfDepth});
+    vertices.push_back({ halfWidth, 1.f + halfDepth, 1.0f + offsetZ, 0.f, 0.f, -1.f,  halfWidth,  quarterCircleLength + halfDepth});
 }
 
 void Renderer::Init()
@@ -63,10 +64,10 @@ void Renderer::Init()
 
     static Vertex quadVertices[] =
     {
-        {-1.f, 2.f, 0.f,  0.0f,  0.0f },
-        { 1.f, 2.f, 0.f,  1.0f,  0.0f },
-        {-1.f, 0.f, 0.f,  0.0f,  1.0f },
-        { 1.f, 0.f, 0.f,  1.0f,  1.0f },
+        {-1.f, 2.f, 0.f,  0.f, 0.f, -1.f, 0.0f,  0.0f },
+        { 1.f, 2.f, 0.f,  0.f, 0.f, -1.f, 1.0f,  0.0f },
+        {-1.f, 0.f, 0.f,  0.f, 0.f, -1.f, 0.0f,  1.0f },
+        { 1.f, 0.f, 0.f,  0.f, 0.f, -1.f, 1.0f,  1.0f },
     };
     static const uint16_t quadIndices[] =
     {
@@ -78,25 +79,10 @@ void Renderer::Init()
     m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(quadIndices, sizeof(quadIndices) ) );
 
 
-    static Vertex groundVertices[] =
-    {
-        {-1.0f, 0.f,  1.0f, -1.0f,  1.0f },
-        { 1.0f, 0.f,  1.0f,  1.0f,  1.0f },
-        {-1.0f, 0.f, -1.0f, -1.0f, -1.0f },
-        { 1.0f, 0.f, -1.0f,  1.0f, -1.0f },
-    };
-    static const uint16_t groundIndices[] =
-    {
-        0,  2,  1,
-        1,  2,  3,
-    };
-
     static std::vector<Renderer::Vertex> vertices;
     static std::vector<uint16_t> indices;
     GenerateCurvedGrid(vertices, indices);
     
-    /*m_vbhGround = bgfx::createVertexBuffer(bgfx::makeRef(groundVertices, sizeof(groundVertices)), Vertex::ms_layout);
-    m_ibhGround = bgfx::createIndexBuffer(bgfx::makeRef(groundIndices, sizeof(groundIndices)));*/
     m_vbhGround = bgfx::createVertexBuffer(bgfx::makeRef(vertices.data(), sizeof(Vertex) * vertices.size()), Vertex::ms_layout);
     m_ibhGround = bgfx::createIndexBuffer(bgfx::makeRef(indices.data(), sizeof(uint16_t) * indices.size()));
     

@@ -5,7 +5,7 @@
 #include "Shaders.h"
 
 /*
- - raymarching lighting
+ 
  - node based solving
  - vorticity node
  - generator node
@@ -14,8 +14,10 @@
  - paint speed node
  - solver nodes
  - display node
+ 
+ - raymarching lighting / rendering
  - gizmo
- - rendering
+
  - node based graphics editing
  - save/load json
  */
