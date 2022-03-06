@@ -25,29 +25,30 @@ endif()
 ################################################################
 ### IMGUI
 
-file(GLOB IMGUI_SRC_FILES
-    imgui/*.h
-    imgui/*.cpp
-)
-
-add_library(imgui ${IMGUI_SRC_FILES})
-
-target_include_directories(imgui
-            PUBLIC "imgui"
-            )
+#file(GLOB IMGUI_SRC_FILES
+#    imgui/*.h
+#    imgui/*.cpp
+#)
+#
+#add_library(imgui ${IMGUI_SRC_FILES})
+#
+#target_include_directories(imgui
+#            PUBLIC "imgui"
+#            )
 
 ################################################################
 ### IMGUIZMO
 
 file(GLOB IMGUIZMO_SRC_FILES
-    ImGuizmo/*.h
-    ImGuizmo/*.cpp
+    ImGuizmo/GraphEditor.h
+    ImGuizmo/GraphEditor.cpp
 )
 
 add_library(ImGuizmo ${IMGUIZMO_SRC_FILES})
-target_link_libraries(ImGuizmo imgui)
 target_include_directories(ImGuizmo
             PUBLIC "ImGuizmo"
+            PRIVATE "bgfx.cmake/bgfx/3rdparty/dear-imgui"
+            PRIVATE "bgfx.cmake/bgfx/3rdparty"
             )
 
 ################################################################

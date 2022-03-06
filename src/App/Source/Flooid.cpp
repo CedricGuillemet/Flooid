@@ -191,9 +191,9 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::touch(6);
 
     bgfx::setViewFrameBuffer(7, {bgfx::kInvalidHandle});
-    bgfx::setViewRect(7, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
-    bgfx::setViewClear(7, BGFX_CLEAR_COLOR, 0x00000000);
-    bgfx::touch(7);
+    //bgfx::setViewRect(7, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
+    //bgfx::setViewClear(7, BGFX_CLEAR_COLOR, 0x00000000);
+    //bgfx::touch(7);
     
     // jacobi
     for(int i = 0; i < parameters.m_iterationCount; i++)

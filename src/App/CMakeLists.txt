@@ -24,6 +24,13 @@ target_link_libraries(${EXE_NAME} bgfx)
 target_link_libraries(${EXE_NAME} example-common)
 target_link_libraries(${EXE_NAME} Shaders)
 target_link_libraries(${EXE_NAME} Immath)
+target_link_libraries(${EXE_NAME} ImGuizmo)
+
+target_include_directories(${EXE_NAME}
+            PRIVATE "../../ext/bgfx.cmake/bgfx/3rdparty/dear-imgui"
+            PRIVATE "../../ext/bgfx.cmake/bgfx/3rdparty"
+            )
+
 
 if(MSVC)
     set_target_properties(${EXE_NAME} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")

@@ -3,83 +3,176 @@
 #include "imgui/imgui.h"
 #include "Shaders.h"
 #include "Flooid.h"
+#include "GraphEditor.h"
+
 namespace App
 {
-	
-struct PosNormalVertex
-{
-	float m_x;
-	float m_y;
-	float m_z;
-	uint32_t m_normal;
-
-	static void init()
-	{
-		ms_layout
-			.begin()
-			.add(bgfx::Attrib::Position,  3, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::Normal,    4, bgfx::AttribType::Uint8, true, true)
-			.end();
-	}
-
-	static bgfx::VertexLayout ms_layout;
-};
-
-bgfx::VertexLayout PosNormalVertex::ms_layout;
-
-static PosNormalVertex s_cubeVertices[24] =
-{
-	{-1.0f,  1.0f,  1.0f, encodeNormalRgba8( 0.0f,  0.0f,  1.0f) },
-	{ 1.0f,  1.0f,  1.0f, encodeNormalRgba8( 0.0f,  0.0f,  1.0f) },
-	{-1.0f, -1.0f,  1.0f, encodeNormalRgba8( 0.0f,  0.0f,  1.0f) },
-	{ 1.0f, -1.0f,  1.0f, encodeNormalRgba8( 0.0f,  0.0f,  1.0f) },
-	{-1.0f,  1.0f, -1.0f, encodeNormalRgba8( 0.0f,  0.0f, -1.0f) },
-	{ 1.0f,  1.0f, -1.0f, encodeNormalRgba8( 0.0f,  0.0f, -1.0f) },
-	{-1.0f, -1.0f, -1.0f, encodeNormalRgba8( 0.0f,  0.0f, -1.0f) },
-	{ 1.0f, -1.0f, -1.0f, encodeNormalRgba8( 0.0f,  0.0f, -1.0f) },
-	{-1.0f,  1.0f,  1.0f, encodeNormalRgba8( 0.0f,  1.0f,  0.0f) },
-	{ 1.0f,  1.0f,  1.0f, encodeNormalRgba8( 0.0f,  1.0f,  0.0f) },
-	{-1.0f,  1.0f, -1.0f, encodeNormalRgba8( 0.0f,  1.0f,  0.0f) },
-	{ 1.0f,  1.0f, -1.0f, encodeNormalRgba8( 0.0f,  1.0f,  0.0f) },
-	{-1.0f, -1.0f,  1.0f, encodeNormalRgba8( 0.0f, -1.0f,  0.0f) },
-	{ 1.0f, -1.0f,  1.0f, encodeNormalRgba8( 0.0f, -1.0f,  0.0f) },
-	{-1.0f, -1.0f, -1.0f, encodeNormalRgba8( 0.0f, -1.0f,  0.0f) },
-	{ 1.0f, -1.0f, -1.0f, encodeNormalRgba8( 0.0f, -1.0f,  0.0f) },
-	{ 1.0f, -1.0f,  1.0f, encodeNormalRgba8( 1.0f,  0.0f,  0.0f) },
-	{ 1.0f,  1.0f,  1.0f, encodeNormalRgba8( 1.0f,  0.0f,  0.0f) },
-	{ 1.0f, -1.0f, -1.0f, encodeNormalRgba8( 1.0f,  0.0f,  0.0f) },
-	{ 1.0f,  1.0f, -1.0f, encodeNormalRgba8( 1.0f,  0.0f,  0.0f) },
-	{-1.0f, -1.0f,  1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f) },
-	{-1.0f,  1.0f,  1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f) },
-	{-1.0f, -1.0f, -1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f) },
-	{-1.0f,  1.0f, -1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f) },
-};
-
-static const uint16_t s_cubeIndices[36] =
-{
-	 0,  2,  1,
-	 1,  2,  3,
-	 4,  5,  6,
-	 5,  7,  6,
-
-	 8, 10,  9,
-	 9, 10, 11,
-	12, 13, 14,
-	13, 15, 14,
-
-	16, 18, 17,
-	17, 18, 19,
-	20, 21, 22,
-	21, 23, 22,
-};
-
-
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 EM_JS(void, HideLoader, (), { document.getElementById("loader").style.display = "none"; });
 #else
 void HideLoader() {}
 #endif
+
+
+template <typename T, std::size_t N>
+struct Array
+{
+   T data[N];
+   const size_t size() const { return N; }
+
+   const T operator [] (size_t index) const { return data[index]; }
+   operator T* () {
+      T* p = new T[N];
+      memcpy(p, data, sizeof(data));
+      return p;
+   }
+};
+
+template <typename T, typename ... U> Array(T, U...)->Array<T, 1 + sizeof...(U)>;
+
+struct GraphEditorDelegate : public GraphEditor::Delegate
+{
+   bool AllowedLink(GraphEditor::NodeIndex from, GraphEditor::NodeIndex to) override
+   {
+      return true;
+   }
+
+   void SelectNode(GraphEditor::NodeIndex nodeIndex, bool selected) override
+   {
+      mNodes[nodeIndex].mSelected = selected;
+   }
+
+   void MoveSelectedNodes(const ImVec2 delta) override
+   {
+      for (auto& node : mNodes)
+      {
+         if (!node.mSelected)
+         {
+            continue;
+         }
+         node.x += delta.x;
+         node.y += delta.y;
+      }
+   }
+
+   virtual void RightClick(GraphEditor::NodeIndex nodeIndex, GraphEditor::SlotIndex slotIndexInput, GraphEditor::SlotIndex slotIndexOutput) override
+   {
+   }
+
+   void AddLink(GraphEditor::NodeIndex inputNodeIndex, GraphEditor::SlotIndex inputSlotIndex, GraphEditor::NodeIndex outputNodeIndex, GraphEditor::SlotIndex outputSlotIndex) override
+   {
+      mLinks.push_back({ inputNodeIndex, inputSlotIndex, outputNodeIndex, outputSlotIndex });
+   }
+
+   void DelLink(GraphEditor::LinkIndex linkIndex) override
+   {
+      mLinks.erase(mLinks.begin() + linkIndex);
+   }
+
+   void CustomDraw(ImDrawList* drawList, ImRect rectangle, GraphEditor::NodeIndex nodeIndex) override
+   {
+      drawList->AddLine(rectangle.Min, rectangle.Max, IM_COL32(0, 0, 0, 255));
+      drawList->AddText(rectangle.Min, IM_COL32(255, 128, 64, 255), "Draw");
+   }
+
+   const size_t GetTemplateCount() override
+   {
+      return sizeof(mTemplates) / sizeof(GraphEditor::Template);
+   }
+
+   const GraphEditor::Template GetTemplate(GraphEditor::TemplateIndex index) override
+   {
+      return mTemplates[index];
+   }
+
+   const size_t GetNodeCount() override
+   {
+      return mNodes.size();
+   }
+
+   const GraphEditor::Node GetNode(GraphEditor::NodeIndex index) override
+   {
+      const auto& myNode = mNodes[index];
+      return GraphEditor::Node
+      {
+          myNode.name,
+          myNode.templateIndex,
+          ImRect(ImVec2(myNode.x, myNode.y), ImVec2(myNode.x + 200, myNode.y + 200)),
+          myNode.mSelected
+      };
+   }
+
+   const size_t GetLinkCount() override
+   {
+      return mLinks.size();
+   }
+
+   const GraphEditor::Link GetLink(GraphEditor::LinkIndex index) override
+   {
+      return mLinks[index];
+   }
+
+   // Graph datas
+   static const inline GraphEditor::Template mTemplates[] = {
+       {
+           IM_COL32(160, 160, 180, 255),
+           IM_COL32(100, 100, 140, 255),
+           IM_COL32(110, 110, 150, 255),
+           1,
+           Array{"MyInput"},
+           nullptr,
+           2,
+           Array{"MyOutput0", "MyOuput1"},
+           nullptr
+       },
+
+       {
+           IM_COL32(180, 160, 160, 255),
+           IM_COL32(140, 100, 100, 255),
+           IM_COL32(150, 110, 110, 255),
+           3,
+           nullptr,
+           Array{ IM_COL32(200,100,100,255), IM_COL32(100,200,100,255), IM_COL32(100,100,200,255) },
+           1,
+           Array{"MyOutput0"},
+           Array{ IM_COL32(200,200,200,255)}
+       }
+   };
+
+   struct Node
+   {
+      const char* name;
+      GraphEditor::TemplateIndex templateIndex;
+      float x, y;
+      bool mSelected;
+   };
+
+   std::vector<Node> mNodes = {
+       {
+           "My Node 0",
+           0,
+           0, 0,
+           false
+       },
+
+       {
+           "My Node 1",
+           0,
+           400, 0,
+           false
+       },
+
+       {
+           "My Node 2",
+           1,
+           400, 400,
+           false
+       }
+   };
+
+   std::vector<GraphEditor::Link> mLinks = { {0, 0, 1, 0} };
+};
 
 
 class App : public entry::AppI
@@ -122,26 +215,6 @@ public:
 
 		imguiCreate();
         
-		// Create vertex stream declaration.
-		PosNormalVertex::init();
-
-        // Create static vertex buffer.
-		m_vbh = bgfx::createVertexBuffer(
-					  bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices) )
-					, PosNormalVertex::ms_layout
-					);
-
-        bx::mtxIdentity(m_world);
-        
-		// Create static index buffer.
-		m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeIndices, sizeof(s_cubeIndices) ) );
-
-        m_worldUniform = bgfx::createUniform("u_world", bgfx::UniformType::Mat4);
-        m_viewProjectionUniform = bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4);
-
-		// Create program from shaders.
-		m_program = LoadProgram("Default_vs", "Default_fs");
-
 		m_flooid.Init();
 
 		HideLoader();
@@ -228,22 +301,6 @@ public:
 				, uint16_t(m_height)
 				);
 
-            const bx::Vec3 at  = { 0.0f, 0.0f, 0.0f };
-            const bx::Vec3 eye = { 3.0f, 4.0f, 5.0f };
-            
-            // Set view and projection matrix for view 0.
-            float view[16];
-            bx::mtxLookAt(view, eye, at, {0.f, 1.f, 0.f});
-
-            float proj[16];
-            bx::mtxProj(proj, 60.0f, float(m_width)/float(m_height), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
-
-            float viewProj[16];
-            bx::mtxMul(viewProj, view, proj);
-            
-            bgfx::setUniform(m_worldUniform, m_world);
-            bgfx::setUniform(m_viewProjectionUniform, viewProj);
-
             // Transform dialog
             ImGui::SetNextWindowPos(
                   ImVec2(10.0f, 10.0f)
@@ -256,14 +313,32 @@ public:
 
 			static Flooid::Parameters parameters{};
 
-			ImGui::Begin("Transform"
+			// Graph Editor
+			static GraphEditor::Options options;
+      		static GraphEditorDelegate delegate;
+      		static GraphEditor::ViewState viewState;
+      		static GraphEditor::FitOnScreen fit = GraphEditor::Fit_None;
+
+			/*ImGui::Begin("Transform"
 				, NULL
 				, 0
 				);
 			ImGui::Combo("Display", &parameters.m_display, "Density\0Velocity\0Divergence\0Pressure\0");
 
             //editTransform(view, proj, m_world);
-			ImGui::End();
+			ImGui::End();*/
+			ImGui::Begin("Graph Editor", NULL, 0);
+			/*if (ImGui::Button("Fit all nodes"))
+			{
+				fit = GraphEditor::Fit_AllNodes;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Fit selected nodes"))
+			{
+				fit = GraphEditor::Fit_SelectedNodes;
+			}*/
+        	GraphEditor::Show(delegate, options, viewState, true, &fit);
+        	ImGui::End();
 
 			imguiEndFrame();
 
@@ -281,19 +356,7 @@ public:
 
             // Set view 0 default viewport.
             bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height) );
-			/*
-			uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_DEPTH_TEST_LESS;
 
-			// Set vertex and index buffer.
-			bgfx::setVertexBuffer(0, m_vbh);
-			bgfx::setIndexBuffer(m_ibh);
-
-			// Set render states.
-			bgfx::setState(state);
-
-			// Submit primitive for rendering to view 0.
-			bgfx::submit(0, m_program);
-			*/
 			m_flooid.SetDisplaySize(uint16_t(m_width), uint16_t(m_height));
 			auto& io = ImGui::GetIO();
 			
