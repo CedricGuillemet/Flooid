@@ -3,17 +3,20 @@
 #include "Flooid.h"
 #include <stdint.h>
 #include "Shaders.h"
+#include "GraphNode.h"
 
 /*
  
- - node based solving
+ 
  - vorticity node
  - generator node
  - speed node
- - paint density node
- - paint speed node
  - solver nodes
  - display node
+
+ - node based solving
+ - paint density node
+ - paint speed node
  
  - raymarching lighting / rendering
  - gizmo
@@ -84,6 +87,8 @@ void Flooid::Init()
     m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
     m_velocityGenCSProgram = App::LoadProgram("VelocityGen_cs", nullptr);
+    
+    Vorticity::Init();
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -163,7 +168,7 @@ void Flooid::Tick(const Parameters& parameters)
     // vorticity
     if (1)
     {
-        Texture* vorticity = m_textureProvider.Acquire();
+        /*Texture* vorticity = m_textureProvider.Acquire();
         bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
         bgfx::setImage(1, vorticity->GetTexture(), 0, bgfx::Access::Write);
         bgfx::dispatch(5, m_vorticityCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
@@ -175,7 +180,11 @@ void Flooid::Tick(const Parameters& parameters)
         bgfx::dispatch(5, m_vorticityForceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
         m_textureProvider.Release(vorticity);
         m_textureProvider.Release(advectedVelocity);
-        advectedVelocity = vorticityForce;
+        advectedVelocity = vorticityForce;*/
+        Vorticity vorticityNode;
+        vorticityNode.SetInput(0, advectedVelocity);
+        vorticityNode.Tick(m_textureProvider);
+        advectedVelocity = vorticityNode.GetOutput(0);
     }
 
     // divergence
