@@ -35,7 +35,7 @@ public:
     , m_y(0.f)
     , m_selected(false)
     {}
-    virtual std::string GetName() const = 0;
+    virtual const char* GetName() const = 0;
     virtual void Tick(TextureProvider& textureProvider) = 0;
     virtual bool Edit() = 0;
 //protected:
@@ -50,7 +50,7 @@ public:
     : m_curl(2.f)
     , m_epsilon(0.0002f)
     {}
-    std::string GetName() const { return std::string("Vorticity"); }
+    const char* GetName() const { return "Vorticity"; }
     
     static void Init();
     void Tick(TextureProvider& textureProvider);

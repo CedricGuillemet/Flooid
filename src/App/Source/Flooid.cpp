@@ -66,12 +66,13 @@ void Flooid::Init()
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
     m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
-    m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
-    m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
     m_velocityGenCSProgram = App::LoadProgram("VelocityGen_cs", nullptr);
     
     Vorticity::Init();
+    
+    m_vorticityNode = new Vorticity;
+    m_graph.AddNode(m_vorticityNode);
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -128,10 +129,9 @@ void Flooid::Tick(const Parameters& parameters)
     // vorticity
     if (1)
     {
-        Vorticity vorticityNode;
-        vorticityNode.SetInput(0, advectedVelocity);
-        vorticityNode.Tick(m_textureProvider);
-        advectedVelocity = vorticityNode.GetOutput(0);
+        m_vorticityNode->SetInput(0, advectedVelocity);
+        m_vorticityNode->Tick(m_textureProvider);
+        advectedVelocity = m_vorticityNode->GetOutput(0);
     }
 
     // divergence
@@ -180,7 +180,37 @@ void Flooid::Tick(const Parameters& parameters)
     m_densityTexture = advectedDensity;
 }
 
-void Flooid::UI()
+void Flooid::CheckUsingUI()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    
+    if (ImGui::IsItemHovered() || ImGui::IsWindowHovered())
+    {
+        m_usingGUI = true;
+    }
+    else
+    {
+        if (m_usingGUI && !io.MouseDown[0] && !io.MouseDown[1] && !io.MouseDown[2])
+        {
+            m_usingGUI = false;
+        }
+    }
+}
+
+bool Flooid::UI()
+{
+    ImGui::Begin("Graph Editor", NULL, 0);
+    if (ImGui::Button("Fit all nodes"))
+    {
+        m_graphEditorFit = GraphEditor::Fit_AllNodes;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Fit selected nodes"))
+    {
+        m_graphEditorFit = GraphEditor::Fit_SelectedNodes;
+    }
     GraphEditor::Show(m_graphEditorDelegate, m_graphEditorOptions, m_graphEditorViewState, true, &m_graphEditorFit);
+    CheckUsingUI();
+    ImGui::End();
+    return m_usingGUI;
 }

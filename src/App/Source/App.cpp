@@ -42,12 +42,7 @@ public:
 		bgfx::setDebug(m_debug);
 
 		// Set view 0 clear state.
-		bgfx::setViewClear(0
-			, BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH
-			, 0
-			, 1.0f
-			, 0
-			);
+		bgfx::setViewClear(0, BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH, 0, 1.0f, 0);
 
 		m_timeOffset = bx::getHPCounter();
 
@@ -61,10 +56,7 @@ public:
 	virtual int shutdown() override
 	{
 		imguiDestroy();
-
-		// Shutdown bgfx.
 		bgfx::shutdown();
-
 		return 0;
 	}
 
@@ -156,46 +148,15 @@ public:
 
             //editTransform(view, proj, m_world);
 			ImGui::End();*/
-			ImGui::Begin("Graph Editor", NULL, 0);
-			/*if (ImGui::Button("Fit all nodes"))
-			{
-				fit = GraphEditor::Fit_AllNodes;
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Fit selected nodes"))
-			{
-				fit = GraphEditor::Fit_SelectedNodes;
-			}*/
-            m_flooid.UI();
+			
+            bool usingGUI = m_flooid.UI();
         	
-
-            ImGuiIO& io = ImGui::GetIO();
-            
-            static bool UsingGUI = false;
-            if (ImGui::IsItemHovered() || ImGui::IsWindowHovered())
-            {
-                UsingGUI = true;
-            }
-            else
-            {
-                if (UsingGUI && !io.MouseDown[0] && !io.MouseDown[1] && !io.MouseDown[2])
-                {
-                    UsingGUI = false;
-                }
-            }
-            
-            ImGui::End();
 			imguiEndFrame();
 
 			float time = (float)( (bx::getHPCounter()-m_timeOffset)/double(bx::getHPFrequency() ) );
 
 			bgfx::setViewRect(0, 0, 0, m_width, m_height);
-			bgfx::setViewClear(0
-				, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
-				, 0x20304030
-				, 1.0f
-				, 0
-			);
+			bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x20304030, 1.0f, 0);
 			bgfx::discard();
             bgfx::touch(0);
 
@@ -204,13 +165,13 @@ public:
 
 			m_flooid.SetDisplaySize(uint16_t(m_width), uint16_t(m_height));
 
-			
+            ImGuiIO& io = ImGui::GetIO();
 			parameters.x = io.MousePos.x / io.DisplaySize.x;
 			parameters.y = io.MousePos.y / io.DisplaySize.y;
 			parameters.dx = io.MouseDelta.x / io.DisplaySize.x;
 			parameters.dy = io.MouseDelta.y / io.DisplaySize.y;
-			parameters.lButDown = !UsingGUI && io.MouseDown[0];
-			parameters.rButDown = !UsingGUI && io.MouseDown[1];
+			parameters.lButDown = !usingGUI && io.MouseDown[0];
+			parameters.rButDown = !usingGUI && io.MouseDown[1];
             parameters.m_iterationCount = 50;
 			m_flooid.Tick(parameters);
 

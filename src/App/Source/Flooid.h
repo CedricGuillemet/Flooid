@@ -20,7 +20,8 @@ public:
     void SetDisplaySize(uint16_t width, uint16_t height) { m_renderer.SetDisplaySize(width, height); }
     void Tick(const Parameters& parameters);
     
-    void UI();
+    // return true if over or using UI
+    bool UI();
 
     Texture* m_densityTexture;
     Texture* m_velocityTexture;
@@ -50,8 +51,6 @@ public:
     bgfx::ProgramHandle m_gradientCSProgram;
     bgfx::ProgramHandle m_jacobiCSProgram;
     bgfx::ProgramHandle m_advectCSProgram;
-    bgfx::ProgramHandle m_vorticityCSProgram;
-    bgfx::ProgramHandle m_vorticityForceCSProgram;
     bgfx::ProgramHandle m_densityGenCSProgram;
     bgfx::ProgramHandle m_velocityGenCSProgram;
     
@@ -59,11 +58,14 @@ public:
     Renderer m_renderer;
     
     
+    Vorticity* m_vorticityNode;
     Graph m_graph;
     
     GraphEditor::Options m_graphEditorOptions;
     GraphEditorDelegate m_graphEditorDelegate;
     GraphEditor::ViewState m_graphEditorViewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
     GraphEditor::FitOnScreen m_graphEditorFit = GraphEditor::Fit_None;
-
+protected:
+    void CheckUsingUI();
+    bool m_usingGUI{false};
 };
