@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 #include <bgfx/bgfx.h>
-//#include "GraphEditorDelegate.h"
-
+#include "Immath.h"
+#include "GraphEditor.h"
 class TextureProvider;
 class Texture;
 
@@ -60,11 +60,11 @@ public:
             IM_COL32(100, 100, 140, 255),
             IM_COL32(110, 110, 150, 255),
             1,
-            Array{"Velocity"},
-            Array{ IM_COL32(200,200,200,255)},
+            Imm::Array{"Velocity"},
+            Imm::Array{ IM_COL32(200,200,200,255)},
             1,
-            Array{"Velocity"},
-            Array{ IM_COL32(200,200,200,255)}
+            Imm::Array{"Velocity"},
+            Imm::Array{ IM_COL32(200,200,200,255)}
         };
     }
 private:

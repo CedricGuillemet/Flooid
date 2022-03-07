@@ -20,6 +20,8 @@ class App : public entry::AppI
 public:
 	App(const char* _name, const char* _description, const char* _url)
 		: entry::AppI(_name, _description, _url)
+        , m_graph{}
+        , m_graphEditorDelegate(m_graph)
 	{
 	}
 
@@ -148,10 +150,7 @@ public:
 			static Flooid::Parameters parameters{};
 
 			// Graph Editor
-			static GraphEditor::Options options;
-      		static GraphEditorDelegate delegate;
-            static GraphEditor::ViewState viewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
-      		static GraphEditor::FitOnScreen fit = GraphEditor::Fit_None;
+			
 
 			/*ImGui::Begin("Transform"
 				, NULL
@@ -171,7 +170,7 @@ public:
 			{
 				fit = GraphEditor::Fit_SelectedNodes;
 			}*/
-        	GraphEditor::Show(delegate, options, viewState, true, &fit);
+        	GraphEditor::Show(m_graphEditorDelegate, m_graphEditorOptions, m_graphEditorViewState, true, &m_graphEditorFit);
         	
 
             ImGuiIO& io = ImGui::GetIO();
@@ -242,6 +241,12 @@ public:
     bgfx::UniformHandle m_worldUniform;
     bgfx::UniformHandle m_viewProjectionUniform;
     
+    Graph m_graph;
+    
+    GraphEditor::Options m_graphEditorOptions;
+    GraphEditorDelegate m_graphEditorDelegate;
+    GraphEditor::ViewState m_graphEditorViewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
+    GraphEditor::FitOnScreen m_graphEditorFit = GraphEditor::Fit_None;
     Flooid m_flooid;
 };
 
