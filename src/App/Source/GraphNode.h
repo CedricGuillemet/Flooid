@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <bgfx/bgfx.h>
-#include "GraphEditorDelegate.h"
+//#include "GraphEditorDelegate.h"
 
 class TextureProvider;
 class Texture;
@@ -37,7 +37,7 @@ public:
     virtual std::string GetName() const = 0;
     virtual void Tick(TextureProvider& textureProvider) = 0;
     virtual bool Edit() = 0;
-protected:
+//protected:
     float m_x, m_y;
 };
 
@@ -77,4 +77,14 @@ private:
 
     float m_curl;
     float m_epsilon;
+};
+
+class Graph
+{
+public:
+    Graph() {}
+    
+    void AddNode(GraphNode* node) { m_nodes.push_back(node); }
+    std::vector<GraphNode*>& GetNodes() { return m_nodes; }
+    std::vector<GraphNode*> m_nodes;
 };
