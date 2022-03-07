@@ -42,6 +42,7 @@ void Vorticity::Tick(TextureProvider& textureProvider)
 
 bool Vorticity::Edit()
 {
-    ImGui::InputFloat("Epsilon", &m_epsilon);
-    ImGui::InputFloat("Curl", &m_curl);
+    bool changed = ImGui::InputFloat("Epsilon", &m_epsilon);
+    changed |= ImGui::InputFloat("Curl", &m_curl);
+    return changed;
 }
