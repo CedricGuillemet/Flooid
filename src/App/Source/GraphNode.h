@@ -33,12 +33,14 @@ public:
     GraphNode()
     : m_x(0.f)
     , m_y(0.f)
+    , m_selected(false)
     {}
     virtual std::string GetName() const = 0;
     virtual void Tick(TextureProvider& textureProvider) = 0;
     virtual bool Edit() = 0;
 //protected:
     float m_x, m_y;
+    bool m_selected;
 };
 
 class Vorticity : public GraphNode, public GraphNodeIO<1,1>

@@ -1,5 +1,6 @@
 #include "TextureProvider.h"
 #include "Renderer.h"
+#include "GraphEditorDelegate.h"
 
 class Flooid
 {
@@ -19,22 +20,7 @@ public:
     void SetDisplaySize(uint16_t width, uint16_t height) { m_renderer.SetDisplaySize(width, height); }
     void Tick(const Parameters& parameters);
     
-
-    struct QuadVertex
-    {
-        float u, v;
-        static void Init()
-        {
-            ms_layout
-                .begin()
-                .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-                .end();
-        }
-
-        static bgfx::VertexLayout ms_layout;
-    };
-	bgfx::VertexBufferHandle m_vbh;
-	bgfx::IndexBufferHandle m_ibh;
+    void UI();
 
     Texture* m_densityTexture;
     Texture* m_velocityTexture;
@@ -44,8 +30,6 @@ public:
     bgfx::UniformHandle m_brushColorUniform;
     bgfx::UniformHandle m_jacobiParametersUniform;
     bgfx::UniformHandle m_advectionUniform;
-    bgfx::UniformHandle m_curlUniform;
-    bgfx::UniformHandle m_epsilonUniform;
     bgfx::UniformHandle m_positionUniform;
     bgfx::UniformHandle m_directionUniform;
 
@@ -53,7 +37,6 @@ public:
     bgfx::UniformHandle m_texAdvectUniform;
     bgfx::UniformHandle m_texColorUniform;
     bgfx::UniformHandle m_texPressureUniform;
-    //bgfx::UniformHandle m_texDensityUniform;
     bgfx::UniformHandle m_texVorticityUniform;
 
     bgfx::UniformHandle m_texJacoviUniform;
@@ -74,4 +57,13 @@ public:
     
     TextureProvider m_textureProvider;
     Renderer m_renderer;
+    
+    
+    Graph m_graph;
+    
+    GraphEditor::Options m_graphEditorOptions;
+    GraphEditorDelegate m_graphEditorDelegate;
+    GraphEditor::ViewState m_graphEditorViewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
+    GraphEditor::FitOnScreen m_graphEditorFit = GraphEditor::Fit_None;
+
 };

@@ -3,7 +3,7 @@
 #include "imgui/imgui.h"
 #include "Shaders.h"
 #include "Flooid.h"
-#include "GraphEditorDelegate.h"
+
 namespace App
 {
 #ifdef __EMSCRIPTEN__
@@ -13,15 +13,11 @@ EM_JS(void, HideLoader, (), { document.getElementById("loader").style.display = 
 void HideLoader() {}
 #endif
 
-
-
 class App : public entry::AppI
 {
 public:
 	App(const char* _name, const char* _description, const char* _url)
 		: entry::AppI(_name, _description, _url)
-        , m_graph{}
-        , m_graphEditorDelegate(m_graph)
 	{
 	}
 
@@ -170,7 +166,7 @@ public:
 			{
 				fit = GraphEditor::Fit_SelectedNodes;
 			}*/
-        	GraphEditor::Show(m_graphEditorDelegate, m_graphEditorOptions, m_graphEditorViewState, true, &m_graphEditorFit);
+            m_flooid.UI();
         	
 
             ImGuiIO& io = ImGui::GetIO();
@@ -233,20 +229,7 @@ public:
 	uint32_t m_debug;
 	uint32_t m_reset;
 	int64_t m_timeOffset;
-    float m_world[16];
 
-	bgfx::VertexBufferHandle m_vbh;
-	bgfx::IndexBufferHandle m_ibh;
-	bgfx::ProgramHandle m_program;
-    bgfx::UniformHandle m_worldUniform;
-    bgfx::UniformHandle m_viewProjectionUniform;
-    
-    Graph m_graph;
-    
-    GraphEditor::Options m_graphEditorOptions;
-    GraphEditorDelegate m_graphEditorDelegate;
-    GraphEditor::ViewState m_graphEditorViewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
-    GraphEditor::FitOnScreen m_graphEditorFit = GraphEditor::Fit_None;
     Flooid m_flooid;
 };
 

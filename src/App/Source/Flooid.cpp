@@ -25,8 +25,10 @@
  - save/load json
  */
 
-bgfx::VertexLayout Flooid::QuadVertex::ms_layout;
 Flooid::Flooid()
+: m_graph{}
+, m_graphEditorDelegate(m_graph)
+
 {
 }
 
@@ -34,24 +36,7 @@ const int TEX_SIZE = 256;
 void Flooid::Init()
 {
     m_renderer.Init();
-    QuadVertex::Init();
-
-    static QuadVertex quadVertices[] =
-    {
-        {-1.0f,  1.0f },
-        { 1.0f,  1.0f },
-        {-1.0f, -1.0f },
-        { 1.0f, -1.0f },
-    };
-    static const uint16_t quadIndices[] =
-    {
-        0,  2,  1,
-        1,  2,  3,
-    };
-
-    m_vbh = bgfx::createVertexBuffer(bgfx::makeRef(quadVertices, sizeof(quadVertices)), QuadVertex::ms_layout);
-    m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(quadIndices, sizeof(quadIndices) ) );
-
+    
     m_densityTexture = m_textureProvider.Acquire();
     m_velocityTexture = m_textureProvider.Acquire();
     
@@ -60,8 +45,6 @@ void Flooid::Init()
     m_brushColorUniform = bgfx::createUniform("brushColor", bgfx::UniformType::Vec4);
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
-    m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
-    m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
     m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
 
@@ -107,11 +90,6 @@ void Flooid::Tick(const Parameters& parameters)
     float advection[4] = {1.f, 0.997f, 1.f, 1.f};
     bgfx::setUniform(m_advectionUniform, advection);
 
-    float epsilon[4] = { 0.0002f, 1.f, 1.f, 1.f };
-    bgfx::setUniform(m_epsilonUniform, epsilon);
-    float curl[4] = { 2.8f, 2.8f, 1.f, 1.f };
-    bgfx::setUniform(m_curlUniform, curl);
-
     float position[4] = {0.5f, 1.f, 0.f, 0.1f};
     bgfx::setUniform(m_positionUniform, position);
     
@@ -121,25 +99,7 @@ void Flooid::Tick(const Parameters& parameters)
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
-    /*
-    // paint density
-    float brushDensity[4] = { parameters.x, parameters.y, 0.1f, parameters.lButDown ? 0.1f : 0.f };
-    bgfx::setUniform(m_brushUniform, brushDensity);
-    m_densityTexture->BindAsTarget(1);
-    bgfx::setVertexBuffer(0, m_vbh);
-    bgfx::setIndexBuffer(m_ibh);
-    bgfx::setState(state | BGFX_STATE_BLEND_ADD);
-    bgfx::submit(1, m_paintDensityProgram);
     
-    // paint velocity
-    float brushVelocity[4] = { parameters.x, parameters.y, 0.1f, parameters.rButDown ? 0.5f : 0.f };
-    bgfx::setUniform(m_brushUniform, brushVelocity);
-    m_velocityTexture->BindAsTarget(2);
-    bgfx::setVertexBuffer(0, m_vbh);
-    bgfx::setIndexBuffer(m_ibh);
-    bgfx::setState(state | BGFX_STATE_BLEND_ADD);
-    bgfx::submit(2, m_paintVelocityProgram);
-    */
     // bunch of CS
     bgfx::setViewFrameBuffer(5, { bgfx::kInvalidHandle });
 
@@ -168,19 +128,6 @@ void Flooid::Tick(const Parameters& parameters)
     // vorticity
     if (1)
     {
-        /*Texture* vorticity = m_textureProvider.Acquire();
-        bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setImage(1, vorticity->GetTexture(), 0, bgfx::Access::Write);
-        bgfx::dispatch(5, m_vorticityCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-
-        Texture* vorticityForce = m_textureProvider.Acquire();
-        bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setTexture(1, m_texVorticityUniform, vorticity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setImage(2, vorticityForce->GetTexture(), 0, bgfx::Access::Write);
-        bgfx::dispatch(5, m_vorticityForceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-        m_textureProvider.Release(vorticity);
-        m_textureProvider.Release(advectedVelocity);
-        advectedVelocity = vorticityForce;*/
         Vorticity vorticityNode;
         vorticityNode.SetInput(0, advectedVelocity);
         vorticityNode.Tick(m_textureProvider);
@@ -200,9 +147,6 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::touch(6);
 
     bgfx::setViewFrameBuffer(7, {bgfx::kInvalidHandle});
-    //bgfx::setViewRect(7, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
-    //bgfx::setViewClear(7, BGFX_CLEAR_COLOR, 0x00000000);
-    //bgfx::touch(7);
     
     // jacobi
     for(int i = 0; i < parameters.m_iterationCount; i++)
@@ -229,21 +173,14 @@ void Flooid::Tick(const Parameters& parameters)
     m_textureProvider.Release(jacobi[1]);
     m_textureProvider.Release(advectedVelocity);
     
-    // draw RT
-    //bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
-    /*bgfx::setViewFrameBuffer(0, {bgfx::kInvalidHandle});
-    bgfx::setVertexBuffer(0, m_vbh);
-    bgfx::setIndexBuffer(m_ibh);
-    bgfx::setState(state);
-    bgfx::setTexture(0, m_texColorUniform, m_densityTexture->GetTexture());
-    bgfx::submit(0, m_renderRTProgram);
-    */
-    
     m_renderer.Render(m_densityTexture);
 
     // swap advect/vel
     m_textureProvider.Release(m_densityTexture);
     m_densityTexture = advectedDensity;
-    
-    
+}
+
+void Flooid::UI()
+{
+    GraphEditor::Show(m_graphEditorDelegate, m_graphEditorOptions, m_graphEditorViewState, true, &m_graphEditorFit);
 }

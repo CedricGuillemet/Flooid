@@ -3,6 +3,7 @@
 #include "Shaders.h"
 #include "imgui.h"
 #include "GraphEditorDelegate.h"
+
 const int TEX_SIZE = 256;
 
 void Vorticity::Init()

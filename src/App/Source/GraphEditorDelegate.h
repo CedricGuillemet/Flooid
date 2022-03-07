@@ -10,25 +10,25 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
     }
     bool AllowedLink(GraphEditor::NodeIndex from, GraphEditor::NodeIndex to) override
     {
-      return true;
+        return true;
     }
 
     void SelectNode(GraphEditor::NodeIndex nodeIndex, bool selected) override
     {
-      mNodes[nodeIndex].mSelected = selected;
+        m_graph.GetNodes()[nodeIndex]->m_selected = selected;
     }
 
     void MoveSelectedNodes(const ImVec2 delta) override
     {
-      for (auto& node : mNodes)
-      {
-         if (!node.mSelected)
-         {
-            continue;
-         }
-         node.x += delta.x;
-         node.y += delta.y;
-      }
+        for (auto node : m_graph.GetNodes())
+        {
+            if (!node->m_selected)
+            {
+                continue;
+            }
+            node->m_x += delta.x;
+            node->m_y += delta.y;
+        }
     }
 
     virtual void RightClick(GraphEditor::NodeIndex nodeIndex, GraphEditor::SlotIndex slotIndexInput, GraphEditor::SlotIndex slotIndexOutput) override
@@ -37,91 +37,60 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
 
     void AddLink(GraphEditor::NodeIndex inputNodeIndex, GraphEditor::SlotIndex inputSlotIndex, GraphEditor::NodeIndex outputNodeIndex, GraphEditor::SlotIndex outputSlotIndex) override
     {
-      mLinks.push_back({ inputNodeIndex, inputSlotIndex, outputNodeIndex, outputSlotIndex });
+        mLinks.push_back({ inputNodeIndex, inputSlotIndex, outputNodeIndex, outputSlotIndex });
     }
 
     void DelLink(GraphEditor::LinkIndex linkIndex) override
     {
-      mLinks.erase(mLinks.begin() + linkIndex);
+        mLinks.erase(mLinks.begin() + linkIndex);
     }
 
     void CustomDraw(ImDrawList* drawList, ImRect rectangle, GraphEditor::NodeIndex nodeIndex) override
     {
-      //drawList->AddLine(rectangle.Min, rectangle.Max, IM_COL32(0, 0, 0, 255));
-      //drawList->AddText(rectangle.Min, IM_COL32(255, 128, 64, 255), "Draw");
     }
 
     const size_t GetTemplateCount() override
     {
-      return mTemplateFunctions.size();
+        return mTemplateFunctions.size();
     }
 
     const GraphEditor::Template GetTemplate(GraphEditor::TemplateIndex index) override
     {
-      return mTemplateFunctions[index]();
+        return mTemplateFunctions[index]();
     }
 
     const size_t GetNodeCount() override
     {
-      return mNodes.size();
+        auto nodes = m_graph.GetNodes();
+        return nodes.size();
     }
 
     const GraphEditor::Node GetNode(GraphEditor::NodeIndex index) override
     {
-      const auto& myNode = mNodes[index];
-      return GraphEditor::Node
-      {
-          myNode.name,
-          myNode.templateIndex,
-          ImRect(ImVec2(myNode.x, myNode.y), ImVec2(myNode.x + 200, myNode.y + 200)),
-          myNode.mSelected
-      };
+        auto nodes = m_graph.GetNodes();
+        const auto myNode = nodes[index];
+        return GraphEditor::Node
+        {
+            myNode->GetName().c_str(),
+            0,
+            ImRect(ImVec2(myNode->m_x, myNode->m_y), ImVec2(myNode->m_x + 200, myNode->m_y + 100)),
+            myNode->m_selected
+        };
     }
 
     const size_t GetLinkCount() override
     {
-      return mLinks.size();
+        return 0;//mLinks.size();
     }
 
     const GraphEditor::Link GetLink(GraphEditor::LinkIndex index) override
     {
-      return mLinks[index];
+        return mLinks[index];
     }
 
     // Graph datas
     typedef GraphEditor::Template (*TemplateFunction)();
     static inline std::vector<TemplateFunction> mTemplateFunctions;
-
-    struct Node
-    {
-      const char* name;
-      GraphEditor::TemplateIndex templateIndex;
-      float x, y;
-      bool mSelected;
-    };
-
-    std::vector<Node> mNodes = {
-       {
-           "My Node 0",
-           0,
-           0, 0,
-           false
-       },
-
-       {
-           "My Node 1",
-           0,
-           400, 0,
-           false
-       },
-
-       {
-           "My Node 2",
-           0,
-           400, 400,
-           false
-       }
-    };
 
     std::vector<GraphEditor::Link> mLinks = { {0, 0, 1, 0} };
 protected:
