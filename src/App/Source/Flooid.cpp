@@ -15,6 +15,8 @@
  - auto arrange nodes
  - raymarching lighting / rendering
 
+ - pan camera
+
  - CI
  - display node
 
