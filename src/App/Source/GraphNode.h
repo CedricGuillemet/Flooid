@@ -37,7 +37,7 @@ public:
     {}
     virtual const char* GetName() const = 0;
     virtual void Tick(TextureProvider& textureProvider) = 0;
-    virtual bool Edit() = 0;
+    virtual bool UI() = 0;
 //protected:
     float m_x, m_y;
     bool m_selected;
@@ -54,7 +54,7 @@ public:
     
     static void Init();
     void Tick(TextureProvider& textureProvider);
-    bool Edit();
+    bool UI();
     static GraphEditor::Template GetTemplate()
     {
         return {
@@ -79,6 +79,80 @@ private:
 
     float m_curl;
     float m_epsilon;
+};
+
+class DensityGen : public GraphNode, public GraphNodeIO<1, 1>
+{
+public:
+    DensityGen()
+        : m_position(0.5f, 0.95f, 0.f)
+        , m_radius(0.1f)
+    {
+
+    }
+    const char* GetName() const { return "Density Gen"; }
+
+    static void Init();
+    void Tick(TextureProvider& textureProvider);
+    bool UI();
+    static GraphEditor::Template GetTemplate()
+    {
+        return {
+            IM_COL32(160, 160, 180, 255),
+            IM_COL32(100, 100, 140, 255),
+            IM_COL32(110, 110, 150, 255),
+            1,
+            Imm::Array{"Density"},
+            Imm::Array{ IM_COL32(200,200,200,255)},
+            1,
+            Imm::Array{"Density"},
+            Imm::Array{ IM_COL32(200,200,200,255)}
+        };
+    }
+private:
+    static inline bgfx::ProgramHandle m_densityGenCSProgram;
+    static inline bgfx::UniformHandle m_positionUniform;
+    
+    Imm::vec4 m_position;
+    float m_radius;
+};
+
+class VelocityGen : public GraphNode, public GraphNodeIO<1, 1>
+{
+public:
+    VelocityGen()
+        : m_position(0.5f, 0.95f, 0.f)
+        , m_direction(0.f, -0.01f, 0.f)
+        , m_radius(0.1f)
+    {
+
+    }
+    const char* GetName() const { return "Velocity Gen"; }
+
+    static void Init();
+    void Tick(TextureProvider& textureProvider);
+    bool UI();
+    static GraphEditor::Template GetTemplate()
+    {
+        return {
+            IM_COL32(160, 160, 180, 255),
+            IM_COL32(100, 100, 140, 255),
+            IM_COL32(110, 110, 150, 255),
+            1,
+            Imm::Array{"Velocity"},
+            Imm::Array{ IM_COL32(200,200,200,255)},
+            1,
+            Imm::Array{"Velocity"},
+            Imm::Array{ IM_COL32(200,200,200,255)}
+        };
+    }
+private:
+    static inline bgfx::ProgramHandle m_velocityGenCSProgram;
+    static inline bgfx::UniformHandle m_positionUniform;
+    static inline bgfx::UniformHandle m_directionUniform;
+    Imm::vec4 m_position;
+    Imm::vec4 m_direction;
+    float m_radius;
 };
 
 class Graph

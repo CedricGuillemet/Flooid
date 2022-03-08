@@ -6,7 +6,8 @@
 #include "GraphNode.h"
 
 /*
- 
+ - display parameters UI
+ - handle gizmo for gens
  
  - vorticity node
  - generator node
@@ -40,39 +41,36 @@ void Flooid::Init()
     m_densityTexture = m_textureProvider.Acquire();
     m_velocityTexture = m_textureProvider.Acquire();
     
-    m_brushUniform = bgfx::createUniform("brush", bgfx::UniformType::Vec4);
-    m_brushDirectionUniform = bgfx::createUniform("brushDirection", bgfx::UniformType::Vec4);
-    m_brushColorUniform = bgfx::createUniform("brushColor", bgfx::UniformType::Vec4);
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
-    m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
-    m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
 
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
     m_texColorUniform = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
     m_texPressureUniform = bgfx::createUniform("s_texPressure", bgfx::UniformType::Sampler);
-    //m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
     m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
     m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
     
 
-    m_renderRTProgram = App::LoadProgram("Quad_vs", "RenderRT_fs");
-    m_paintDensityProgram = App::LoadProgram("Quad_vs", "PaintDensity_fs");
-    m_paintVelocityProgram = App::LoadProgram("Quad_vs", "PaintVelocity_fs");
-
     m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
     m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
-    m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
-    m_velocityGenCSProgram = App::LoadProgram("VelocityGen_cs", nullptr);
+
     
     Vorticity::Init();
+    VelocityGen::Init();
+    DensityGen::Init();
     
     m_vorticityNode = new Vorticity;
     m_graph.AddNode(m_vorticityNode);
+
+    m_velocityGenNode = new VelocityGen;
+    m_graph.AddNode(m_velocityGenNode);
+
+    m_densityGenNode = new DensityGen;
+    m_graph.AddNode(m_densityGenNode);
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -84,18 +82,8 @@ void Flooid::Tick(const Parameters& parameters)
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 
     // uniforms
-    float brushColor[4] = { 1.f, 1.f, 1.f, 1.f };
-    bgfx::setUniform(m_brushColorUniform, brushColor);
-    float brushDirection[4] = {parameters.dx, parameters.dy, 0.f, 0.f};
-    bgfx::setUniform(m_brushDirectionUniform, brushDirection);
     float advection[4] = {1.f, 0.997f, 1.f, 1.f};
     bgfx::setUniform(m_advectionUniform, advection);
-
-    float position[4] = {0.5f, 1.f, 0.f, 0.1f};
-    bgfx::setUniform(m_positionUniform, position);
-    
-    float direction[4] = {0.f, -0.005f, 0.f, 0.f};
-    bgfx::setUniform(m_directionUniform, direction);
 
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
@@ -119,12 +107,14 @@ void Flooid::Tick(const Parameters& parameters)
     bgfx::dispatch(5, m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
     // density gen
-    bgfx::setImage(0, advectedDensity->GetTexture(), 0, bgfx::Access::ReadWrite);
-    bgfx::dispatch(5, m_densityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    m_densityGenNode->SetInput(0, advectedDensity);
+    m_densityGenNode->Tick(m_textureProvider);
+    advectedDensity = m_densityGenNode->GetOutput(0);
 
     // velocity gen
-    bgfx::setImage(0, advectedVelocity->GetTexture(), 0, bgfx::Access::ReadWrite);
-    bgfx::dispatch(5, m_velocityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    m_velocityGenNode->SetInput(0, advectedVelocity);
+    m_velocityGenNode->Tick(m_textureProvider);
+    advectedVelocity = m_velocityGenNode->GetOutput(0);
 
     // vorticity
     if (1)
@@ -163,11 +153,10 @@ void Flooid::Tick(const Parameters& parameters)
     m_textureProvider.Release(divergence);
     
     // gradient
-    bgfx::setViewFrameBuffer(8, { bgfx::kInvalidHandle });
     bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, m_velocityTexture->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(8, m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    bgfx::dispatch(7, m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     
     m_textureProvider.Release(jacobi[0]);
     m_textureProvider.Release(jacobi[1]);

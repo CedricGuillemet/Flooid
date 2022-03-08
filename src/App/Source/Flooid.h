@@ -26,13 +26,8 @@ public:
     Texture* m_densityTexture;
     Texture* m_velocityTexture;
     
-    bgfx::UniformHandle m_brushUniform;
-    bgfx::UniformHandle m_brushDirectionUniform;
-    bgfx::UniformHandle m_brushColorUniform;
     bgfx::UniformHandle m_jacobiParametersUniform;
     bgfx::UniformHandle m_advectionUniform;
-    bgfx::UniformHandle m_positionUniform;
-    bgfx::UniformHandle m_directionUniform;
 
     bgfx::UniformHandle m_texVelocityUniform;
     bgfx::UniformHandle m_texAdvectUniform;
@@ -43,22 +38,19 @@ public:
     bgfx::UniformHandle m_texJacoviUniform;
     bgfx::UniformHandle m_texDivergenceUniform;
 
-    bgfx::ProgramHandle m_renderRTProgram;
-    bgfx::ProgramHandle m_paintDensityProgram;
-    bgfx::ProgramHandle m_paintVelocityProgram;
-
     bgfx::ProgramHandle m_divergenceCSProgram;
     bgfx::ProgramHandle m_gradientCSProgram;
     bgfx::ProgramHandle m_jacobiCSProgram;
     bgfx::ProgramHandle m_advectCSProgram;
-    bgfx::ProgramHandle m_densityGenCSProgram;
-    bgfx::ProgramHandle m_velocityGenCSProgram;
+
     
     TextureProvider m_textureProvider;
     Renderer m_renderer;
     
     
     Vorticity* m_vorticityNode;
+    VelocityGen* m_velocityGenNode;
+    DensityGen* m_densityGenNode;
     Graph m_graph;
     
     GraphEditor::Options m_graphEditorOptions;
