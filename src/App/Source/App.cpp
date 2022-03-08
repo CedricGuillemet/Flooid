@@ -132,22 +132,7 @@ public:
 				);
 
             // Transform dialog
-            ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(m_width / 2.0f, m_height / 3.0f), ImGuiCond_FirstUseEver);
-
 			static Flooid::Parameters parameters{};
-
-			// Graph Editor
-			
-
-			/*ImGui::Begin("Transform"
-				, NULL
-				, 0
-				);
-			ImGui::Combo("Display", &parameters.m_display, "Density\0Velocity\0Divergence\0Pressure\0");
-
-            //editTransform(view, proj, m_world);
-			ImGui::End();*/
 			
             bool usingGUI = m_flooid.UI();
         	

@@ -1,6 +1,7 @@
 #include "TextureProvider.h"
 #include "Renderer.h"
 #include "GraphEditorDelegate.h"
+#include "FlooidUI.h"
 
 class Flooid
 {
@@ -35,11 +36,6 @@ public:
     Solver* m_solverNode{};
     Graph m_graph;
     
-    GraphEditor::Options m_graphEditorOptions;
-    GraphEditorDelegate m_graphEditorDelegate;
-    GraphEditor::ViewState m_graphEditorViewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
-    GraphEditor::FitOnScreen m_graphEditorFit{ GraphEditor::Fit_None };
 protected:
-    void CheckUsingUI();
-    bool m_usingGUI{false};
+    FlooidUI m_ui;
 };

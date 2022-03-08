@@ -30,11 +30,10 @@
 
 Flooid::Flooid()
 : m_graph{}
-, m_graphEditorDelegate(m_graph)
+, m_ui(m_graph)
 {
 }
 
-const int TEX_SIZE = 256;
 void Flooid::Init()
 {
     m_renderer.Init();
@@ -126,37 +125,7 @@ void Flooid::Tick(const Parameters& parameters)
     m_densityTexture = advectedDensity;
 }
 
-void Flooid::CheckUsingUI()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    
-    if (ImGui::IsItemHovered() || ImGui::IsWindowHovered())
-    {
-        m_usingGUI = true;
-    }
-    else
-    {
-        if (m_usingGUI && !io.MouseDown[0] && !io.MouseDown[1] && !io.MouseDown[2])
-        {
-            m_usingGUI = false;
-        }
-    }
-}
-
 bool Flooid::UI()
 {
-    ImGui::Begin("Graph Editor", NULL, 0);
-    if (ImGui::Button("Fit all nodes"))
-    {
-        m_graphEditorFit = GraphEditor::Fit_AllNodes;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Fit selected nodes"))
-    {
-        m_graphEditorFit = GraphEditor::Fit_SelectedNodes;
-    }
-    GraphEditor::Show(m_graphEditorDelegate, m_graphEditorOptions, m_graphEditorViewState, true, &m_graphEditorFit);
-    CheckUsingUI();
-    ImGui::End();
-    return m_usingGUI;
+    return m_ui.UI();
 }

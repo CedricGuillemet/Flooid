@@ -48,9 +48,7 @@ bool Vorticity::UI()
     return changed;
 }
 
-
 // -----------------------------------------------------------------------------------------------------
-
 
 void DensityGen::Init()
 {
@@ -108,7 +106,6 @@ bool VelocityGen::UI()
     return changed;
 }
 
-
 // -----------------------------------------------------------------------------------------------------
 
 void Advection::Init()
@@ -143,7 +140,7 @@ bool Advection::UI()
     return changed;
 }
 
-
+// -----------------------------------------------------------------------------------------------------
 
 void Solver::Init()
 {
@@ -207,4 +204,3 @@ bool Solver::UI()
     changed |= ImGui::InputFloat("Beta", &m_beta);
     return changed;
 }
-
