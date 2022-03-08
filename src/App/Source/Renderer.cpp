@@ -40,7 +40,7 @@ void GenerateCurvedGrid(std::vector<Renderer::Vertex>& vertices, std::vector<uin
     static const int planIndices[] = {0,  2,  1, 1,  2,  3};
     for(auto index : planIndices)
     {
-        indices.push_back(index + vertices.size());
+        indices.push_back(static_cast<uint16_t>(index + vertices.size()));
     }
     vertices.push_back({-halfWidth, 0.f,       0.0f + offsetZ, 0.f, 1.f, 0.f, -halfWidth,       0.0f });
     vertices.push_back({ halfWidth, 0.f,       0.0f + offsetZ, 0.f, 1.f, 0.f,  halfWidth,       0.0f });
@@ -49,7 +49,7 @@ void GenerateCurvedGrid(std::vector<Renderer::Vertex>& vertices, std::vector<uin
 
     for(auto index : planIndices)
     {
-        indices.push_back(index + vertices.size());
+        indices.push_back(static_cast<uint16_t>(index + vertices.size()));
     }
     
     vertices.push_back({-halfWidth, 1.f,             1.0f + offsetZ, 0.f, 0.f, -1.f, -halfWidth,  quarterCircleLength});
@@ -83,8 +83,8 @@ void Renderer::Init()
     static std::vector<uint16_t> indices;
     GenerateCurvedGrid(vertices, indices);
     
-    m_vbhGround = bgfx::createVertexBuffer(bgfx::makeRef(vertices.data(), sizeof(Vertex) * vertices.size()), Vertex::ms_layout);
-    m_ibhGround = bgfx::createIndexBuffer(bgfx::makeRef(indices.data(), sizeof(uint16_t) * indices.size()));
+    m_vbhGround = bgfx::createVertexBuffer(bgfx::makeRef(vertices.data(), static_cast<uint32_t>(sizeof(Vertex) * vertices.size())), Vertex::ms_layout);
+    m_ibhGround = bgfx::createIndexBuffer(bgfx::makeRef(indices.data(), static_cast<uint32_t>(sizeof(uint16_t) * indices.size())));
     
     m_viewProjectionUniform = bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4);
     //m_viewUniform = bgfx::createUniform("view", bgfx::UniformType::Vec4);

@@ -4,7 +4,7 @@
 #include "Immath.h"
 #include "GraphEditor.h"
 class TextureProvider;
-class Texture;
+struct Texture;
 
 
 template<unsigned int inputCount, unsigned int outputCount> class GraphNodeIO
