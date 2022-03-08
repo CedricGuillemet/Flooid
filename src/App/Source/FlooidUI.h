@@ -20,5 +20,5 @@ private:
     GraphEditorDelegate m_graphEditorDelegate;
     GraphEditor::ViewState m_graphEditorViewState{{0.0f, 0.0f}, { 0.5f },{ 0.5f }};
     GraphEditor::FitOnScreen m_graphEditorFit{ GraphEditor::Fit_None };
-
+    Graph& m_graph;
 };

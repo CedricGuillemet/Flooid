@@ -261,6 +261,8 @@ class Graph
 public:
     Graph() {}
     
+    // return selected node, nullptr is more than 1 selected or none
+    GraphNode* GetSelectedNode() const;
     void AddNode(GraphNode* node) { m_nodes.push_back(node); }
     std::vector<GraphNode*>& GetNodes() { return m_nodes; }
     std::vector<GraphNode*> m_nodes;

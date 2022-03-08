@@ -3,6 +3,7 @@
 
 FlooidUI::FlooidUI(Graph& graph)
 : m_graphEditorDelegate(graph)
+, m_graph(graph)
 {
     
 }
@@ -51,6 +52,11 @@ bool FlooidUI::ParametersUI()
     ImGui::SetNextWindowSize(ImVec2(200, 400), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Parameters", NULL, 0);
+    auto selectedNode = m_graph.GetSelectedNode();
+    if (selectedNode)
+    {
+        selectedNode->UI();
+    }
     CheckUsingUI();
     ImGui::End();
     return false;

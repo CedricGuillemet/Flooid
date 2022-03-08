@@ -204,3 +204,26 @@ bool Solver::UI()
     changed |= ImGui::InputFloat("Beta", &m_beta);
     return changed;
 }
+
+// -----------------------------------------------------------------------------------------------------
+
+GraphNode* Graph::GetSelectedNode() const
+{
+    GraphNode* res{nullptr};
+    for(auto node : m_nodes)
+    {
+        if(!node->m_selected)
+        {
+            continue;
+        }
+        if(!res)
+        {
+            res = node;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+    return res;
+}
