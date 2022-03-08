@@ -193,7 +193,7 @@ public:
             IM_COL32(110, 110, 150, 255),
             2,
             Imm::Array{"Velocity", "Source"},
-            Imm::Array{ IM_COL32(200,200,200,255)},
+            Imm::Array{ IM_COL32(200,200,200,255), IM_COL32(200,200,200,255)},
             1,
             Imm::Array{"Advected"},
             Imm::Array{ IM_COL32(200,200,200,255)}

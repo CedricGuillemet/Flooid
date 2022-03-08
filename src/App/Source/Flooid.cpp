@@ -7,7 +7,6 @@
 
 /*
  - display parameters UI
- - texture provider get clearer RT + provide viewId
  - handle gizmo for gens
  
  - display node
@@ -69,8 +68,8 @@ void Flooid::Tick(const Parameters& parameters)
         m_renderer.Input(parameters.dx, parameters.dy);
     }
 
-    // bunch of CS
-    bgfx::setViewFrameBuffer(5, { bgfx::kInvalidHandle });
+
+    m_textureProvider.TickInit(6);
 
     // advect density
     m_advectDensityNode->SetInput(0, m_velocityTexture);
