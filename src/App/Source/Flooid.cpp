@@ -10,13 +10,14 @@
  - handle gizmo for gens
  - debug display for gen nodes volumes
 
- - display node
-
  - graph with links
  - graph solving with solving list
  - auto arrange nodes
  - raymarching lighting / rendering
- 
+
+ - CI
+ - display node
+
  - node based graphics editing
  - save/load json
 
