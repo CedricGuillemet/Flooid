@@ -2,7 +2,6 @@
 
 Imm::matrix Camera::GetViewProjection() 
 { 
-    ComputeMatrices();
     return m_viewMatrix * m_projectionMatrix; 
 }
 

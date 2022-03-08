@@ -78,7 +78,6 @@ void Renderer::Init()
     m_vbh = bgfx::createVertexBuffer(bgfx::makeRef(quadVertices, sizeof(quadVertices)), Vertex::ms_layout);
     m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(quadIndices, sizeof(quadIndices) ) );
 
-
     static std::vector<Renderer::Vertex> vertices;
     static std::vector<uint16_t> indices;
     GenerateCurvedGrid(vertices, indices);
@@ -110,6 +109,4 @@ void Renderer::Render(Texture* texture)
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
     bgfx::submit(0, m_renderProgram);
-
-    
 }

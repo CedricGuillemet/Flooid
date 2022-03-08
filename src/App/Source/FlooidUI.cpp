@@ -1,11 +1,12 @@
 #include "FlooidUI.h"
 #include "imgui.h"
+#include "UIGizmos.h"
+#include "Camera.h"
 
 FlooidUI::FlooidUI(Graph& graph)
 : m_graphEditorDelegate(graph)
 , m_graph(graph)
 {
-    
 }
 
 void FlooidUI::CheckUsingUI()
@@ -46,7 +47,7 @@ bool FlooidUI::GraphUI()
     return m_usingGUI;
 }
 
-bool FlooidUI::ParametersUI()
+bool FlooidUI::ParametersUI(const Camera& camera)
 {
     ImGui::SetNextWindowPos(ImVec2(0.0f, 300.0f), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(200, 400), ImGuiCond_FirstUseEver);
@@ -55,17 +56,19 @@ bool FlooidUI::ParametersUI()
     auto selectedNode = m_graph.GetSelectedNode();
     if (selectedNode)
     {
-        selectedNode->UI();
+        UIGizmos uiGizmos(camera.GetView().m16, camera.GetProjection().m16);
+        selectedNode->UI(uiGizmos);
+        uiGizmos.UI();
     }
     CheckUsingUI();
     ImGui::End();
     return false;
 }
 
-bool FlooidUI::UI()
+bool FlooidUI::UI(const Camera& camera)
 {
     bool usingUI = GraphUI();
-    usingUI |= ParametersUI();
+    usingUI |= ParametersUI(camera);
     return usingUI;
 }
 

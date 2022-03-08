@@ -3,6 +3,7 @@
 #include "Shaders.h"
 #include "imgui.h"
 #include "GraphEditorDelegate.h"
+#include "UIGizmos.h"
 
 const int TEX_SIZE = 256;
 
@@ -41,7 +42,7 @@ void Vorticity::Tick(TextureProvider& textureProvider)
     m_outputs[0] = vorticityForce;
 }
 
-bool Vorticity::UI()
+bool Vorticity::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Epsilon", &m_epsilon);
     changed |= ImGui::InputFloat("Curl", &m_curl);
@@ -69,9 +70,10 @@ void DensityGen::Tick(TextureProvider& textureProvider)
     m_outputs[0] = density;
 }
 
-bool DensityGen::UI()
+bool DensityGen::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Radius", &m_radius);
+    uiGizmos.EditPositionScale(&m_position, &m_radius);
     return changed;
 }
 
@@ -100,7 +102,7 @@ void VelocityGen::Tick(TextureProvider& textureProvider)
     m_outputs[0] = velocity;
 }
 
-bool VelocityGen::UI()
+bool VelocityGen::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Radius", &m_radius);
     return changed;
@@ -133,7 +135,7 @@ void Advection::Tick(TextureProvider& textureProvider)
     m_outputs[0] = advected;
 }
 
-bool Advection::UI()
+bool Advection::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Time scale", &m_timeScale);
     changed |= ImGui::InputFloat("Dissipation", &m_dissipation);
@@ -198,7 +200,7 @@ void Solver::Tick(TextureProvider& textureProvider)
     m_outputs[0] = outputVelocity;
 }
 
-bool Solver::UI()
+bool Solver::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Alpha", &m_alpha);
     changed |= ImGui::InputFloat("Beta", &m_beta);

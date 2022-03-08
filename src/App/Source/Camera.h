@@ -18,9 +18,14 @@ public:
     }
     void SetDisplaySize(uint16_t width, uint16_t height);
     void Input(float dx, float dy);
-    Imm::matrix GetViewProjection();
-private:
+    
     void ComputeMatrices();
+    Imm::matrix GetViewProjection();
+    const Imm::matrix& GetView() const { return m_viewMatrix; }
+    const Imm::matrix& GetProjection() const { return m_projectionMatrix; }
+    
+private:
+    
     Imm::matrix m_viewMatrix;
     Imm::matrix m_projectionMatrix;
     bool m_homogeneousDepth;

@@ -6,7 +6,6 @@
 #include "GraphNode.h"
 
 /*
- - display parameters UI : FlooidUI
  - handle gizmo for gens
  - debug display for gen nodes volumes
 
@@ -78,6 +77,7 @@ void Flooid::Tick(const Parameters& parameters)
     {
         m_renderer.Input(parameters.dx, parameters.dy);
     }
+    m_renderer.Tick();
 
     m_textureProvider.TickInit(6);
 
@@ -127,5 +127,5 @@ void Flooid::Tick(const Parameters& parameters)
 
 bool Flooid::UI()
 {
-    return m_ui.UI();
+    return m_ui.UI(m_renderer.GetCamera());
 }

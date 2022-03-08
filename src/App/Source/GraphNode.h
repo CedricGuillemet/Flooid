@@ -3,9 +3,10 @@
 #include <bgfx/bgfx.h>
 #include "Immath.h"
 #include "GraphEditor.h"
+
 class TextureProvider;
 struct Texture;
-
+class UIGizmos;
 
 #define __NODE_TYPE \
 private:\
@@ -43,7 +44,7 @@ public:
     {}
     virtual const char* GetName() const = 0;
     virtual void Tick(TextureProvider& textureProvider) = 0;
-    virtual bool UI() = 0;
+    virtual bool UI(UIGizmos& uiGizmos) = 0;
     virtual uint16_t GetRuntimeType() const = 0;
 //protected:
     float m_x, m_y;
@@ -63,7 +64,7 @@ public:
     
     static void Init();
     void Tick(TextureProvider& textureProvider);
-    bool UI();
+    bool UI(UIGizmos& uiGizmos);
     static GraphEditor::Template GetTemplate()
     {
         return {
@@ -96,7 +97,7 @@ class DensityGen : public GraphNode, public GraphNodeIO<1, 1>
 {
 public:
     DensityGen()
-        : m_position(0.5f, 0.95f, 0.f)
+        : m_position{0.5f, 0.95f, 0.f}
         , m_radius(0.1f)
     {
 
@@ -105,7 +106,7 @@ public:
 
     static void Init();
     void Tick(TextureProvider& textureProvider);
-    bool UI();
+    bool UI(UIGizmos& uiGizmos);
     static GraphEditor::Template GetTemplate()
     {
         return {
@@ -124,7 +125,7 @@ private:
     static inline bgfx::ProgramHandle m_densityGenCSProgram;
     static inline bgfx::UniformHandle m_positionUniform;
     
-    Imm::vec4 m_position;
+    Imm::vec3 m_position;
     float m_radius;
 
     __NODE_TYPE
@@ -134,8 +135,8 @@ class VelocityGen : public GraphNode, public GraphNodeIO<1, 1>
 {
 public:
     VelocityGen()
-        : m_position(0.5f, 0.95f, 0.f)
-        , m_direction(0.f, -0.01f, 0.f)
+        : m_position{0.5f, 0.95f, 0.f}
+        , m_direction{0.f, -0.01f, 0.f}
         , m_radius(0.1f)
     {
 
@@ -144,7 +145,7 @@ public:
 
     static void Init();
     void Tick(TextureProvider& textureProvider);
-    bool UI();
+    bool UI(UIGizmos& uiGizmos);
     static GraphEditor::Template GetTemplate()
     {
         return {
@@ -163,8 +164,8 @@ private:
     static inline bgfx::ProgramHandle m_velocityGenCSProgram;
     static inline bgfx::UniformHandle m_positionUniform;
     static inline bgfx::UniformHandle m_directionUniform;
-    Imm::vec4 m_position;
-    Imm::vec4 m_direction;
+    Imm::vec3 m_position;
+    Imm::vec3 m_direction;
     float m_radius;
 
     __NODE_TYPE
@@ -184,7 +185,7 @@ public:
 
     static void Init();
     void Tick(TextureProvider& textureProvider);
-    bool UI();
+    bool UI(UIGizmos& uiGizmos);
     static GraphEditor::Template GetTemplate()
     {
         return {
@@ -224,7 +225,7 @@ public:
 
     static void Init();
     void Tick(TextureProvider& textureProvider);
-    bool UI();
+    bool UI(UIGizmos& uiGizmos);
     static GraphEditor::Template GetTemplate()
     {
         return {
