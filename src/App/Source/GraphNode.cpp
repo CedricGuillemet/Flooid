@@ -49,13 +49,15 @@ bool Vorticity::UI()
 }
 
 
-//////
+// -----------------------------------------------------------------------------------------------------
 
 
 void DensityGen::Init()
 {
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
+
+    GraphEditorDelegate::mTemplateFunctions.push_back(DensityGen::GetTemplate);
 }
 
 void DensityGen::Tick(TextureProvider& textureProvider)
@@ -75,13 +77,15 @@ bool DensityGen::UI()
     return changed;
 }
 
-//
+// -----------------------------------------------------------------------------------------------------
 
 void VelocityGen::Init()
 {
     m_velocityGenCSProgram = App::LoadProgram("VelocityGen_cs", nullptr);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
     m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
+
+    GraphEditorDelegate::mTemplateFunctions.push_back(VelocityGen::GetTemplate);
 }
 
 void VelocityGen::Tick(TextureProvider& textureProvider)
@@ -101,5 +105,40 @@ void VelocityGen::Tick(TextureProvider& textureProvider)
 bool VelocityGen::UI()
 {
     bool changed = ImGui::InputFloat("Radius", &m_radius);
+    return changed;
+}
+
+
+// -----------------------------------------------------------------------------------------------------
+
+void Advection::Init()
+{
+    m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
+    m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
+    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
+    m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
+
+    GraphEditorDelegate::mTemplateFunctions.push_back(Advection::GetTemplate);
+}
+
+void Advection::Tick(TextureProvider& textureProvider)
+{
+    float advection[4] = { m_timeScale, m_dissipation, 0.f, 0.f };
+    bgfx::setUniform(m_advectionUniform, advection);
+
+    auto velocity = m_inputs[0];
+    auto toAdvectTexture = m_inputs[1];
+    Texture* advected = textureProvider.Acquire();
+    bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+    bgfx::setTexture(1, m_texAdvectUniform, toAdvectTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+    bgfx::setImage(2, advected->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(5, m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    m_outputs[0] = advected;
+}
+
+bool Advection::UI()
+{
+    bool changed = ImGui::InputFloat("Time scale", &m_timeScale);
+    changed |= ImGui::InputFloat("Dissipation", &m_dissipation);
     return changed;
 }

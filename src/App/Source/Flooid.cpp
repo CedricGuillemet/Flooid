@@ -7,21 +7,17 @@
 
 /*
  - display parameters UI
+ - texture provider get clearer RT + provide viewId
  - handle gizmo for gens
  
- - vorticity node
- - generator node
- - speed node
  - solver nodes
  - display node
 
  - node based solving
- - paint density node
- - paint speed node
- 
+ - graph with links
+ - graph resolution
  - raymarching lighting / rendering
- - gizmo
-
+ 
  - node based graphics editing
  - save/load json
  */
@@ -29,7 +25,6 @@
 Flooid::Flooid()
 : m_graph{}
 , m_graphEditorDelegate(m_graph)
-
 {
 }
 
@@ -42,26 +37,22 @@ void Flooid::Init()
     m_velocityTexture = m_textureProvider.Acquire();
     
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
-    m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
 
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
-    m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
     m_texColorUniform = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
     m_texPressureUniform = bgfx::createUniform("s_texPressure", bgfx::UniformType::Sampler);
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
     m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
     m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
-    
 
     m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
-    m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
 
-    
     Vorticity::Init();
     VelocityGen::Init();
     DensityGen::Init();
+    Advection::Init();
     
     m_vorticityNode = new Vorticity;
     m_graph.AddNode(m_vorticityNode);
@@ -70,6 +61,12 @@ void Flooid::Init()
     m_graph.AddNode(m_velocityGenNode);
 
     m_densityGenNode = new DensityGen;
+    m_graph.AddNode(m_densityGenNode);
+
+    m_advectDensity = new Advection;
+    m_graph.AddNode(m_densityGenNode);
+
+    m_advectVelocity = new Advection;
     m_graph.AddNode(m_densityGenNode);
 }
 
@@ -81,10 +78,6 @@ void Flooid::Tick(const Parameters& parameters)
     }
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 
-    // uniforms
-    float advection[4] = {1.f, 0.997f, 1.f, 1.f};
-    bgfx::setUniform(m_advectionUniform, advection);
-
     // jacobi
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
@@ -92,19 +85,17 @@ void Flooid::Tick(const Parameters& parameters)
     // bunch of CS
     bgfx::setViewFrameBuffer(5, { bgfx::kInvalidHandle });
 
-    // advect paint
-    Texture* advectedDensity = m_textureProvider.Acquire();
-    bgfx::setTexture(0, m_texVelocityUniform, m_velocityTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setTexture(1, m_texAdvectUniform, m_densityTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setImage(2, advectedDensity->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(5, m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-
+    // advect density
+    m_advectDensity->SetInput(0, m_velocityTexture);
+    m_advectDensity->SetInput(1, m_densityTexture);
+    m_advectDensity->Tick(m_textureProvider);
+    Texture* advectedDensity = m_advectDensity->GetOutput(0);
+    
     // advect velocity
-    Texture* advectedVelocity = m_textureProvider.Acquire();
-    bgfx::setTexture(0, m_texVelocityUniform, m_velocityTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setTexture(1, m_texAdvectUniform, m_velocityTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setImage(2, advectedVelocity->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(5, m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    m_advectVelocity->SetInput(0, m_velocityTexture);
+    m_advectVelocity->SetInput(1, m_velocityTexture);
+    m_advectVelocity->Tick(m_textureProvider);
+    Texture* advectedVelocity = m_advectVelocity->GetOutput(0);
 
     // density gen
     m_densityGenNode->SetInput(0, advectedDensity);

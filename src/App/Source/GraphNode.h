@@ -155,6 +155,45 @@ private:
     float m_radius;
 };
 
+
+class Advection : public GraphNode, public GraphNodeIO<2, 1>
+{
+public:
+    Advection()
+        : m_timeScale(1.f)
+        , m_dissipation(0.997f)
+    {
+
+    }
+    const char* GetName() const { return "Advection"; }
+
+    static void Init();
+    void Tick(TextureProvider& textureProvider);
+    bool UI();
+    static GraphEditor::Template GetTemplate()
+    {
+        return {
+            IM_COL32(160, 160, 180, 255),
+            IM_COL32(100, 100, 140, 255),
+            IM_COL32(110, 110, 150, 255),
+            2,
+            Imm::Array{"Velocity", "Source"},
+            Imm::Array{ IM_COL32(200,200,200,255)},
+            1,
+            Imm::Array{"Advected"},
+            Imm::Array{ IM_COL32(200,200,200,255)}
+        };
+    }
+private:
+    static inline bgfx::ProgramHandle m_advectCSProgram;
+    static inline bgfx::UniformHandle m_advectionUniform;
+    static inline bgfx::UniformHandle m_texVelocityUniform;
+    static inline bgfx::UniformHandle m_texAdvectUniform;
+    float m_timeScale;
+    float m_dissipation;
+};
+
+
 class Graph
 {
 public:
