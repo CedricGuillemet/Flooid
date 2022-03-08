@@ -172,7 +172,6 @@ public:
 			parameters.dy = io.MouseDelta.y / io.DisplaySize.y;
 			parameters.lButDown = !usingGUI && io.MouseDown[0];
 			parameters.rButDown = !usingGUI && io.MouseDown[1];
-            parameters.m_iterationCount = 50;
 			m_flooid.Tick(parameters);
 
             bgfx::frame();

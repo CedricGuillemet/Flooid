@@ -7,6 +7,12 @@ class TextureProvider;
 struct Texture;
 
 
+#define __NODE_TYPE \
+private:\
+static inline uint16_t _nodeType = GraphNode::_runtimeType++; \
+public:\
+uint16_t GetRuntimeType() const { return _nodeType; }
+
 template<unsigned int inputCount, unsigned int outputCount> class GraphNodeIO
 {
 public:
@@ -38,9 +44,12 @@ public:
     virtual const char* GetName() const = 0;
     virtual void Tick(TextureProvider& textureProvider) = 0;
     virtual bool UI() = 0;
+    virtual uint16_t GetRuntimeType() const = 0;
 //protected:
     float m_x, m_y;
     bool m_selected;
+
+    static inline uint16_t _runtimeType{};
 };
 
 class Vorticity : public GraphNode, public GraphNodeIO<1,1>
@@ -79,6 +88,8 @@ private:
 
     float m_curl;
     float m_epsilon;
+
+    __NODE_TYPE
 };
 
 class DensityGen : public GraphNode, public GraphNodeIO<1, 1>
@@ -115,6 +126,8 @@ private:
     
     Imm::vec4 m_position;
     float m_radius;
+
+    __NODE_TYPE
 };
 
 class VelocityGen : public GraphNode, public GraphNodeIO<1, 1>
@@ -153,6 +166,8 @@ private:
     Imm::vec4 m_position;
     Imm::vec4 m_direction;
     float m_radius;
+
+    __NODE_TYPE
 };
 
 
@@ -191,8 +206,55 @@ private:
     static inline bgfx::UniformHandle m_texAdvectUniform;
     float m_timeScale;
     float m_dissipation;
+
+    __NODE_TYPE
 };
 
+class Solver : public GraphNode, public GraphNodeIO<1, 1>
+{
+public:
+    Solver()
+        : m_alpha(-1.f)
+        , m_beta(4)
+        , m_iterationCount(50)
+    {
+
+    }
+    const char* GetName() const { return "Solver"; }
+
+    static void Init();
+    void Tick(TextureProvider& textureProvider);
+    bool UI();
+    static GraphEditor::Template GetTemplate()
+    {
+        return {
+            IM_COL32(160, 160, 180, 255),
+            IM_COL32(100, 100, 140, 255),
+            IM_COL32(110, 110, 150, 255),
+            1,
+            Imm::Array{"Velocity"},
+            Imm::Array{ IM_COL32(200,200,200,255)},
+            1,
+            Imm::Array{"Velocity"},
+            Imm::Array{ IM_COL32(200,200,200,255)}
+        };
+    }
+private:
+    static inline bgfx::ProgramHandle m_divergenceCSProgram;
+    static inline bgfx::ProgramHandle m_gradientCSProgram;
+    static inline bgfx::ProgramHandle m_jacobiCSProgram;
+    static inline bgfx::UniformHandle m_jacobiParametersUniform;
+    static inline bgfx::UniformHandle m_texVelocityUniform;
+    static inline bgfx::UniformHandle m_texJacoviUniform;
+    static inline bgfx::UniformHandle m_texDivergenceUniform;
+    static inline bgfx::UniformHandle m_texColorUniform;
+    static inline bgfx::UniformHandle m_texPressureUniform;
+    float m_alpha;
+    float m_beta;
+    int m_iterationCount;
+
+    __NODE_TYPE
+};
 
 class Graph
 {

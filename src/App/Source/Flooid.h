@@ -9,8 +9,6 @@ public:
 
     struct Parameters
     {
-        int m_iterationCount;
-        int m_display;
         float x, y;
         float dx, dy;
         bool lButDown, rButDown;
@@ -26,32 +24,15 @@ public:
     Texture* m_densityTexture;
     Texture* m_velocityTexture;
     
-    bgfx::UniformHandle m_jacobiParametersUniform;
-
-    bgfx::UniformHandle m_texVelocityUniform;
-    
-    bgfx::UniformHandle m_texColorUniform;
-    bgfx::UniformHandle m_texPressureUniform;
-    bgfx::UniformHandle m_texVorticityUniform;
-
-    bgfx::UniformHandle m_texJacoviUniform;
-    bgfx::UniformHandle m_texDivergenceUniform;
-
-    bgfx::ProgramHandle m_divergenceCSProgram;
-    bgfx::ProgramHandle m_gradientCSProgram;
-    bgfx::ProgramHandle m_jacobiCSProgram;
-
-
-    
     TextureProvider m_textureProvider;
     Renderer m_renderer;
-    
-    
+
     Vorticity* m_vorticityNode;
     VelocityGen* m_velocityGenNode;
     DensityGen* m_densityGenNode;
-    Advection* m_advectDensity;
-    Advection* m_advectVelocity;
+    Advection* m_advectDensityNode;
+    Advection* m_advectVelocityNode;
+    Solver* m_solverNode;
     Graph m_graph;
     
     GraphEditor::Options m_graphEditorOptions;

@@ -72,7 +72,7 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
         return GraphEditor::Node
         {
             myNode->GetName(),
-            0,
+            myNode->GetRuntimeType(),
             ImRect(ImVec2(myNode->m_x, myNode->m_y), ImVec2(myNode->m_x + 200, myNode->m_y + 100)),
             myNode->m_selected
         };

@@ -10,7 +10,6 @@
  - texture provider get clearer RT + provide viewId
  - handle gizmo for gens
  
- - solver nodes
  - display node
 
  - node based solving
@@ -35,24 +34,14 @@ void Flooid::Init()
     
     m_densityTexture = m_textureProvider.Acquire();
     m_velocityTexture = m_textureProvider.Acquire();
-    
-    m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
-
-    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
-    m_texColorUniform = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
-    m_texPressureUniform = bgfx::createUniform("s_texPressure", bgfx::UniformType::Sampler);
-    m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
-    m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
-    m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
-
-    m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
-    m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
-    m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
 
     Vorticity::Init();
     VelocityGen::Init();
     DensityGen::Init();
     Advection::Init();
+    Solver::Init();
+
+    
     
     m_vorticityNode = new Vorticity;
     m_graph.AddNode(m_vorticityNode);
@@ -63,11 +52,14 @@ void Flooid::Init()
     m_densityGenNode = new DensityGen;
     m_graph.AddNode(m_densityGenNode);
 
-    m_advectDensity = new Advection;
-    m_graph.AddNode(m_densityGenNode);
+    m_advectDensityNode = new Advection;
+    m_graph.AddNode(m_advectDensityNode);
 
-    m_advectVelocity = new Advection;
-    m_graph.AddNode(m_densityGenNode);
+    m_advectVelocityNode = new Advection;
+    m_graph.AddNode(m_advectVelocityNode);
+
+    m_solverNode = new Solver;
+    m_graph.AddNode(m_solverNode);
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -76,26 +68,21 @@ void Flooid::Tick(const Parameters& parameters)
     {
         m_renderer.Input(parameters.dx, parameters.dy);
     }
-    const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 
-    // jacobi
-    float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
-    bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
-    
     // bunch of CS
     bgfx::setViewFrameBuffer(5, { bgfx::kInvalidHandle });
 
     // advect density
-    m_advectDensity->SetInput(0, m_velocityTexture);
-    m_advectDensity->SetInput(1, m_densityTexture);
-    m_advectDensity->Tick(m_textureProvider);
-    Texture* advectedDensity = m_advectDensity->GetOutput(0);
+    m_advectDensityNode->SetInput(0, m_velocityTexture);
+    m_advectDensityNode->SetInput(1, m_densityTexture);
+    m_advectDensityNode->Tick(m_textureProvider);
+    Texture* advectedDensity = m_advectDensityNode->GetOutput(0);
     
     // advect velocity
-    m_advectVelocity->SetInput(0, m_velocityTexture);
-    m_advectVelocity->SetInput(1, m_velocityTexture);
-    m_advectVelocity->Tick(m_textureProvider);
-    Texture* advectedVelocity = m_advectVelocity->GetOutput(0);
+    m_advectVelocityNode->SetInput(0, m_velocityTexture);
+    m_advectVelocityNode->SetInput(1, m_velocityTexture);
+    m_advectVelocityNode->Tick(m_textureProvider);
+    Texture* advectedVelocity = m_advectVelocityNode->GetOutput(0);
 
     // density gen
     m_densityGenNode->SetInput(0, advectedDensity);
@@ -116,43 +103,12 @@ void Flooid::Tick(const Parameters& parameters)
     }
 
     // divergence
-    Texture* divergence = m_textureProvider.Acquire();
-    bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(5, m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    m_solverNode->SetInput(0, advectedVelocity);
+    m_solverNode->Tick(m_textureProvider);
+    m_textureProvider.Release(m_velocityTexture);
+    m_velocityTexture = m_solverNode->GetOutput(0);
 
-    // clear density
-    Texture* jacobi[2] = {m_textureProvider.Acquire(), m_textureProvider.Acquire()};
-    jacobi[0]->BindAsTarget(6);
-    bgfx::setViewClear(6, BGFX_CLEAR_COLOR, 0x00000000);
-    bgfx::touch(6);
-
-    bgfx::setViewFrameBuffer(7, {bgfx::kInvalidHandle});
-    
-    // jacobi
-    for(int i = 0; i < parameters.m_iterationCount; i++)
-    {
-        const int indexSource = i & 1;
-        const int indexDestination = (i + 1) & 1;
-        
-        bgfx::setTexture(0, m_texJacoviUniform, jacobi[indexSource]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setTexture(1, m_texDivergenceUniform, divergence->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setImage(2, jacobi[indexDestination]->GetTexture(), 0, bgfx::Access::Write);
-        bgfx::dispatch(7, m_jacobiCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    }
-    const int lastJacobiIndex = parameters.m_iterationCount & 1;
-    m_textureProvider.Release(divergence);
-    
-    // gradient
-    bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setTexture(1, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(2, m_velocityTexture->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(7, m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    
-    m_textureProvider.Release(jacobi[0]);
-    m_textureProvider.Release(jacobi[1]);
-    m_textureProvider.Release(advectedVelocity);
-    
+    // render 3D
     m_renderer.Render(m_densityTexture);
 
     // swap advect/vel

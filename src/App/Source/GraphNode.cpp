@@ -142,3 +142,74 @@ bool Advection::UI()
     changed |= ImGui::InputFloat("Dissipation", &m_dissipation);
     return changed;
 }
+
+
+
+void Solver::Init()
+{
+    m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
+    m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
+    m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
+    m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
+    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
+    m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
+    m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
+
+    GraphEditorDelegate::mTemplateFunctions.push_back(Solver::GetTemplate);
+}
+
+void Solver::Tick(TextureProvider& textureProvider)
+{
+    float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
+    bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
+
+    // divergence
+    auto* advectedVelocity = m_inputs[0];
+    Texture* divergence = textureProvider.Acquire();
+    bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(5, m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+    // clear density
+    Texture* jacobi[2] = { textureProvider.Acquire(), textureProvider.Acquire() };
+    jacobi[0]->BindAsTarget(6);
+    bgfx::setViewClear(6, BGFX_CLEAR_COLOR, 0x00000000);
+    bgfx::touch(6);
+
+    bgfx::setViewFrameBuffer(7, { bgfx::kInvalidHandle });
+
+    // jacobi
+    for (int i = 0; i < m_iterationCount; i++)
+    {
+        const int indexSource = i & 1;
+        const int indexDestination = (i + 1) & 1;
+
+        bgfx::setTexture(0, m_texJacoviUniform, jacobi[indexSource]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setTexture(1, m_texDivergenceUniform, divergence->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setImage(2, jacobi[indexDestination]->GetTexture(), 0, bgfx::Access::Write);
+        bgfx::dispatch(7, m_jacobiCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    }
+    const int lastJacobiIndex = m_iterationCount & 1;
+    textureProvider.Release(divergence);
+
+    // gradient
+    Texture* outputVelocity = textureProvider.Acquire();
+    bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(2, outputVelocity->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(7, m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+    textureProvider.Release(jacobi[0]);
+    textureProvider.Release(jacobi[1]);
+    textureProvider.Release(advectedVelocity);
+
+    m_outputs[0] = outputVelocity;
+}
+
+bool Solver::UI()
+{
+    bool changed = ImGui::InputFloat("Alpha", &m_alpha);
+    changed |= ImGui::InputFloat("Beta", &m_beta);
+    return changed;
+}
+
