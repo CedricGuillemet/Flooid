@@ -58,11 +58,11 @@ bool FlooidUI::ParametersUI(const Camera& camera)
     {
         UIGizmos uiGizmos(camera.GetView().m16, camera.GetProjection().m16);
         selectedNode->UI(uiGizmos);
-        uiGizmos.UI();
+        m_usingGUI |= uiGizmos.UI();
     }
     CheckUsingUI();
     ImGui::End();
-    return false;
+    return m_usingGUI;
 }
 
 bool FlooidUI::UI(const Camera& camera)

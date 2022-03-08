@@ -18,11 +18,11 @@ public:
         m_editing = true;
     }
     
-    void UI()
+    bool UI()
     {
         if (!m_editing)
         {
-            return;
+            return false;
         }
         
         Imm::matrix world;
@@ -34,6 +34,7 @@ public:
         m_position->z = world.position.z;
         
         *m_scale = world.right.length();
+        return ImGuizmo::IsOver() || ImGuizmo::IsUsing();
     }
     
 private:
