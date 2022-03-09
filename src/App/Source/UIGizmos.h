@@ -32,7 +32,7 @@ public:
     }
 
     // call once a frame when all UI have been visited
-    bool UI()
+    void UI()
     {
         DebugSphapes();
 
@@ -51,7 +51,9 @@ public:
         Imm::vec3 sca{1.f, 1.f, 1.f};
         if (m_scale)
         {
-            sca = {*m_scale, *m_scale, *m_scale};
+            sca.x = *m_scale;
+            sca.y = *m_scale;
+            sca.z = *m_scale;
         }
         ImGuizmo::RecomposeMatrixFromComponents(&m_position->x, &ori.x, &sca.x, world.m16);
         EditTransform(m_view, m_projection, world.m16);
@@ -64,7 +66,6 @@ public:
         {
             *m_orientation = ori;
         }
-        return ImGuizmo::IsOver() || ImGuizmo::IsUsing();
     }
     
 private:

@@ -10,7 +10,7 @@
  - graph solving with solving list
  - auto arrange nodes
 
-  - pan camera
+ - pan camera
 
  - CI
 
@@ -72,7 +72,7 @@ void Flooid::Init()
 
 void Flooid::Tick(const Parameters& parameters)
 {
-    if (parameters.lButDown)
+    if (parameters.lButDown && parameters.enable)
     {
         m_renderer.Input(parameters.dx, parameters.dy);
     }
@@ -124,7 +124,7 @@ void Flooid::Tick(const Parameters& parameters)
     m_densityTexture = advectedDensity;
 }
 
-bool Flooid::UI()
+void Flooid::UI()
 {
-    return m_ui.UI(m_renderer.GetCamera());
+    m_ui.UI(m_renderer.GetCamera());
 }

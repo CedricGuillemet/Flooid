@@ -9,14 +9,11 @@ class FlooidUI
 public:
     FlooidUI(Graph& graph);
     
-    bool UI(const Camera& camera);
+    void UI(const Camera& camera);
     
 private:
-    void CheckUsingUI();
-    bool m_usingGUI{false};
-
-    bool GraphUI();
-    bool ParametersUI(const Camera& camera);
+    void GraphUI();
+    void ParametersUI(const Camera& camera);
     
     GraphEditor::Options m_graphEditorOptions;
     GraphEditorDelegate m_graphEditorDelegate;

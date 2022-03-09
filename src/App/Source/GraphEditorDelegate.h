@@ -6,8 +6,8 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
 {
     GraphEditorDelegate(Graph& graph) : m_graph(graph)
     {
-        
     }
+    
     bool AllowedLink(GraphEditor::NodeIndex from, GraphEditor::NodeIndex to) override
     {
         return true;
@@ -80,7 +80,7 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
 
     const size_t GetLinkCount() override
     {
-        return 0;//mLinks.size();
+        return mLinks.size();
     }
 
     const GraphEditor::Link GetLink(GraphEditor::LinkIndex index) override
@@ -92,7 +92,7 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
     typedef GraphEditor::Template (*TemplateFunction)();
     static inline std::vector<TemplateFunction> mTemplateFunctions;
 
-    std::vector<GraphEditor::Link> mLinks = { {0, 0, 1, 0} };
+    std::vector<GraphEditor::Link> mLinks = {};// {0, 0, 1, 0} };
 protected:
     Graph& m_graph;
 };

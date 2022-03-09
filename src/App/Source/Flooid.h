@@ -13,6 +13,7 @@ public:
         float x, y;
         float dx, dy;
         bool lButDown, rButDown;
+        bool enable;
     };
 
     void Init();
@@ -20,7 +21,7 @@ public:
     void Tick(const Parameters& parameters);
     
     // return true if over or using UI
-    bool UI();
+    void UI();
 
     Texture* m_densityTexture{};
     Texture* m_velocityTexture{};

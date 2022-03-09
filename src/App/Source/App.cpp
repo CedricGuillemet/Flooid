@@ -82,7 +82,7 @@ public:
             // Transform dialog
 			static Flooid::Parameters parameters{};
 			
-            bool usingGUI = m_flooid.UI();
+            m_flooid.UI();
         	
 			imguiEndFrame();
 
@@ -103,8 +103,9 @@ public:
 			parameters.y = io.MousePos.y / io.DisplaySize.y;
 			parameters.dx = io.MouseDelta.x / io.DisplaySize.x;
 			parameters.dy = io.MouseDelta.y / io.DisplaySize.y;
-			parameters.lButDown = !usingGUI && io.MouseDown[0];
-			parameters.rButDown = !usingGUI && io.MouseDown[1];
+			parameters.lButDown = io.MouseDown[0];
+			parameters.rButDown = io.MouseDown[1];
+            parameters.enable = !io.WantCaptureMouse;
 			m_flooid.Tick(parameters);
 
             bgfx::frame();
