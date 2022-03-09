@@ -97,7 +97,7 @@ class DensityGen : public GraphNode, public GraphNodeIO<1, 1>
 {
 public:
     DensityGen()
-        : m_position{0.5f, 0.95f, 0.f}
+        : m_position{0.5f, 0.05f, 0.f}
         , m_radius(0.1f)
     {
 
@@ -135,8 +135,8 @@ class VelocityGen : public GraphNode, public GraphNodeIO<1, 1>
 {
 public:
     VelocityGen()
-        : m_position{0.5f, 0.95f, 0.f}
-        , m_direction{0.f, -0.01f, 0.f}
+        : m_position{0.5f, 0.05f, 0.f}
+        , m_direction{0.f, 0.01f, 0.f}
         , m_radius(0.1f)
     {
 

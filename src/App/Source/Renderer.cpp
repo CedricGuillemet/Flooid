@@ -64,10 +64,10 @@ void Renderer::Init()
 
     static Vertex quadVertices[] =
     {
-        {-1.f, 2.f, 0.f,  0.f, 0.f, -1.f, 0.0f,  0.0f },
-        { 1.f, 2.f, 0.f,  0.f, 0.f, -1.f, 1.0f,  0.0f },
-        {-1.f, 0.f, 0.f,  0.f, 0.f, -1.f, 0.0f,  1.0f },
-        { 1.f, 0.f, 0.f,  0.f, 0.f, -1.f, 1.0f,  1.0f },
+        { 0.f, 1.f, 0.f,  0.f, 0.f, -1.f, 0.0f,  1.0f },
+        { 1.f, 1.f, 0.f,  0.f, 0.f, -1.f, 1.0f,  1.0f },
+        { 0.f, 0.f, 0.f,  0.f, 0.f, -1.f, 0.0f,  0.0f },
+        { 1.f, 0.f, 0.f,  0.f, 0.f, -1.f, 1.0f,  0.0f },
     };
     static const uint16_t quadIndices[] =
     {
