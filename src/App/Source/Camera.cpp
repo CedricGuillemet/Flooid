@@ -16,7 +16,7 @@ void Camera::ComputeMatrices()
 {
     m_alpha = Imm::Lerp(m_alpha, m_alphaTarget, 0.2f);
     m_beta = Imm::Lerp(m_beta, m_betaTarget, 0.2f);
-    Imm::vec4 target{0.f, 1.f, 0.f, 0.f};
+    Imm::vec4 target{0.f, 0.5f, 0.f, 0.f};
     Imm::vec4 eye = target;
     eye += Imm::vec4(sinf(m_alpha), 0.f, cosf(m_alpha), 0.f) * m_radius * cosf(m_beta);
     eye.y += sinf(m_beta) * m_radius;

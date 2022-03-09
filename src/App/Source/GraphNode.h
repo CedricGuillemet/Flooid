@@ -136,7 +136,7 @@ class VelocityGen : public GraphNode, public GraphNodeIO<1, 1>
 public:
     VelocityGen()
         : m_position{0.5f, 0.05f, 0.f}
-        , m_direction{0.f, 0.01f, 0.f}
+        , m_orientation{-Imm::PI * 0.5f, 0.f, 0.f}
         , m_radius(0.1f)
     {
 
@@ -165,7 +165,7 @@ private:
     static inline bgfx::UniformHandle m_positionUniform;
     static inline bgfx::UniformHandle m_directionUniform;
     Imm::vec3 m_position;
-    Imm::vec3 m_direction;
+    Imm::vec3 m_orientation;
     float m_radius;
 
     __NODE_TYPE

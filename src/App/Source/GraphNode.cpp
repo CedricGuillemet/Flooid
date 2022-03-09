@@ -73,7 +73,10 @@ void DensityGen::Tick(TextureProvider& textureProvider)
 bool DensityGen::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Radius", &m_radius);
-    uiGizmos.EditPositionScale(&m_position, &m_radius);
+    uiGizmos.Edit(&m_position, &m_radius);
+    Imm::matrix sphereMatrix;
+    sphereMatrix.translationScale({ m_position.x, m_position.y, m_position.z }, {m_radius, m_radius, m_radius});
+    uiGizmos.AddSphere(sphereMatrix);
     return changed;
 }
 
@@ -93,7 +96,10 @@ void VelocityGen::Tick(TextureProvider& textureProvider)
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
-    float direction[4] = { m_direction.x, m_direction.y, m_direction.z, 0.f };
+    Imm::matrix matrix;
+    Imm::vec3 scale{m_radius, m_radius, m_radius};
+    ImGuizmo::RecomposeMatrixFromComponents(&m_position.x, &m_orientation.x, &scale.x, matrix.m16);
+    float direction[4] = { matrix.dir.x, matrix.dir.y, matrix.dir.z, 0.f };
     bgfx::setUniform(m_directionUniform, direction);
 
     auto velocity = m_inputs[0];
@@ -105,6 +111,10 @@ void VelocityGen::Tick(TextureProvider& textureProvider)
 bool VelocityGen::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Radius", &m_radius);
+    uiGizmos.Edit(&m_position, &m_orientation, &m_radius);
+    Imm::matrix sphereMatrix;
+    sphereMatrix.translationScale({ m_position.x, m_position.y, m_position.z }, { m_radius, m_radius, m_radius });
+    uiGizmos.AddSphere(sphereMatrix);
     return changed;
 }
 

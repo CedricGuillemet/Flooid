@@ -6,25 +6,24 @@
 #include "GraphNode.h"
 
 /*
- - handle gizmo for gens
- - debug display for gen nodes volumes
-
  - graph with links
  - graph solving with solving list
  - auto arrange nodes
- - raymarching lighting / rendering
 
- - pan camera
+  - pan camera
 
  - CI
- - display node
 
- - node based graphics editing
+ - display node
+ - raymarching lighting / rendering
+
  - save/load json
 
- - expand velocity/density nodes with more primitives
+ - expand velocity/density nodes with more SDF primitives
  - perlin noise node
+
  - LH/RH for imguizmo
+ - inputs bgfx/imgui
  */
 
 Flooid::Flooid()

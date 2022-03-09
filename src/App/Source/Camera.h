@@ -10,7 +10,7 @@ public:
         , m_beta(beta)
         , m_alphaTarget(alpha)
         , m_betaTarget(beta)
-        , m_radius(2.5f)
+        , m_radius(1.5f)
         , m_width(1)
         , m_height(1)
     {

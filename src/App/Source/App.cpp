@@ -3,6 +3,7 @@
 #include "imgui/imgui.h"
 #include "Shaders.h"
 #include "Flooid.h"
+#include <debugdraw/debugdraw.h>
 
 namespace App
 {
@@ -50,11 +51,14 @@ public:
         
 		m_flooid.Init();
 
+		ddInit();
+
 		HideLoader();
 	}
 
 	virtual int shutdown() override
 	{
+		ddShutdown();
 		imguiDestroy();
 		bgfx::shutdown();
 		return 0;
