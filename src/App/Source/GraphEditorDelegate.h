@@ -37,12 +37,15 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
 
     void AddLink(GraphEditor::NodeIndex inputNodeIndex, GraphEditor::SlotIndex inputSlotIndex, GraphEditor::NodeIndex outputNodeIndex, GraphEditor::SlotIndex outputSlotIndex) override
     {
-        mLinks.push_back({ inputNodeIndex, inputSlotIndex, outputNodeIndex, outputSlotIndex });
+        m_graph.AddLink({ static_cast<uint32_t>(inputNodeIndex),
+                          static_cast<uint8_t>(inputSlotIndex),
+                          static_cast<uint32_t>(outputNodeIndex),
+                          static_cast<uint8_t>(outputSlotIndex) });
     }
 
     void DelLink(GraphEditor::LinkIndex linkIndex) override
     {
-        mLinks.erase(mLinks.begin() + linkIndex);
+        m_graph.EraseLink(linkIndex);
     }
 
     void CustomDraw(ImDrawList* drawList, ImRect rectangle, GraphEditor::NodeIndex nodeIndex) override
@@ -80,19 +83,20 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
 
     const size_t GetLinkCount() override
     {
-        return mLinks.size();
+        return m_graph.GetLinks().size();
     }
 
     const GraphEditor::Link GetLink(GraphEditor::LinkIndex index) override
     {
-        return mLinks[index];
+        auto link = m_graph.GetLinks()[index];
+        return {link.m_InputNodeIndex,
+                link.m_InputSlotIndex,
+                link.m_OutputNodeIndex,
+                link.m_OutputSlotIndex};
     }
 
-    // Graph datas
     typedef GraphEditor::Template (*TemplateFunction)();
     static inline std::vector<TemplateFunction> mTemplateFunctions;
-
-    std::vector<GraphEditor::Link> mLinks = {};// {0, 0, 1, 0} };
 protected:
     Graph& m_graph;
 };

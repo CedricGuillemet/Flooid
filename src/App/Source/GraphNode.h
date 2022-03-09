@@ -262,9 +262,27 @@ class Graph
 public:
     Graph() {}
     
+    struct Link
+    {
+        uint32_t m_InputNodeIndex;
+        uint8_t m_InputSlotIndex;
+        uint32_t m_OutputNodeIndex;
+        uint8_t m_OutputSlotIndex;
+    };
+
     // return selected node, nullptr is more than 1 selected or none
     GraphNode* GetSelectedNode() const;
     void AddNode(GraphNode* node) { m_nodes.push_back(node); }
+    
     std::vector<GraphNode*>& GetNodes() { return m_nodes; }
+    
+    void AddLink(const Link link) { m_links.push_back(link); }
+    const std::vector<Link>& GetLinks() const { return m_links; }
+    void EraseLink(size_t linkIndex)
+    {
+        m_links.erase(m_links.begin() + linkIndex);
+    }
+    
     std::vector<GraphNode*> m_nodes;
+    std::vector<Link> m_links;
 };
