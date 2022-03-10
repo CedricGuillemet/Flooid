@@ -1,4 +1,5 @@
 #include "TextureProvider.h"
+#include <algorithm>
 
 const int TEX_SIZE = 256;
 Texture::Texture()
