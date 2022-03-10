@@ -10,6 +10,8 @@ Windows [![Build Status](https://cedricguillemet.visualstudio.com/Flooid/_apis/b
 Flooid is a node based fluid simulator. 
 Made with love and C++ !
 
+![Flooid](doc/Flooid.jpg)
+
 To build it, you'll need CMake and your C++ compiler of choice (emsdk for web build). 
 
 ## Build
