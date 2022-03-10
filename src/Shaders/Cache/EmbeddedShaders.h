@@ -142,26 +142,6 @@
 #include "Ground_fs_spv.h"
 #include "Ground_fs_essl.h"
 #ifdef WIN32
-#include "PaintDensity_fs_dx9.h"
-#include "PaintDensity_fs_dx11.h"
-#endif
-#include "PaintDensity_fs_glsl.h"
-#ifdef __APPLE__
-#include "PaintDensity_fs_mtl.h"
-#endif
-#include "PaintDensity_fs_spv.h"
-#include "PaintDensity_fs_essl.h"
-#ifdef WIN32
-#include "PaintVelocity_fs_dx9.h"
-#include "PaintVelocity_fs_dx11.h"
-#endif
-#include "PaintVelocity_fs_glsl.h"
-#ifdef __APPLE__
-#include "PaintVelocity_fs_mtl.h"
-#endif
-#include "PaintVelocity_fs_spv.h"
-#include "PaintVelocity_fs_essl.h"
-#ifdef WIN32
 #include "Render_fs_dx9.h"
 #include "Render_fs_dx11.h"
 #endif

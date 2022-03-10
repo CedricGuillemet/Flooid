@@ -6,13 +6,18 @@
 #include "GraphNode.h"
 
 /*
+ - CI: pipelines + badges + app screenshot + readme
+
+ - LH/RH for imguizmo
+ - inputs bgfx/imgui
+
  - graph with links
  - graph solving with solving list
  - auto arrange nodes
 
  - pan camera
 
- - CI
+ 
 
  - display node
  - raymarching lighting / rendering
@@ -22,8 +27,6 @@
  - expand velocity/density nodes with more SDF primitives
  - perlin noise node
 
- - LH/RH for imguizmo
- - inputs bgfx/imgui
  */
 
 Flooid::Flooid()
