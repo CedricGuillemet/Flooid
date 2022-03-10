@@ -38,7 +38,7 @@ public:
 
         if (!m_editing)
         {
-            return false;
+            return;
         }
 
         Imm::matrix world;

@@ -6,6 +6,7 @@
 FlooidUI::FlooidUI(Graph& graph)
 : m_graphEditorDelegate(graph)
 , m_graph(graph)
+, m_running(true)
 {
 }
 
@@ -23,6 +24,11 @@ void FlooidUI::GraphUI()
     if (ImGui::Button("Fit selected nodes"))
     {
         m_graphEditorFit = GraphEditor::Fit_SelectedNodes;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(m_running?"||":">"))
+    {
+        m_running = !m_running;
     }
 
     GraphEditor::Show(m_graphEditorDelegate, m_graphEditorOptions, m_graphEditorViewState, true, &m_graphEditorFit);

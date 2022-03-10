@@ -1,24 +1,16 @@
-# BAM! framework 
+# Flooid
 
-Linux [![Build Status](https://cedricguillemet.visualstudio.com/Bam/_apis/build/status/CedricGuillemet.bam?branchName=main&jobName=Ubuntu_Clang)](https://cedricguillemet.visualstudio.com/Bam/_build/latest?definitionId=4&branchName=main)
-Emscripten [![Build Status](https://cedricguillemet.visualstudio.com/Bam/_apis/build/status/CedricGuillemet.bam?branchName=main&jobName=Ubuntu_Emscripten)](https://cedricguillemet.visualstudio.com/Bam/_build/latest?definitionId=4&branchName=main)
+Linux [![Build Status](https://cedricguillemet.visualstudio.com/Flooid/_apis/build/status/CedricGuillemet.Flooid?branchName=main&jobName=Ubuntu_Clang)](https://cedricguillemet.visualstudio.com/Flooid/_build/latest?definitionId=5&branchName=main)
+Emscripten [![Build Status](https://cedricguillemet.visualstudio.com/Flooid/_apis/build/status/CedricGuillemet.Flooid?branchName=main&jobName=Ubuntu_Emscripten)](https://cedricguillemet.visualstudio.com/Flooid/_build/latest?definitionId=5&branchName=main)
 
-MacOS [![Build Status](https://cedricguillemet.visualstudio.com/Bam/_apis/build/status/CedricGuillemet.bam?branchName=main&jobName=macOS)](https://cedricguillemet.visualstudio.com/Bam/_build/latest?definitionId=4&branchName=main)
-Windows [![Build Status](https://cedricguillemet.visualstudio.com/Bam/_apis/build/status/CedricGuillemet.bam?branchName=main&jobName=win32_x64)](https://cedricguillemet.visualstudio.com/Bam/_build/latest?definitionId=4&branchName=main)
+MacOS [![Build Status](https://cedricguillemet.visualstudio.com/Flooid/_apis/build/status/CedricGuillemet.Flooid?branchName=main&jobName=macOS)](https://cedricguillemet.visualstudio.com/Flooid/_build/latest?definitionId=5&branchName=main)
+Windows [![Build Status](https://cedricguillemet.visualstudio.com/Flooid/_apis/build/status/CedricGuillemet.Flooid?branchName=main&jobName=win32_x64)](https://cedricguillemet.visualstudio.com/Flooid/_build/latest?definitionId=5&branchName=main)
 
 
-A template/framework for experiments using bgfx/dear imgui/imguizmo.
-Fork this repo, clone it and start hacking.
-Build for Win32/Linux/MacOS and Web with 1 repo, 1 codebase.
-Goal is to clone, write the first line of code and build for your platform within 5 Min.
+Flooid is a node based fluid simulator. 
+Made with love and C++ !
 
-![MacOS](doc/BAM_MacOS.png)
-![Windows](doc/BAM_Windows.png)
-![Ubuntu](doc/BAM_Ubuntu.png)
-![Web](doc/BAM_Web.png)
-
-I encourage you to add any 'must have' sub-repo and extend the sample app accordingly.
-(As long as it's not Boost.)
+To build it, you'll need CMake and your C++ compiler of choice (emsdk for web build). 
 
 ## Build
 
@@ -71,3 +63,11 @@ In `bin` folder:
 ```
 python3 -m http.server
 ```
+
+## Proudly using
+
+https://github.com/CedricGuillemet/bam
+https://github.com/ocornut/imgui/
+https://github.com/CedricGuillemet/Immath/
+https://github.com/CedricGuillemet/ImGuizmo
+https://github.com/bkaradzic/bgfx
