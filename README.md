@@ -68,8 +68,12 @@ python3 -m http.server
 
 ## Proudly using
 
-https://github.com/CedricGuillemet/bam
-https://github.com/ocornut/imgui/
-https://github.com/CedricGuillemet/Immath/
-https://github.com/CedricGuillemet/ImGuizmo
-https://github.com/bkaradzic/bgfx
+BAM! https://github.com/CedricGuillemet/bam
+
+dear imgui https://github.com/ocornut/imgui/
+
+Immath https://github.com/CedricGuillemet/Immath/
+
+ImGuizmo https://github.com/CedricGuillemet/ImGuizmo
+
+bgfx https://github.com/bkaradzic/bgfx
