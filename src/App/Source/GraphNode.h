@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <map>
 #include <bgfx/bgfx.h>
 #include "Immath.h"
 #include "GraphEditor.h"
@@ -12,7 +13,9 @@ class UIGizmos;
 private:\
 static inline uint16_t _nodeType = GraphNode::_runtimeType++; \
 public:\
-uint16_t GetRuntimeType() const { return _nodeType; }
+uint16_t GetRuntimeType() const { return _nodeType; } \
+size_t GetInputCount() const { return GraphNodeIO::GetInputCount(); } \
+size_t GetOutputCount() const { return GraphNodeIO::GetInputCount(); }
 
 template<unsigned int inputCount, unsigned int outputCount> class GraphNodeIO
 {
@@ -29,6 +32,9 @@ public:
         assert(outputIndex < outputCount);
         return m_outputs[outputIndex];
     }
+    
+    size_t GetInputCount() const { return inputCount; }
+    size_t GetOutputCount() const { return outputCount; }
 protected:
     Texture* m_inputs[inputCount];
     Texture* m_outputs[outputCount];
@@ -46,6 +52,8 @@ public:
     virtual void Tick(TextureProvider& textureProvider) = 0;
     virtual bool UI(UIGizmos& uiGizmos) = 0;
     virtual uint16_t GetRuntimeType() const = 0;
+    virtual size_t GetInputCount() const = 0;
+    virtual size_t GetOutputCount() const = 0;
 //protected:
     float m_x, m_y;
     bool m_selected;
@@ -257,6 +265,38 @@ private:
     __NODE_TYPE
 };
 
+class Display : public GraphNode, public GraphNodeIO<1, 0>
+{
+public:
+    Display()
+        : m_lightPosition{0.15f, 1.2f, 1.f}
+    {
+    }
+    const char* GetName() const { return "Display"; }
+
+    static void Init();
+    void Tick(TextureProvider& textureProvider);
+    bool UI(UIGizmos& uiGizmos);
+    static GraphEditor::Template GetTemplate()
+    {
+        return {
+            IM_COL32(160, 160, 180, 255),
+            IM_COL32(100, 100, 140, 255),
+            IM_COL32(110, 110, 150, 255),
+            1,
+            Imm::Array{"Density"},
+            Imm::Array{ IM_COL32(200,200,200,255)},
+            0,
+            Imm::Array{"Image"},
+            Imm::Array{ IM_COL32(200,200,200,255)}
+        };
+    }
+private:
+    Imm::vec3 m_lightPosition;
+
+    __NODE_TYPE
+};
+
 class Graph
 {
 public:
@@ -264,15 +304,15 @@ public:
     
     struct Link
     {
-        uint32_t m_InputNodeIndex;
-        uint8_t m_InputSlotIndex;
-        uint32_t m_OutputNodeIndex;
-        uint8_t m_OutputSlotIndex;
+        uint32_t m_inputNodeIndex;
+        uint8_t m_inputSlotIndex;
+        uint32_t m_outputNodeIndex;
+        uint8_t m_outputSlotIndex;
     };
 
     // return selected node, nullptr is more than 1 selected or none
     GraphNode* GetSelectedNode() const;
-    void AddNode(GraphNode* node) { m_nodes.push_back(node); }
+    uint32_t AddNode(GraphNode* node) { m_nodes.push_back(node); return static_cast<uint32_t>(m_nodes.size() - 1); }
     
     std::vector<GraphNode*>& GetNodes() { return m_nodes; }
     
@@ -285,4 +325,61 @@ public:
     
     std::vector<GraphNode*> m_nodes;
     std::vector<Link> m_links;
+    
+    void UnselectAll()
+    {
+        for(auto node : m_nodes)
+        {
+            node->m_selected = false;
+        }
+    }
+    // layout
+    struct NodePosition
+    {
+        int mLayer;
+        int mStackIndex;
+        int mNodeIndex; // used for sorting
+
+        bool operator <(const NodePosition& other) const
+        {
+            if (mLayer < other.mLayer)
+            {
+                return true;
+            }
+            if (mLayer > other.mLayer)
+            {
+                return false;
+            }
+            if (mStackIndex<other.mStackIndex)
+            {
+                return true;
+            }
+            return false;
+        }
+    };
+    void Layout(const std::vector<size_t>& orderList);
+    
+    void RecurseLayout(std::vector<NodePosition>& positions,
+        std::map<int, int>& stacks,
+        size_t currentIndex, int currentLayer);
+    
+    struct NodeOrder
+    {
+        size_t mNodeIndex;
+        size_t mNodePriority;
+        bool operator<(const NodeOrder& other) const
+        {
+            return other.mNodePriority < mNodePriority; // reverse order compared to priority value: lower last
+        }
+    };
+
+    
+    void RecurseSetPriority(std::vector<NodeOrder>& orders,
+                            const std::vector<Link>& links,
+                            size_t currentIndex,
+                            size_t currentPriority,
+                                   size_t& undeterminedNodeCount);
+    
+    std::vector<NodeOrder> ComputeEvaluationOrder(const std::vector<Link>& links, size_t nodeCount);
+    size_t PickBestNode(const std::vector<NodeOrder>& orders);
 };

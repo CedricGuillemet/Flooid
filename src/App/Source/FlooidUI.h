@@ -22,5 +22,6 @@ private:
     GraphEditor::FitOnScreen m_graphEditorFit{ GraphEditor::Fit_None };
     Graph& m_graph;
     
-    bool m_running;
+    bool m_editingOptions{false};
+    bool m_running{true};
 };

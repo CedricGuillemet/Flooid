@@ -35,6 +35,7 @@ public:
     Advection* m_advectDensityNode{};
     Advection* m_advectVelocityNode{};
     Solver* m_solverNode{};
+    Display* m_displayNode{};
     Graph m_graph;
     
 protected:

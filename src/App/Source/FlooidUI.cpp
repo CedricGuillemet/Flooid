@@ -6,7 +6,6 @@
 FlooidUI::FlooidUI(Graph& graph)
 : m_graphEditorDelegate(graph)
 , m_graph(graph)
-, m_running(true)
 {
 }
 
@@ -26,7 +25,19 @@ void FlooidUI::GraphUI()
         m_graphEditorFit = GraphEditor::Fit_SelectedNodes;
     }
     ImGui::SameLine();
-    if (ImGui::Button(m_running?"||":">"))
+    if (ImGui::Button("Layout"))
+    {
+        auto nodeOrder = m_graph.ComputeEvaluationOrder(m_graph.m_links, m_graph.GetNodes().size());
+        printf("");
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Options"))
+    {
+        m_graph.UnselectAll();
+        m_editingOptions = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(m_running?"Pause":"Run"))
     {
         m_running = !m_running;
     }
@@ -45,9 +56,14 @@ void FlooidUI::ParametersUI(const Camera& camera)
     auto selectedNode = m_graph.GetSelectedNode();
     if (selectedNode)
     {
+        m_editingOptions = false;
         UIGizmos uiGizmos(camera.GetView().m16, camera.GetProjection().m16);
         selectedNode->UI(uiGizmos);
         uiGizmos.UI();
+    }
+    else if (m_editingOptions)
+    {
+        GraphEditor::EditOptions(m_graphEditorOptions);
     }
     ImGui::End();
 }

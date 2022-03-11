@@ -219,6 +219,24 @@ bool Solver::UI(UIGizmos& uiGizmos)
 
 // -----------------------------------------------------------------------------------------------------
 
+void Display::Init()
+{
+    GraphEditorDelegate::mTemplateFunctions.push_back(VelocityGen::GetTemplate);
+}
+
+void Display::Tick(TextureProvider& textureProvider)
+{
+    m_outputs[0] = m_inputs[0];
+}
+
+bool Display::UI(UIGizmos& uiGizmos)
+{
+    uiGizmos.Edit(&m_lightPosition);
+    return false;
+}
+
+// -----------------------------------------------------------------------------------------------------
+
 GraphNode* Graph::GetSelectedNode() const
 {
     GraphNode* res{nullptr};
@@ -238,4 +256,194 @@ GraphNode* Graph::GetSelectedNode() const
         }
     }
     return res;
+}
+
+void Graph::RecurseLayout(std::vector<NodePosition>& positions,
+    std::map<int, int>& stacks,
+    size_t currentIndex,
+    int currentLayer)
+{
+    const auto& nodes = m_nodes;
+    const auto& links = m_links;
+
+    if (positions[currentIndex].mLayer == -1)
+    {
+        positions[currentIndex].mLayer = currentLayer;
+        int layer = positions[currentIndex].mLayer = currentLayer;
+        if (stacks.find(layer) != stacks.end())
+            stacks[layer]++;
+        else
+            stacks[layer] = 0;
+        positions[currentIndex].mStackIndex = stacks[currentLayer];
+    }
+    else
+    {
+        // already hooked node
+        if (currentLayer > positions[currentIndex].mLayer)
+        {
+            // remove stack at current pos
+            int currentStack = positions[currentIndex].mStackIndex;
+            for (auto& pos : positions)
+            {
+                if (pos.mLayer == positions[currentIndex].mLayer && pos.mStackIndex > currentStack)
+                {
+                    pos.mStackIndex--;
+                    stacks[pos.mLayer]--;
+                }
+            }
+            // apply new one
+            int layer = positions[currentIndex].mLayer = currentLayer;
+            if (stacks.find(layer) != stacks.end())
+                stacks[layer]++;
+            else
+                stacks[layer] = 0;
+            positions[currentIndex].mStackIndex = stacks[currentLayer];
+        }
+    }
+
+    size_t InputsCount = nodes[currentIndex]->GetInputCount();
+    //gMetaNodes[nodes[currentIndex].mNodeType].mInputs.size();
+    std::vector<int> inputNodes(InputsCount, -1);
+    for (auto& link : links)
+    {
+        if (link.m_outputNodeIndex != currentIndex)
+            continue;
+        inputNodes[link.m_outputSlotIndex] = link.m_inputNodeIndex;
+    }
+    for (auto inputNode : inputNodes)
+    {
+        if (inputNode == -1)
+            continue;
+        RecurseLayout(positions, stacks, inputNode, currentLayer + 1);
+    }
+}
+
+void Graph::Layout(const std::vector<size_t>& orderList)
+{
+    if (m_nodes.empty())
+    {
+        return;
+    }
+    // get stack/layer pos
+    std::vector<NodePosition> nodePositions(m_nodes.size(), { -1, -1, -1 });
+    std::map<int, int> stacks;
+    ImRect sourceRect, destRect;
+
+    std::vector<ImVec2> nodePos(m_nodes.size());
+
+    // compute source bounds
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
+        const auto& node = *m_nodes[i];
+        sourceRect.Add(ImRect({node.m_x, node.m_y}, {node.m_x + 100, node.m_y + 100}));
+    }
+
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
+        size_t nodeIndex = orderList[m_nodes.size() - i - 1];
+        RecurseLayout(nodePositions, stacks, nodeIndex, 0);
+    }
+
+    // set corresponding node index in nodePosition
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
+        int nodeIndex = int(orderList[i]);
+        auto& layout = nodePositions[nodeIndex];
+        layout.mNodeIndex = nodeIndex;
+    }
+
+    // sort nodePositions
+    std::sort(nodePositions.begin(), nodePositions.end());
+
+    // set x,y position from layer/stack
+    float currentStackHeight = 0.f;
+    int currentLayerIndex = -1;
+    for (unsigned int i = 0; i < nodePositions.size(); i++)
+    {
+        auto& layout = nodePositions[i];
+        if (currentLayerIndex != layout.mLayer)
+        {
+            currentLayerIndex = layout.mLayer;
+            currentStackHeight = 0.f;
+        }
+        size_t nodeIndex = layout.mNodeIndex;
+        const auto& node = m_nodes[nodeIndex];
+        float height = 100;//float(gMetaNodes[node.mNodeType].mHeight);
+        nodePos[nodeIndex] = ImVec2(-layout.mLayer * 180.f, currentStackHeight);
+        currentStackHeight += height + 40.f;
+    }
+
+    // new bounds
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
+        ImVec2 newPos = nodePos[i];
+        // todo: support height more closely with metanodes
+        destRect.Add(ImRect(newPos, {newPos.x + 100, newPos.y + 100}));
+    }
+
+    // move all nodes
+    ImVec2 offset = sourceRect.GetCenter();
+    ImVec2 destCenter = destRect.GetCenter();
+    offset.x -= destCenter.x;
+    offset.y -= destCenter.y;
+    for (auto& pos : nodePos)
+    {
+        pos.x += offset.x;
+        pos.y += offset.y;
+    }
+    for (auto i = 0; i < m_nodes.size(); i++)
+    {
+        //SetNodePosition(i, nodePos[i]);
+        m_nodes[i]->m_x = nodePos[i].x;
+        m_nodes[i]->m_y = nodePos[i].y;
+    }
+}
+
+size_t Graph::PickBestNode(const std::vector<NodeOrder>& orders)
+{
+    for (auto& order : orders)
+    {
+        if (order.mNodePriority == 0)
+            return order.mNodeIndex;
+    }
+    // issue!
+    assert(0);
+    return -1;
+}
+
+void Graph::RecurseSetPriority(std::vector<NodeOrder>& orders,
+                        const std::vector<Link>& links,
+                        size_t currentIndex,
+                        size_t currentPriority,
+                        size_t& undeterminedNodeCount)
+{
+    if (!orders[currentIndex].mNodePriority)
+        undeterminedNodeCount--;
+
+    orders[currentIndex].mNodePriority = std::max(orders[currentIndex].mNodePriority, currentPriority + 1);
+    for (auto& link : links)
+    {
+        if (link.m_outputNodeIndex == currentIndex)
+        {
+            RecurseSetPriority(orders, links, link.m_inputNodeIndex, currentPriority + 1, undeterminedNodeCount);
+        }
+    }
+}
+
+std::vector<Graph::NodeOrder> Graph::ComputeEvaluationOrder(const std::vector<Link>& links, size_t nodeCount)
+{
+    std::vector<NodeOrder> orders(nodeCount);
+    for (size_t i = 0; i < nodeCount; i++)
+    {
+        orders[i].mNodeIndex = i;
+        orders[i].mNodePriority = 0;
+    }
+    size_t undeterminedNodeCount = nodeCount;
+    while (undeterminedNodeCount)
+    {
+        size_t currentIndex = PickBestNode(orders);
+        RecurseSetPriority(orders, links, currentIndex, orders[currentIndex].mNodePriority, undeterminedNodeCount);
+    };
+    //
+    return orders;
 }

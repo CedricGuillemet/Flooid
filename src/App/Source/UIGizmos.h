@@ -11,7 +11,7 @@ public:
     , m_projection(projection)
     {}
     
-    void Edit(Imm::vec3* position, float* scale)
+    void Edit(Imm::vec3* position, float* scale = nullptr)
     {
         m_position = position;
         m_scale = scale;
@@ -60,7 +60,10 @@ public:
 
         ImGuizmo::DecomposeMatrixToComponents(world.m16, &m_position->x, &ori.x, &sca.x);
         
-        *m_scale = sca.x;
+        if (m_scale)
+        {
+            *m_scale = sca.x;
+        }
 
         if (m_orientation)
         {

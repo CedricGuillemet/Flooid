@@ -89,10 +89,10 @@ struct GraphEditorDelegate : public GraphEditor::Delegate
     const GraphEditor::Link GetLink(GraphEditor::LinkIndex index) override
     {
         auto link = m_graph.GetLinks()[index];
-        return {link.m_InputNodeIndex,
-                link.m_InputSlotIndex,
-                link.m_OutputNodeIndex,
-                link.m_OutputSlotIndex};
+        return {link.m_inputNodeIndex,
+                link.m_inputSlotIndex,
+                link.m_outputNodeIndex,
+                link.m_outputSlotIndex};
     }
 
     typedef GraphEditor::Template (*TemplateFunction)();

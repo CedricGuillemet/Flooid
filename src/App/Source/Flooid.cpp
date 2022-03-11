@@ -6,20 +6,21 @@
 #include "GraphNode.h"
 
 /*
- - CI: pipelines + badges + app screenshot + readme
-
  - LH/RH for imguizmo
  - inputs bgfx/imgui
 
  - graph with links
+   * add link at node creation
+   *
  - graph solving with solving list
  - auto arrange nodes
 
+ - options button
+ - debug infos button
+ 
  - pan camera
 
  
-
- - display node
  - raymarching lighting / rendering
 
  - save/load json
@@ -47,30 +48,42 @@ void Flooid::Init()
     DensityGen::Init();
     Advection::Init();
     Solver::Init();
+    Display::Init();
 
     m_vorticityNode = new Vorticity;
     m_vorticityNode->m_x = 0; m_vorticityNode->m_y = 0;
-    m_graph.AddNode(m_vorticityNode);
+    auto vorticityIndex = m_graph.AddNode(m_vorticityNode);
 
     m_velocityGenNode = new VelocityGen;
     m_velocityGenNode->m_x = 250; m_velocityGenNode->m_y = 0;
-    m_graph.AddNode(m_velocityGenNode);
+    auto velocityIndex = m_graph.AddNode(m_velocityGenNode);
 
     m_densityGenNode = new DensityGen;
     m_densityGenNode->m_x = 500; m_densityGenNode->m_y = 0;
-    m_graph.AddNode(m_densityGenNode);
+    auto densityGenIndex = m_graph.AddNode(m_densityGenNode);
 
     m_advectDensityNode = new Advection;
     m_advectDensityNode->m_x = 0; m_advectDensityNode->m_y = 120;
-    m_graph.AddNode(m_advectDensityNode);
+    auto advectDensityIndex = m_graph.AddNode(m_advectDensityNode);
 
     m_advectVelocityNode = new Advection;
     m_advectVelocityNode->m_x = 250; m_advectVelocityNode->m_y = 120;
-    m_graph.AddNode(m_advectVelocityNode);
+    auto advectVelocityIndex = m_graph.AddNode(m_advectVelocityNode);
 
     m_solverNode = new Solver;
     m_solverNode->m_x = 500; m_solverNode->m_y = 120;
-    m_graph.AddNode(m_solverNode);
+    auto solverIndex = m_graph.AddNode(m_solverNode);
+    
+    m_displayNode = new Display;
+    auto displayIndex = m_graph.AddNode(m_displayNode);
+    
+    m_graph.AddLink({densityGenIndex, 0, advectDensityIndex, 0});
+    m_graph.AddLink({velocityIndex, 0, vorticityIndex, 0});
+    m_graph.AddLink({vorticityIndex, 0, solverIndex, 0});
+    m_graph.AddLink({solverIndex, 0, advectVelocityIndex, 0});
+    m_graph.AddLink({solverIndex, 0, advectVelocityIndex, 1});
+    m_graph.AddLink({solverIndex, 0, advectDensityIndex, 1});
+    m_graph.AddLink({advectDensityIndex, 0, displayIndex, 0});
 }
 
 void Flooid::Tick(const Parameters& parameters)
