@@ -12,6 +12,8 @@ public:
     void UI(const Camera& camera);
     
     bool Running() const { return m_running; }
+    
+    void GraphFitAllNodes() { m_graphEditorFit = GraphEditor::Fit_AllNodes; }
 private:
     void GraphUI();
     void ParametersUI(const Camera& camera);

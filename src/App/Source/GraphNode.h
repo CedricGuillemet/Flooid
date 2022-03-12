@@ -357,6 +357,8 @@ public:
             return false;
         }
     };
+    
+    void Layout() { Layout(ComputeEvaluationOrder()); }
     void Layout(const std::vector<size_t>& orderList);
     
     void RecurseLayout(std::vector<NodePosition>& positions,
