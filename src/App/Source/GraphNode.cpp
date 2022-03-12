@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "GraphEditorDelegate.h"
 #include "UIGizmos.h"
+#include <algorithm>
 
 const int TEX_SIZE = 256;
 
@@ -271,9 +272,13 @@ void Graph::RecurseLayout(std::vector<NodePosition>& positions,
         positions[currentIndex].mLayer = currentLayer;
         int layer = positions[currentIndex].mLayer = currentLayer;
         if (stacks.find(layer) != stacks.end())
+        {
             stacks[layer]++;
+        }
         else
+        {
             stacks[layer] = 0;
+        }
         positions[currentIndex].mStackIndex = stacks[currentLayer];
     }
     else
@@ -307,13 +312,17 @@ void Graph::RecurseLayout(std::vector<NodePosition>& positions,
     for (auto& link : links)
     {
         if (link.m_outputNodeIndex != currentIndex)
+        {
             continue;
+        }
         inputNodes[link.m_outputSlotIndex] = link.m_inputNodeIndex;
     }
     for (auto inputNode : inputNodes)
     {
         if (inputNode == -1)
+        {
             continue;
+        }
         RecurseLayout(positions, stacks, inputNode, currentLayer + 1);
     }
 }
@@ -368,8 +377,8 @@ void Graph::Layout(const std::vector<size_t>& orderList)
         }
         size_t nodeIndex = layout.mNodeIndex;
         const auto& node = m_nodes[nodeIndex];
-        float height = 100;//float(gMetaNodes[node.mNodeType].mHeight);
-        nodePos[nodeIndex] = ImVec2(-layout.mLayer * 180.f, currentStackHeight);
+        float height = 120;//float(gMetaNodes[node.mNodeType].mHeight);
+        nodePos[nodeIndex] = ImVec2(-layout.mLayer * 280.f, currentStackHeight);
         currentStackHeight += height + 40.f;
     }
 
@@ -404,7 +413,9 @@ size_t Graph::PickBestNode(const std::vector<NodeOrder>& orders)
     for (auto& order : orders)
     {
         if (order.mNodePriority == 0)
+        {
             return order.mNodeIndex;
+        }
     }
     // issue!
     assert(0);
@@ -418,7 +429,9 @@ void Graph::RecurseSetPriority(std::vector<NodeOrder>& orders,
                         size_t& undeterminedNodeCount)
 {
     if (!orders[currentIndex].mNodePriority)
+    {
         undeterminedNodeCount--;
+    }
 
     orders[currentIndex].mNodePriority = std::max(orders[currentIndex].mNodePriority, currentPriority + 1);
     for (auto& link : links)
@@ -430,7 +443,7 @@ void Graph::RecurseSetPriority(std::vector<NodeOrder>& orders,
     }
 }
 
-std::vector<Graph::NodeOrder> Graph::ComputeEvaluationOrder(const std::vector<Link>& links, size_t nodeCount)
+std::vector<Graph::NodeOrder> Graph::ComputeEvaluationOrders(const std::vector<Link>& links, size_t nodeCount)
 {
     std::vector<NodeOrder> orders(nodeCount);
     for (size_t i = 0; i < nodeCount; i++)
@@ -444,6 +457,19 @@ std::vector<Graph::NodeOrder> Graph::ComputeEvaluationOrder(const std::vector<Li
         size_t currentIndex = PickBestNode(orders);
         RecurseSetPriority(orders, links, currentIndex, orders[currentIndex].mNodePriority, undeterminedNodeCount);
     };
-    //
     return orders;
+}
+
+std::vector<size_t> Graph::ComputeEvaluationOrder()
+{
+    std::vector<size_t> orderList;
+
+    auto orders = ComputeEvaluationOrders(m_links, m_nodes.size());
+    std::sort(orders.begin(), orders.end());
+    orderList.resize(orders.size());
+    for (size_t i = 0; i < orders.size(); i++)
+    {
+        orderList[i] = orders[i].mNodeIndex;
+    }
+    return orderList;
 }

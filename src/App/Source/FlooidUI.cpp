@@ -27,7 +27,8 @@ void FlooidUI::GraphUI()
     ImGui::SameLine();
     if (ImGui::Button("Layout"))
     {
-        auto nodeOrder = m_graph.ComputeEvaluationOrder(m_graph.m_links, m_graph.GetNodes().size());
+        //auto nodeOrder = m_graph.ComputeEvaluationOrder(m_graph.m_links, m_graph.GetNodes().size());
+        m_graph.Layout(m_graph.ComputeEvaluationOrder());
         printf("");
     }
     ImGui::SameLine();

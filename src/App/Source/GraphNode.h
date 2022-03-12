@@ -380,6 +380,7 @@ public:
                             size_t currentPriority,
                                    size_t& undeterminedNodeCount);
     
-    std::vector<NodeOrder> ComputeEvaluationOrder(const std::vector<Link>& links, size_t nodeCount);
+    std::vector<NodeOrder> ComputeEvaluationOrders(const std::vector<Link>& links, size_t nodeCount);
     size_t PickBestNode(const std::vector<NodeOrder>& orders);
+    std::vector<size_t> ComputeEvaluationOrder();
 };
