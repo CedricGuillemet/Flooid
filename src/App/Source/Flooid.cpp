@@ -9,21 +9,28 @@
  - LH/RH for imguizmo
  - inputs bgfx/imgui
 
- - graph with links
-   *
  - graph solving with solving list
 
- - debug infos button
+ - animation
+ - linear/saturate for vel/den gen
+ - velgen: direction, vortex, inward, outward
+ - mix perlin den/vel (perlin modulate)
  
- - pan camera
-
+ - test lighting with perlin dens
  
  - raymarching lighting / rendering
 
+ - perlin noise node
+
+ 
+ 
  - save/load json
 
  - expand velocity/density nodes with more SDF primitives
- - perlin noise node
+
+ - debug infos button
+ - pan camera
+ - flipbook node
 
  */
 
@@ -91,6 +98,13 @@ void Flooid::Tick(const Parameters& parameters)
     if (m_ui.Running())
     {
         m_textureProvider.TickInit(6);
+        
+        std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
+        
+        for (auto evaluationIndex : evaluationOrder)
+        {
+            
+        }
 
         // advect density
         m_advectDensityNode->SetInput(0, m_velocityTexture);

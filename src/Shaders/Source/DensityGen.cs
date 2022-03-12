@@ -12,8 +12,11 @@ void main()
 
 	vec2 p = coord / 256.;
 
+    float linDistance = length(position.xy - p);
 	float dist = -(length(position.xy - p) - position.w);
-	float value = max(dist, 0.) * 10.;
+	//float value = max(dist, 0.) * 10.;
+    //float value = mix(1., 0., linDistance/position.w);
+    float value = step(0., position.w - linDistance);
 
 	vec4 color = imageLoad(s_density, coord);
 	color = max(color, vec4(value, value, value, value));

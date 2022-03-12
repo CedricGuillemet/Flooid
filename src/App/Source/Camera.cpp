@@ -17,11 +17,18 @@ void Camera::ComputeMatrices()
     m_alpha = Imm::Lerp(m_alpha, m_alphaTarget, 0.2f);
     m_beta = Imm::Lerp(m_beta, m_betaTarget, 0.2f);
     Imm::vec4 target{0.f, 0.5f, 0.f, 0.f};
+    Imm::vec3 eye = GetPosition();
+    m_viewMatrix.lookAtLH({eye.x, eye.y, eye.z, 0.f}, target, { 0.f, 1.f, 0.f, 0.f });
+    m_projectionMatrix.glhPerspectivef2(54.f, float(m_width)/float(m_height), 0.1f, 100.f, m_homogeneousDepth);
+}
+
+Imm::vec3 Camera::GetPosition() const
+{
+    Imm::vec4 target{0.f, 0.5f, 0.f, 0.f};
     Imm::vec4 eye = target;
     eye += Imm::vec4(sinf(m_alpha), 0.f, cosf(m_alpha), 0.f) * m_radius * cosf(m_beta);
     eye.y += sinf(m_beta) * m_radius;
-    m_viewMatrix.lookAtLH(eye, target, { 0.f, 1.f, 0.f, 0.f });
-    m_projectionMatrix.glhPerspectivef2(54.f, float(m_width)/float(m_height), 0.1f, 100.f, m_homogeneousDepth);
+    return {eye.x, eye.y, eye.z};
 }
 
 void Camera::SetDisplaySize(uint16_t width, uint16_t height)

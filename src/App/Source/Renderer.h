@@ -41,6 +41,7 @@ private:
     bgfx::IndexBufferHandle m_ibhGround;
     bgfx::UniformHandle m_viewProjectionUniform;
     bgfx::UniformHandle m_texDensityUniform;
+    bgfx::UniformHandle m_eyePositionUniform;
 
     bgfx::ProgramHandle m_renderProgram;
     bgfx::ProgramHandle m_groundProgram;

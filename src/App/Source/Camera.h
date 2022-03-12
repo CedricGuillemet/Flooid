@@ -23,7 +23,7 @@ public:
     Imm::matrix GetViewProjection();
     const Imm::matrix& GetView() const { return m_viewMatrix; }
     const Imm::matrix& GetProjection() const { return m_projectionMatrix; }
-    
+    Imm::vec3 GetPosition() const;
 private:
     
     Imm::matrix m_viewMatrix;

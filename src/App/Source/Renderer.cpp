@@ -90,6 +90,7 @@ void Renderer::Init()
     m_renderProgram = App::LoadProgram("Render_vs", "Render_fs");
     m_groundProgram = App::LoadProgram("Ground_vs", "Ground_fs");
     m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
+    m_eyePositionUniform = bgfx::createUniform("eyePosition", bgfx::UniformType::Vec4);
 }
 
 void Renderer::Render(Texture* texture)
@@ -97,6 +98,10 @@ void Renderer::Render(Texture* texture)
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
     Imm::matrix vp = m_camera.GetViewProjection();
     bgfx::setUniform(m_viewProjectionUniform, vp.m16);
+    
+    auto eye = m_camera.GetPosition();
+    float eyePosition[4] = {eye.x, eye.y, eye.z, 0.f};
+    bgfx::setUniform(m_eyePositionUniform, eyePosition);
 
     bgfx::setVertexBuffer(0, m_vbhGround);
     bgfx::setIndexBuffer(m_ibhGround);

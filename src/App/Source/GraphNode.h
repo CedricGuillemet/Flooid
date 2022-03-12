@@ -20,7 +20,17 @@ size_t GetOutputCount() const { return GraphNodeIO::GetInputCount(); }
 template<unsigned int inputCount, unsigned int outputCount> class GraphNodeIO
 {
 public:
-    GraphNodeIO() {}
+    GraphNodeIO()
+    {
+        m_inputs = new Texture* [inputCount];
+        m_outputs = new Texture* [outputCount];
+    }
+
+    ~GraphNodeIO()
+    {
+        delete [] m_inputs;
+        delete [] m_outputs;
+    }
     
     void SetInput(unsigned int inputIndex, Texture* texture)
     {
@@ -36,8 +46,8 @@ public:
     size_t GetInputCount() const { return inputCount; }
     size_t GetOutputCount() const { return outputCount; }
 protected:
-    Texture* m_inputs[inputCount];
-    Texture* m_outputs[outputCount];
+    Texture** m_inputs;
+    Texture** m_outputs;
 };
 
 class GraphNode
