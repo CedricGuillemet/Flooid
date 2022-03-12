@@ -6,24 +6,22 @@
 #include "GraphNode.h"
 
 /*
- - LH/RH for imguizmo
- - inputs bgfx/imgui
-
  - graph solving with solving list
 
- - animation
  - linear/saturate for vel/den gen
  - velgen: direction, vortex, inward, outward
  - mix perlin den/vel (perlin modulate)
  
- - test lighting with perlin dens
+ - test lighting with perlin density
  
  - raymarching lighting / rendering
 
- - perlin noise node
+ - animation
 
  
- 
+ - LH/RH for imguizmo
+ - inputs bgfx/imgui
+
  - save/load json
 
  - expand velocity/density nodes with more SDF primitives
