@@ -99,9 +99,11 @@ void Flooid::Tick(const Parameters& parameters)
         
         std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
         
+        
+        m_graph.BuildPlugs();
         for (auto evaluationIndex : evaluationOrder)
         {
-            
+            GraphNode* node = m_graph.m_nodes[evaluationIndex];
         }
 
         // advect density
