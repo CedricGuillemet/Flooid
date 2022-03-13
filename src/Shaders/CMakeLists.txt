@@ -42,15 +42,6 @@ elseif(APPLE OR (UNIX AND NOT EMSCRIPTEN))
                 COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_essl.h" --platform android --type ${type} --bin2c ${FILE_NAME}_${extension}_essl
                 DEPENDS ${SHADER}
                 COMMENT "Compiling shader ${SHADER}")
-elseif(EMSCRIPTEN)
-            set(SHADER_OUTPUT_TARGET "${shaders_output}/${FILE_NAME}_${extension}_glsl.h")
-            add_custom_command(
-                OUTPUT ${SHADER_OUTPUT_TARGET}
-                COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_glsl.h" --platform asm.js -p 120 --type ${type} --bin2c ${FILE_NAME}_${extension}_glsl
-                COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_spv.h" --platform linux -p spirv --type ${type} --bin2c ${FILE_NAME}_${extension}_spv
-                COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_essl.h" --platform android --type ${type} --bin2c ${FILE_NAME}_${extension}_essl
-                DEPENDS ${SHADER}
-                COMMENT "Compiling shader ${SHADER}")
 else()
     message("Unsupported platform for building shaders. Skipped.")
 endif()
