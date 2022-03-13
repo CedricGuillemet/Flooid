@@ -6,6 +6,12 @@
 #include "GraphNode.h"
 
 /*
+ - use advect to reinject density/velocity
+ - replace 'm_outputs[0] = velocity;' when ticking node with setoutputtexture, set texture type along
+ - set refcount to texture, release decrease it, computing plugs also compute texture refcount
+ - bug with colors/io names
+ - keep density/velocity each frame
+ 
  - graph solving with solving list
 
  - linear/saturate for vel/den gen
@@ -17,7 +23,6 @@
  - raymarching lighting / rendering
 
  - animation
-
  
  - LH/RH for imguizmo
  - inputs bgfx/imgui

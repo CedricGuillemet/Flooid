@@ -133,7 +133,7 @@ public:
             case PlugType::Image:
                 return IM_COL32(150, 200, 150, 255);
             case PlugType::Any:
-                return IM_COL32(50, 200, 50, 255);
+                return IM_COL32(50, 50, 200, 255);
         }
         return IM_COL32(255, 0, 255, 255);
     }
@@ -362,7 +362,7 @@ private:
     __NODE_TYPE
 };
 
-class Display : public GraphNode, public GraphNodeIO<1, 0>
+class Display : public GraphNode, public GraphNodeIO<1, 1>
 {
 public:
     Display()
@@ -386,7 +386,7 @@ public:
             1,
             Imm::Array{"Density"},
             Imm::Array{ GetPlugColor(PlugType::Density)},
-            0,
+            1,
             Imm::Array{"Image"},
             Imm::Array{ GetPlugColor(PlugType::Image)}
         };
