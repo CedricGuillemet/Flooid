@@ -18,7 +18,10 @@ uint16_t GetRuntimeType() const { return _nodeType; } \
 size_t GetInputCount() const { return GraphNodeIO::GetInputCount(); } \
 size_t GetOutputCount() const { return GraphNodeIO::GetInputCount(); } \
 void ClearPlugs() { GraphNodeIO::ClearPlugs(); } \
-void SetPlug(uint8_t slotIndex, GraphNode* inputNode, uint8_t inputSlotIndex) { GraphNodeIO::SetPlug(slotIndex, inputNode, inputSlotIndex); }
+void SetPlug(uint8_t slotIndex, const Plug plug) { GraphNodeIO::SetPlug(slotIndex, plug); } \
+const Plug GetPlug(uint8_t slotIndex) const { return GraphNodeIO::GetPlug(slotIndex); } \
+void SetInput(unsigned int inputIndex, Texture* texture) { GraphNodeIO::SetInput(inputIndex, texture); } \
+Texture* GetOutput(unsigned int outputIndex) { return GraphNodeIO::GetOutput(outputIndex); }
 
 
 struct PlugType
@@ -31,6 +34,12 @@ struct PlugType
         Any,
         Count,
     };
+};
+
+struct Plug
+{
+    GraphNode* m_node;
+    uint8_t m_index;
 };
 
 template<unsigned int inputCount, unsigned int outputCount> class GraphNodeIO
@@ -64,11 +73,6 @@ public:
     size_t GetInputCount() const { return inputCount; }
     size_t GetOutputCount() const { return outputCount; }
     
-    struct Plug
-    {
-        GraphNode* m_node;
-        uint8_t m_index;
-    };
     void ClearPlugs()
     {
         for (size_t i = 0; i < inputCount; i++)
@@ -77,10 +81,15 @@ public:
         }
     }
     
-    void SetPlug(uint8_t slotIndex, GraphNode* inputNode, uint8_t inputSlotIndex)
+    void SetPlug(uint8_t slotIndex, const Plug plug)//GraphNode* inputNode, uint8_t inputSlotIndex)
     {
         assert(slotIndex < inputCount);
-        m_plugs[slotIndex] = {inputNode, inputSlotIndex};
+        m_plugs[slotIndex] = plug;
+    }
+    
+    const Plug GetPlug(uint8_t slotIndex) const
+    {
+        return m_plugs[slotIndex];
     }
     
 protected:
@@ -104,9 +113,12 @@ public:
     virtual size_t GetInputCount() const = 0;
     virtual size_t GetOutputCount() const = 0;
     virtual void ClearPlugs() = 0;
-    virtual void SetPlug(uint8_t slotIndex, GraphNode* inputNode, uint8_t inputSlotIndex) = 0;
+    virtual void SetPlug(uint8_t slotIndex, const Plug plug) = 0;
+    virtual const Plug GetPlug(uint8_t slotIndex) const = 0;
     virtual const PlugType::Enum* const GetOutputTypes() const = 0;
     virtual const PlugType::Enum* const GetInputTypes() const = 0;
+    virtual void SetInput(unsigned int inputIndex, Texture* texture) = 0;
+    virtual Texture* GetOutput(unsigned int outputIndex) = 0;
 
     //protected:
     
@@ -489,8 +501,7 @@ public:
         
         for (auto link : m_links)
         {
-            m_nodes[link.m_inputSlotIndex]->SetPlug(link.m_inputSlotIndex, m_nodes[link.m_outputNodeIndex], link.m_outputSlotIndex);
+            m_nodes[link.m_outputNodeIndex]->SetPlug(link.m_outputSlotIndex, {m_nodes[link.m_inputNodeIndex], link.m_inputSlotIndex});
         }
     }
-    
 };

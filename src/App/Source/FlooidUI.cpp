@@ -7,6 +7,7 @@ FlooidUI::FlooidUI(Graph& graph)
 : m_graphEditorDelegate(graph)
 , m_graph(graph)
 {
+    m_graphEditorOptions.mDisplayLinksAsCurves = false;
 }
 
 void FlooidUI::GraphUI()

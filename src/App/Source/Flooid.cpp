@@ -99,13 +99,38 @@ void Flooid::Tick(const Parameters& parameters)
         
         std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
         
-        
+        /*
         m_graph.BuildPlugs();
         for (auto evaluationIndex : evaluationOrder)
         {
             GraphNode* node = m_graph.m_nodes[evaluationIndex];
+            for (size_t i = 0; i < node->GetInputCount(); i ++)
+            {
+                auto plug = node->GetPlug(i);
+                if (plug.m_node)
+                {
+                    node->SetInput(i, plug.m_node->GetOutput(plug.m_index));
+                }
+                else
+                {
+                    // fallback to persistent texture data
+                    // empty input
+                    switch(node->GetInputTypes()[i])
+                    {
+                        case PlugType::Density:
+                            node->SetInput(i, m_densityTexture);
+                            break;
+                        case PlugType::Velocity:
+                            node->SetInput(i, m_velocityTexture);
+                            break;
+                        default:
+                            assert(0);
+                    }
+                }
+            }
+            node->Tick(m_textureProvider);
         }
-
+*/
         // advect density
         m_advectDensityNode->SetInput(0, m_velocityTexture);
         m_advectDensityNode->SetInput(1, m_densityTexture);
@@ -129,7 +154,7 @@ void Flooid::Tick(const Parameters& parameters)
         advectedVelocity = m_velocityGenNode->GetOutput(0);
 
         // vorticity
-        if (1)
+        if (0)
         {
             m_vorticityNode->SetInput(0, advectedVelocity);
             m_vorticityNode->Tick(m_textureProvider);
