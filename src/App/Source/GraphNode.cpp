@@ -17,7 +17,8 @@ void Vorticity::Init()
     m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
     m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
 
-    GraphEditorDelegate::mTemplateFunctions.push_back(Vorticity::GetTemplate);
+    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
+    _nodeType = GraphNode::_runtimeType++;
 }
 
 void Vorticity::Tick(TextureProvider& textureProvider)
@@ -57,7 +58,8 @@ void DensityGen::Init()
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
 
-    GraphEditorDelegate::mTemplateFunctions.push_back(DensityGen::GetTemplate);
+    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
+    _nodeType = GraphNode::_runtimeType++;
 }
 
 void DensityGen::Tick(TextureProvider& textureProvider)
@@ -89,7 +91,8 @@ void VelocityGen::Init()
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
     m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
 
-    GraphEditorDelegate::mTemplateFunctions.push_back(VelocityGen::GetTemplate);
+    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
+    _nodeType = GraphNode::_runtimeType++;
 }
 
 void VelocityGen::Tick(TextureProvider& textureProvider)
@@ -128,7 +131,8 @@ void Advection::Init()
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
 
-    GraphEditorDelegate::mTemplateFunctions.push_back(Advection::GetTemplate);
+    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
+    _nodeType = GraphNode::_runtimeType++;
 }
 
 void Advection::Tick(TextureProvider& textureProvider)
@@ -165,7 +169,8 @@ void Solver::Init()
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
     m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
 
-    GraphEditorDelegate::mTemplateFunctions.push_back(Solver::GetTemplate);
+    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
+    _nodeType = GraphNode::_runtimeType++;
 }
 
 void Solver::Tick(TextureProvider& textureProvider)
@@ -222,7 +227,8 @@ bool Solver::UI(UIGizmos& uiGizmos)
 
 void Display::Init()
 {
-    GraphEditorDelegate::mTemplateFunctions.push_back(VelocityGen::GetTemplate);
+    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
+    _nodeType = GraphNode::_runtimeType++;
 }
 
 void Display::Tick(TextureProvider& textureProvider)

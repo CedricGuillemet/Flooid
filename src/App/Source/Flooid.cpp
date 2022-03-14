@@ -78,12 +78,12 @@ void Flooid::Init()
     m_displayNode = new Display;
     auto displayIndex = m_graph.AddNode(m_displayNode);
     
-    m_graph.AddLink({densityGenIndex, 0, advectDensityIndex, 0});
+    m_graph.AddLink({densityGenIndex, 0, advectDensityIndex, 1});
     m_graph.AddLink({velocityIndex, 0, vorticityIndex, 0});
     m_graph.AddLink({vorticityIndex, 0, solverIndex, 0});
     m_graph.AddLink({solverIndex, 0, advectVelocityIndex, 0});
     m_graph.AddLink({solverIndex, 0, advectVelocityIndex, 1});
-    m_graph.AddLink({solverIndex, 0, advectDensityIndex, 1});
+    m_graph.AddLink({solverIndex, 0, advectDensityIndex, 0});
     m_graph.AddLink({advectDensityIndex, 0, displayIndex, 0});
     
     m_graph.Layout();

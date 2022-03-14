@@ -12,7 +12,7 @@ class GraphNode;
 
 #define __NODE_TYPE \
 private:\
-static inline uint16_t _nodeType = GraphNode::_runtimeType++; \
+static inline uint16_t _nodeType{}; \
 public:\
 uint16_t GetRuntimeType() const { return _nodeType; } \
 size_t GetInputCount() const { return GraphNodeIO::GetInputCount(); } \
@@ -129,11 +129,11 @@ public:
             case PlugType::Velocity:
                 return IM_COL32(200, 100, 50, 255);
             case PlugType::Density:
-                return IM_COL32(50, 100, 200, 255);
+                return IM_COL32(0, 0, 200, 255);
             case PlugType::Image:
-                return IM_COL32(150, 200, 150, 255);
+                return IM_COL32(0, 200, 0, 255);
             case PlugType::Any:
-                return IM_COL32(50, 50, 200, 255);
+                return IM_COL32(200, 200, 200, 255);
         }
         return IM_COL32(255, 0, 255, 255);
     }
