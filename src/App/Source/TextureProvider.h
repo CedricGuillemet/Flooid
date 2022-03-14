@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <bgfx/bgfx.h>
+#include "GraphNode.h"
 
 struct Texture
 {
@@ -8,6 +9,7 @@ struct Texture
     bgfx::FrameBufferHandle m_renderTarget;
     bgfx::TextureHandle GetTexture();
     void BindAsTarget(bgfx::ViewId viewId);
+    PlugType::Enum m_type{PlugType::Invalid};
 };
 
 class TextureProvider
@@ -16,10 +18,21 @@ public:
     TextureProvider() {}
     ~TextureProvider();
     
-    void TickInit(bgfx::ViewId viewId);
-    Texture* Acquire();
-    Texture* AcquireWithClear(uint32_t clearColor);
+    void Init()
+    {
+        m_densityTexture = Acquire(PlugType::Density);
+        m_velocityTexture = Acquire(PlugType::Velocity);
+    }
+    
+    void TickFrame(bgfx::ViewId viewId);
+    Texture* Acquire(PlugType::Enum type);
+    Texture* AcquireWithClear(PlugType::Enum type, uint32_t clearColor);
     void Release(Texture* texture);
+    
+    // persistent datas
+    Texture* m_densityTexture{};
+    Texture* m_velocityTexture{};
+
     
     bgfx::ViewId GetViewId() const { return m_viewId; }
 private:

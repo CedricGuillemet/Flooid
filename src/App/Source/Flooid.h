@@ -22,9 +22,6 @@ public:
     
     // return true if over or using UI
     void UI();
-
-    Texture* m_densityTexture{};
-    Texture* m_velocityTexture{};
     
     TextureProvider m_textureProvider;
     Renderer m_renderer;

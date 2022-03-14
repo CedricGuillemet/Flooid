@@ -20,9 +20,16 @@ size_t GetOutputCount() const { return GraphNodeIO::GetInputCount(); } \
 void ClearPlugs() { GraphNodeIO::ClearPlugs(); } \
 void SetPlug(uint8_t slotIndex, const Plug plug) { GraphNodeIO::SetPlug(slotIndex, plug); } \
 const Plug GetPlug(uint8_t slotIndex) const { return GraphNodeIO::GetPlug(slotIndex); } \
-void SetInput(unsigned int inputIndex, Texture* texture) { GraphNodeIO::SetInput(inputIndex, texture); } \
-Texture* GetOutput(unsigned int outputIndex) { return GraphNodeIO::GetOutput(outputIndex); }
-
+void SetInput(unsigned int inputIndex, Texture* texture) { \
+    GraphNodeIO::SetInput(inputIndex, texture);\
+} \
+void SetOutput(unsigned int outputIndex, Texture* texture) { \
+    GraphNodeIO::SetOutput(outputIndex, texture);\
+    GraphNode::SetOutput(outputIndex, texture);\
+} \
+Texture* GetOutput(unsigned int outputIndex) { return GraphNodeIO::GetOutput(outputIndex); } \
+void IncreaseOuputCount(int slotIndex) { GraphNodeIO::IncreaseOuputCount(slotIndex); } \
+Texture* GetInput(uint8_t slotIndex) { return GraphNodeIO::GetInput(slotIndex); }
 
 struct PlugType
 {
@@ -32,6 +39,8 @@ struct PlugType
         Density,
         Image,
         Any,
+        
+        Invalid,
         Count,
     };
 };
@@ -49,6 +58,7 @@ public:
     {
         m_inputs = new Texture* [inputCount];
         m_outputs = new Texture* [outputCount];
+        m_outputUseCount = new uint16_t [outputCount];
         m_plugs = new Plug [inputCount];
     }
     
@@ -57,6 +67,7 @@ public:
         delete [] m_inputs;
         delete [] m_outputs;
         delete [] m_plugs;
+        delete [] m_outputUseCount;
     }
     
     void SetInput(unsigned int inputIndex, Texture* texture)
@@ -64,6 +75,13 @@ public:
         assert(inputIndex < inputCount);
         m_inputs[inputIndex] = texture;
     }
+    
+    void SetOutput(unsigned int outputIndex, Texture* texture)
+    {
+        assert(outputIndex < outputCount);
+        m_outputs[outputIndex] = texture;
+    }
+    
     Texture* GetOutput(unsigned int outputIndex)
     {
         assert(outputIndex < outputCount);
@@ -79,6 +97,15 @@ public:
         {
             m_plugs[i] = {nullptr, 0xFF};
         }
+        for (size_t i = 0; i < outputCount; i++)
+        {
+            m_outputUseCount[i] = 0;
+        }
+    }
+    
+    void IncreaseOuputCount(int slotIndex)
+    {
+        m_outputUseCount[slotIndex]++;
     }
     
     void SetPlug(uint8_t slotIndex, const Plug plug)//GraphNode* inputNode, uint8_t inputSlotIndex)
@@ -92,10 +119,16 @@ public:
         return m_plugs[slotIndex];
     }
     
-protected:
+    Texture* GetInput(uint8_t slotIndex)
+    {
+        return m_inputs[0];
+    }
+    
+private:
     Plug* m_plugs;
     Texture** m_inputs;
     Texture** m_outputs;
+    uint16_t* m_outputUseCount;
 };
 
 class GraphNode
@@ -107,7 +140,7 @@ public:
     , m_selected(false)
     {}
     virtual const char* GetName() const = 0;
-    virtual void Tick(TextureProvider& textureProvider) = 0;
+    virtual void Tick(TextureProvider& textureProvider);
     virtual bool UI(UIGizmos& uiGizmos) = 0;
     virtual uint16_t GetRuntimeType() const = 0;
     virtual size_t GetInputCount() const = 0;
@@ -119,7 +152,10 @@ public:
     virtual const PlugType::Enum* const GetInputTypes() const = 0;
     virtual void SetInput(unsigned int inputIndex, Texture* texture) = 0;
     virtual Texture* GetOutput(unsigned int outputIndex) = 0;
+    virtual void IncreaseOuputCount(int slotIndex) = 0;
+    virtual Texture* GetInput(uint8_t slotIndex) = 0;
 
+    void SetOutput(unsigned int outputIndex, Texture* texture);
     //protected:
     
     static uint32_t GetPlugColor(PlugType::Enum plugType)
@@ -502,6 +538,7 @@ public:
         for (auto link : m_links)
         {
             m_nodes[link.m_outputNodeIndex]->SetPlug(link.m_outputSlotIndex, {m_nodes[link.m_inputNodeIndex], link.m_inputSlotIndex});
+            m_nodes[link.m_outputNodeIndex]->IncreaseOuputCount(link.m_outputSlotIndex);
         }
     }
 };

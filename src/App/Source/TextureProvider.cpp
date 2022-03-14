@@ -18,7 +18,7 @@ TextureProvider::~TextureProvider()
     
 }
 
-void TextureProvider::TickInit(bgfx::ViewId viewId)
+void TextureProvider::TickFrame(bgfx::ViewId viewId)
 {
     m_viewId = viewId;
 }
@@ -29,7 +29,7 @@ void Texture::BindAsTarget(bgfx::ViewId viewId)
     bgfx::setViewRect(viewId, 0, 0, uint16_t(TEX_SIZE), uint16_t(TEX_SIZE));
 }
 
-Texture* TextureProvider::Acquire()
+Texture* TextureProvider::Acquire(PlugType::Enum type)
 {
     if (!m_available.empty())
     {
@@ -40,13 +40,15 @@ Texture* TextureProvider::Acquire()
         return texture;
     }
     Texture* texture = new Texture();
+    printf("Acquire Texture %p (type %d)\n", this, int(type));
+    texture->m_type = type;
     m_inUse.push_back(texture);
     return texture;
 }
 
-Texture* TextureProvider::AcquireWithClear(uint32_t clearColor)
+Texture* TextureProvider::AcquireWithClear(PlugType::Enum type, uint32_t clearColor)
 {
-    Texture* texture = Acquire();
+    Texture* texture = Acquire(type);
     m_viewId++;
     texture->BindAsTarget(m_viewId);
     bgfx::setViewClear(m_viewId, BGFX_CLEAR_COLOR, 0x00000000);

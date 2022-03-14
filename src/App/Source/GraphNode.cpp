@@ -8,6 +8,20 @@
 
 const int TEX_SIZE = 256;
 
+void GraphNode::SetOutput(unsigned int outputIndex, Texture* texture)
+{
+    texture->m_type = GetOutputTypes()[outputIndex];
+}
+
+void GraphNode::Tick(TextureProvider& textureProvider)
+{
+    printf("Ticking %s\n", this->GetName());
+    for(size_t i = 0; i < this->GetInputCount(); i++)
+    {
+        printf("  * Input %d : texture %p (%d)\n", (int)i, this, this->GetInput(i), this->GetInput(i)->m_type);
+    }
+}
+
 void Vorticity::Init()
 {
     m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
@@ -23,25 +37,26 @@ void Vorticity::Init()
 
 void Vorticity::Tick(TextureProvider& textureProvider)
 {
+    GraphNode::Tick(textureProvider);
+    
     float epsilon[4] = { m_epsilon, 0.f, 0.f, 0.f };
     bgfx::setUniform(m_epsilonUniform, epsilon);
     float curl[4] = { m_curl, m_curl, 0.f, 0.f };
     bgfx::setUniform(m_curlUniform, curl);
 
-    auto advectedVelocity = m_inputs[0];
-    Texture* vorticity = textureProvider.Acquire();
+    auto advectedVelocity = GetInput(0);
+    Texture* vorticity = textureProvider.Acquire(PlugType::Any);
     bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(1, vorticity->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_vorticityCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
-    Texture* vorticityForce = textureProvider.Acquire();
+    Texture* vorticityForce = textureProvider.Acquire(PlugType::Velocity);
     bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texVorticityUniform, vorticity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, vorticityForce->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_vorticityForceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     textureProvider.Release(vorticity);
-    textureProvider.Release(advectedVelocity);
-    m_outputs[0] = vorticityForce;
+    SetOutput(0, vorticityForce);
 }
 
 bool Vorticity::UI(UIGizmos& uiGizmos)
@@ -64,13 +79,15 @@ void DensityGen::Init()
 
 void DensityGen::Tick(TextureProvider& textureProvider)
 {
+    GraphNode::Tick(textureProvider);
+    
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
-    auto density = m_inputs[0];
+    auto density = GetInput(0);
     bgfx::setImage(0, density->GetTexture(), 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), m_densityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    m_outputs[0] = density;
+    SetOutput(0, density);
 }
 
 bool DensityGen::UI(UIGizmos& uiGizmos)
@@ -97,6 +114,8 @@ void VelocityGen::Init()
 
 void VelocityGen::Tick(TextureProvider& textureProvider)
 {
+    GraphNode::Tick(textureProvider);
+    
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -106,10 +125,10 @@ void VelocityGen::Tick(TextureProvider& textureProvider)
     float direction[4] = { matrix.dir.x, matrix.dir.y, matrix.dir.z, 0.f };
     bgfx::setUniform(m_directionUniform, direction);
 
-    auto velocity = m_inputs[0];
+    auto velocity = GetInput(0);
     bgfx::setImage(0, velocity->GetTexture(), 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), m_velocityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    m_outputs[0] = velocity;
+    SetOutput(0, velocity);
 }
 
 bool VelocityGen::UI(UIGizmos& uiGizmos)
@@ -137,17 +156,26 @@ void Advection::Init()
 
 void Advection::Tick(TextureProvider& textureProvider)
 {
+    GraphNode::Tick(textureProvider);
+    
     float advection[4] = { m_timeScale, m_dissipation, 0.f, 0.f };
     bgfx::setUniform(m_advectionUniform, advection);
 
-    auto velocity = m_inputs[0];
-    auto toAdvectTexture = m_inputs[1];
-    Texture* advected = textureProvider.Acquire();
+    auto velocity = GetInput(0);
+    auto toAdvectTexture = GetInput(1);
+    if (toAdvectTexture->m_type == PlugType::Velocity)
+    {
+        printf("Velocity");
+    } else if (toAdvectTexture->m_type == PlugType::Density)
+    {
+        printf("Density");
+    }
+    Texture* advected = textureProvider.Acquire(GetInput(1)->m_type);
     bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
     bgfx::setTexture(1, m_texAdvectUniform, toAdvectTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
     bgfx::setImage(2, advected->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    m_outputs[0] = advected;
+    SetOutput(0, advected);
 }
 
 bool Advection::UI(UIGizmos& uiGizmos)
@@ -175,18 +203,20 @@ void Solver::Init()
 
 void Solver::Tick(TextureProvider& textureProvider)
 {
+    GraphNode::Tick(textureProvider);
+    
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
 
     // divergence
-    auto* advectedVelocity = m_inputs[0];
-    Texture* divergence = textureProvider.Acquire();
+    auto* advectedVelocity = GetInput(0);
+    Texture* divergence = textureProvider.Acquire(PlugType::Any);
     bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
     // clear density
-    Texture* jacobi[2] = { textureProvider.AcquireWithClear(0x00000000), textureProvider.Acquire() };
+    Texture* jacobi[2] = { textureProvider.AcquireWithClear(PlugType::Any, 0x00000000), textureProvider.Acquire(PlugType::Any) };
 
     // jacobi
     for (int i = 0; i < m_iterationCount; i++)
@@ -203,7 +233,7 @@ void Solver::Tick(TextureProvider& textureProvider)
     textureProvider.Release(divergence);
 
     // gradient
-    Texture* outputVelocity = textureProvider.Acquire();
+    Texture* outputVelocity = textureProvider.Acquire(PlugType::Velocity);
     bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, outputVelocity->GetTexture(), 0, bgfx::Access::Write);
@@ -213,7 +243,7 @@ void Solver::Tick(TextureProvider& textureProvider)
     textureProvider.Release(jacobi[1]);
     textureProvider.Release(advectedVelocity);
 
-    m_outputs[0] = outputVelocity;
+    SetOutput(0, outputVelocity);
 }
 
 bool Solver::UI(UIGizmos& uiGizmos)
@@ -233,7 +263,9 @@ void Display::Init()
 
 void Display::Tick(TextureProvider& textureProvider)
 {
-    m_outputs[0] = m_inputs[0];
+    GraphNode::Tick(textureProvider);
+    
+    SetOutput(0, GetInput(0));
 }
 
 bool Display::UI(UIGizmos& uiGizmos)

@@ -9,9 +9,10 @@
  - use advect to reinject density/velocity
  - replace 'm_outputs[0] = velocity;' when ticking node with setoutputtexture, set texture type along
  - set refcount to texture, release decrease it, computing plugs also compute texture refcount
- - bug with colors/io names
- - keep density/velocity each frame
+ - advect node with empty input = auto use density (?)
  
+ - keep density/velocity each frame
+ - advect picture
  - graph solving with solving list
 
  - linear/saturate for vel/den gen
@@ -46,9 +47,7 @@ Flooid::Flooid()
 void Flooid::Init()
 {
     m_renderer.Init();
-    
-    m_densityTexture = m_textureProvider.Acquire();
-    m_velocityTexture = m_textureProvider.Acquire();
+    m_textureProvider.Init();
 
     Vorticity::Init();
     VelocityGen::Init();
@@ -100,12 +99,13 @@ void Flooid::Tick(const Parameters& parameters)
 
     if (m_ui.Running())
     {
-        m_textureProvider.TickInit(6);
+        m_textureProvider.TickFrame(6);
         
         std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
         
-        /*
+        
         m_graph.BuildPlugs();
+        
         for (auto evaluationIndex : evaluationOrder)
         {
             GraphNode* node = m_graph.m_nodes[evaluationIndex];
@@ -123,10 +123,10 @@ void Flooid::Tick(const Parameters& parameters)
                     switch(node->GetInputTypes()[i])
                     {
                         case PlugType::Density:
-                            node->SetInput(i, m_densityTexture);
+                            node->SetInput(i, m_textureProvider.m_densityTexture);
                             break;
                         case PlugType::Velocity:
-                            node->SetInput(i, m_velocityTexture);
+                            node->SetInput(i, m_textureProvider.m_velocityTexture);
                             break;
                         default:
                             assert(0);
@@ -135,7 +135,7 @@ void Flooid::Tick(const Parameters& parameters)
             }
             node->Tick(m_textureProvider);
         }
-*/
+/*
         // advect density
         m_advectDensityNode->SetInput(0, m_velocityTexture);
         m_advectDensityNode->SetInput(1, m_densityTexture);
@@ -177,11 +177,11 @@ void Flooid::Tick(const Parameters& parameters)
 
         // swap advect/vel
         m_textureProvider.Release(m_densityTexture);
-        m_densityTexture = advectedDensity;
+        m_densityTexture = advectedDensity;*/
     }
     else
     {
-        m_renderer.Render(m_densityTexture);
+        m_renderer.Render(m_textureProvider.m_densityTexture);
     }
 }
 
