@@ -15,21 +15,10 @@ private:\
 static inline uint16_t _nodeType{}; \
 public:\
 uint16_t GetRuntimeType() const { return _nodeType; } \
-size_t GetInputCount() const { return GraphNodeIO::GetInputCount(); } \
-size_t GetOutputCount() const { return GraphNodeIO::GetInputCount(); } \
-void ClearPlugs() { GraphNodeIO::ClearPlugs(); } \
-void SetPlug(uint8_t slotIndex, const Plug plug) { GraphNodeIO::SetPlug(slotIndex, plug); } \
-const Plug GetPlug(uint8_t slotIndex) const { return GraphNodeIO::GetPlug(slotIndex); } \
-void SetInput(unsigned int inputIndex, Texture* texture) { \
-    GraphNodeIO::SetInput(inputIndex, texture);\
-} \
-void SetOutput(unsigned int outputIndex, Texture* texture) { \
-    GraphNodeIO::SetOutput(outputIndex, texture);\
-    GraphNode::SetOutput(outputIndex, texture);\
-} \
-Texture* GetOutput(unsigned int outputIndex) { return GraphNodeIO::GetOutput(outputIndex); } \
-void IncreaseOuputCount(int slotIndex) { GraphNodeIO::IncreaseOuputCount(slotIndex); } \
-Texture* GetInput(uint8_t slotIndex) { return GraphNodeIO::GetInput(slotIndex); }
+static inline std::vector<PlugType::Enum> m_inputTypes; \
+static inline std::vector<PlugType::Enum> m_outputTypes; \
+const std::vector<PlugType::Enum>& GetOutputTypes() const { return m_outputTypes; } \
+const std::vector<PlugType::Enum>& GetInputTypes() const { return m_inputTypes; }
 
 struct PlugType
 {
@@ -51,53 +40,47 @@ struct Plug
     uint8_t m_index;
 };
 
-template<unsigned int inputCount, unsigned int outputCount> class GraphNodeIO
+class GraphNode
 {
 public:
-    GraphNodeIO()
+    GraphNode(size_t inputCount, size_t outputCount)
+    : m_x(0.f)
+    , m_y(0.f)
+    , m_selected(false)
     {
-        m_inputs = new Texture* [inputCount];
-        m_outputs = new Texture* [outputCount];
-        m_outputUseCount = new uint16_t [outputCount];
-        m_plugs = new Plug [inputCount];
+        m_inputs.resize(inputCount);
+        m_outputs.resize(outputCount);
+        m_outputUseCount.resize(outputCount);
+        m_plugs.resize(inputCount);
     }
     
-    ~GraphNodeIO()
-    {
-        delete [] m_inputs;
-        delete [] m_outputs;
-        delete [] m_plugs;
-        delete [] m_outputUseCount;
-    }
+    virtual const char* GetName() const = 0;
+    virtual void Tick(TextureProvider& textureProvider);
+    virtual bool UI(UIGizmos& uiGizmos) = 0;
+    virtual uint16_t GetRuntimeType() const = 0;
+    virtual size_t GetInputCount() const { return m_inputs.size(); }
+    virtual size_t GetOutputCount() const { return m_outputs.size(); }
+    virtual const std::vector<PlugType::Enum>& GetOutputTypes() const = 0;
+    virtual const std::vector<PlugType::Enum>& GetInputTypes() const = 0;
+    virtual void SetInput(unsigned int slotIndex, Texture* texture) { m_inputs[slotIndex] = texture; }
+    virtual Texture* GetOutput(unsigned int slotIndex) { return m_outputs[slotIndex]; }
+    virtual Texture* GetInput(uint8_t slotIndex) { return m_inputs[slotIndex]; }
+
+    void SetOutput(unsigned int outputIndex, Texture* texture);
+    //protected:
     
-    void SetInput(unsigned int inputIndex, Texture* texture)
+    void ReleaseInputs()
     {
-        assert(inputIndex < inputCount);
-        m_inputs[inputIndex] = texture;
+        
     }
-    
-    void SetOutput(unsigned int outputIndex, Texture* texture)
-    {
-        assert(outputIndex < outputCount);
-        m_outputs[outputIndex] = texture;
-    }
-    
-    Texture* GetOutput(unsigned int outputIndex)
-    {
-        assert(outputIndex < outputCount);
-        return m_outputs[outputIndex];
-    }
-    
-    size_t GetInputCount() const { return inputCount; }
-    size_t GetOutputCount() const { return outputCount; }
     
     void ClearPlugs()
     {
-        for (size_t i = 0; i < inputCount; i++)
+        for (size_t i = 0; i < m_plugs.size(); i++)
         {
             m_plugs[i] = {nullptr, 0xFF};
         }
-        for (size_t i = 0; i < outputCount; i++)
+        for (size_t i = 0; i < m_outputUseCount.size(); i++)
         {
             m_outputUseCount[i] = 0;
         }
@@ -110,7 +93,6 @@ public:
     
     void SetPlug(uint8_t slotIndex, const Plug plug)//GraphNode* inputNode, uint8_t inputSlotIndex)
     {
-        assert(slotIndex < inputCount);
         m_plugs[slotIndex] = plug;
     }
     
@@ -118,46 +100,6 @@ public:
     {
         return m_plugs[slotIndex];
     }
-    
-    Texture* GetInput(uint8_t slotIndex)
-    {
-        return m_inputs[0];
-    }
-    
-private:
-    Plug* m_plugs;
-    Texture** m_inputs;
-    Texture** m_outputs;
-    uint16_t* m_outputUseCount;
-};
-
-class GraphNode
-{
-public:
-    GraphNode()
-    : m_x(0.f)
-    , m_y(0.f)
-    , m_selected(false)
-    {}
-    virtual const char* GetName() const = 0;
-    virtual void Tick(TextureProvider& textureProvider);
-    virtual bool UI(UIGizmos& uiGizmos) = 0;
-    virtual uint16_t GetRuntimeType() const = 0;
-    virtual size_t GetInputCount() const = 0;
-    virtual size_t GetOutputCount() const = 0;
-    virtual void ClearPlugs() = 0;
-    virtual void SetPlug(uint8_t slotIndex, const Plug plug) = 0;
-    virtual const Plug GetPlug(uint8_t slotIndex) const = 0;
-    virtual const PlugType::Enum* const GetOutputTypes() const = 0;
-    virtual const PlugType::Enum* const GetInputTypes() const = 0;
-    virtual void SetInput(unsigned int inputIndex, Texture* texture) = 0;
-    virtual Texture* GetOutput(unsigned int outputIndex) = 0;
-    virtual void IncreaseOuputCount(int slotIndex) = 0;
-    virtual Texture* GetInput(uint8_t slotIndex) = 0;
-
-    void SetOutput(unsigned int outputIndex, Texture* texture);
-    //protected:
-    
     static uint32_t GetPlugColor(PlugType::Enum plugType)
     {
         switch(plugType)
@@ -178,13 +120,20 @@ public:
     bool m_selected;
     
     static inline uint16_t _runtimeType{};
+    
+    
+    std::vector<Plug> m_plugs;
+    std::vector<Texture*> m_inputs;
+    std::vector<Texture*> m_outputs;
+    std::vector<uint16_t> m_outputUseCount;
 };
 
-class Vorticity : public GraphNode, public GraphNodeIO<1,1>
+class Vorticity : public GraphNode //, public GraphNodeIO<1,1>
 {
 public:
     Vorticity()
-    : m_curl(2.f)
+    : GraphNode(1, 1)
+    , m_curl(2.f)
     , m_epsilon(0.0002f)
     {}
     const char* GetName() const { return "Vorticity"; }
@@ -193,8 +142,6 @@ public:
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
     
-    const PlugType::Enum* const GetOutputTypes() const { return Imm::Array{PlugType::Velocity}; }
-    const PlugType::Enum* const GetInputTypes() const { return Imm::Array{PlugType::Velocity}; }
     
     static GraphEditor::Template GetTemplate()
     {
@@ -224,11 +171,12 @@ private:
     __NODE_TYPE
 };
 
-class DensityGen : public GraphNode, public GraphNodeIO<1, 1>
+class DensityGen : public GraphNode
 {
 public:
     DensityGen()
-    : m_position{0.5f, 0.05f, 0.f}
+    : GraphNode(1, 1)
+    , m_position{0.5f, 0.05f, 0.f}
     , m_radius(0.1f)
     {}
     const char* GetName() const { return "Density Gen"; }
@@ -236,8 +184,6 @@ public:
     static void Init();
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
-    const PlugType::Enum* const GetOutputTypes() const { return Imm::Array{PlugType::Density}; }
-    const PlugType::Enum* const GetInputTypes() const { return Imm::Array{PlugType::Density}; }
 
     static GraphEditor::Template GetTemplate()
     {
@@ -263,11 +209,12 @@ private:
     __NODE_TYPE
 };
 
-class VelocityGen : public GraphNode, public GraphNodeIO<1, 1>
+class VelocityGen : public GraphNode
 {
 public:
     VelocityGen()
-    : m_position{0.5f, 0.05f, 0.f}
+    : GraphNode(1, 1)
+    , m_position{0.5f, 0.05f, 0.f}
     , m_orientation{-Imm::PI * 0.5f, 0.f, 0.f}
     , m_radius(0.1f)
     {
@@ -278,8 +225,6 @@ public:
     static void Init();
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
-    const PlugType::Enum* const GetOutputTypes() const { return Imm::Array{PlugType::Velocity}; }
-    const PlugType::Enum* const GetInputTypes() const { return Imm::Array{PlugType::Velocity}; }
 
     static GraphEditor::Template GetTemplate()
     {
@@ -307,11 +252,12 @@ private:
 };
 
 
-class Advection : public GraphNode, public GraphNodeIO<2, 1>
+class Advection : public GraphNode
 {
 public:
     Advection()
-    : m_timeScale(1.f)
+    : GraphNode(2, 1)
+    , m_timeScale(1.f)
     , m_dissipation(0.997f)
     {
         
@@ -321,8 +267,6 @@ public:
     static void Init();
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
-    const PlugType::Enum* const GetOutputTypes() const { return Imm::Array{PlugType::Velocity, PlugType::Any}; }
-    const PlugType::Enum* const GetInputTypes() const { return Imm::Array{PlugType::Any}; }
 
     static GraphEditor::Template GetTemplate()
     {
@@ -349,11 +293,12 @@ private:
     __NODE_TYPE
 };
 
-class Solver : public GraphNode, public GraphNodeIO<1, 1>
+class Solver : public GraphNode
 {
 public:
     Solver()
-    : m_alpha(-1.f)
+    : GraphNode(1, 1)
+    , m_alpha(-1.f)
     , m_beta(4)
     , m_iterationCount(50)
     {
@@ -364,8 +309,6 @@ public:
     static void Init();
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
-    const PlugType::Enum* const GetOutputTypes() const { return Imm::Array{PlugType::Velocity}; }
-    const PlugType::Enum* const GetInputTypes() const { return Imm::Array{PlugType::Velocity}; }
 
     static GraphEditor::Template GetTemplate()
     {
@@ -398,11 +341,12 @@ private:
     __NODE_TYPE
 };
 
-class Display : public GraphNode, public GraphNodeIO<1, 1>
+class Display : public GraphNode
 {
 public:
     Display()
-    : m_lightPosition{0.15f, 1.2f, 1.f}
+    : GraphNode(1, 1)
+    , m_lightPosition{0.15f, 1.2f, 1.f}
     {
     }
     const char* GetName() const { return "Display"; }
@@ -410,8 +354,6 @@ public:
     static void Init();
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
-    const PlugType::Enum* const GetOutputTypes() const { return Imm::Array{PlugType::Density}; }
-    const PlugType::Enum* const GetInputTypes() const { return Imm::Array{PlugType::Image}; }
 
     static GraphEditor::Template GetTemplate()
     {

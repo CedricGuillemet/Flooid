@@ -24,6 +24,9 @@ void GraphNode::Tick(TextureProvider& textureProvider)
 
 void Vorticity::Init()
 {
+    m_inputTypes = {PlugType::Velocity};
+    m_outputTypes = {PlugType::Velocity};
+
     m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
     m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
@@ -70,6 +73,9 @@ bool Vorticity::UI(UIGizmos& uiGizmos)
 
 void DensityGen::Init()
 {
+    m_inputTypes = {PlugType::Density};
+    m_outputTypes = {PlugType::Density};
+
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
 
@@ -104,6 +110,9 @@ bool DensityGen::UI(UIGizmos& uiGizmos)
 
 void VelocityGen::Init()
 {
+    m_inputTypes = {PlugType::Velocity};
+    m_outputTypes = {PlugType::Velocity};
+
     m_velocityGenCSProgram = App::LoadProgram("VelocityGen_cs", nullptr);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
     m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
@@ -145,6 +154,9 @@ bool VelocityGen::UI(UIGizmos& uiGizmos)
 
 void Advection::Init()
 {
+    m_inputTypes = {PlugType::Velocity, PlugType::Any};
+    m_outputTypes = {PlugType::Any};
+
     m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
@@ -189,6 +201,9 @@ bool Advection::UI(UIGizmos& uiGizmos)
 
 void Solver::Init()
 {
+    m_inputTypes = {PlugType::Velocity};
+    m_outputTypes = {PlugType::Velocity};
+
     m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
@@ -257,6 +272,9 @@ bool Solver::UI(UIGizmos& uiGizmos)
 
 void Display::Init()
 {
+    m_inputTypes = {PlugType::Density};
+    m_outputTypes = {PlugType::Image};
+
     GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
     _nodeType = GraphNode::_runtimeType++;
 }

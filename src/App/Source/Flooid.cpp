@@ -134,6 +134,7 @@ void Flooid::Tick(const Parameters& parameters)
                 }
             }
             node->Tick(m_textureProvider);
+            node->ReleaseInputs();
         }
 /*
         // advect density
