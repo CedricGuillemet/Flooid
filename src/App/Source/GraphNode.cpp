@@ -109,7 +109,6 @@ void Solver::Init()
     // vorticity
     m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
     m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
-    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
     m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
     m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
@@ -117,7 +116,6 @@ void Solver::Init()
     // advection
     m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
     m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
-    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
 
 

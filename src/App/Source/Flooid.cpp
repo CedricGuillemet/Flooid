@@ -86,10 +86,10 @@ void Flooid::Tick(const Parameters& parameters)
     if (m_ui.Running())
     {
         m_textureProvider.TickFrame(6);
+
+        m_renderer.Render(m_textureProvider.m_densityTexture);
         
         std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
-        
-        
         m_graph.BuildPlugs();
         
         for (auto evaluationIndex : evaluationOrder)
@@ -122,51 +122,6 @@ void Flooid::Tick(const Parameters& parameters)
             node->Tick(m_textureProvider);
             node->ReleaseInputs();
         }
-/*
-        // advect density
-        m_advectDensityNode->SetInput(0, m_velocityTexture);
-        m_advectDensityNode->SetInput(1, m_densityTexture);
-        m_advectDensityNode->Tick(m_textureProvider);
-        Texture* advectedDensity = m_advectDensityNode->GetOutput(0);
-        
-        // advect velocity
-        m_advectVelocityNode->SetInput(0, m_velocityTexture);
-        m_advectVelocityNode->SetInput(1, m_velocityTexture);
-        m_advectVelocityNode->Tick(m_textureProvider);
-        Texture* advectedVelocity = m_advectVelocityNode->GetOutput(0);
-
-        // density gen
-        m_densityGenNode->SetInput(0, advectedDensity);
-        m_densityGenNode->Tick(m_textureProvider);
-        advectedDensity = m_densityGenNode->GetOutput(0);
-
-        // velocity gen
-        m_velocityGenNode->SetInput(0, advectedVelocity);
-        m_velocityGenNode->Tick(m_textureProvider);
-        advectedVelocity = m_velocityGenNode->GetOutput(0);
-
-        // vorticity
-        if (0)
-        {
-            m_vorticityNode->SetInput(0, advectedVelocity);
-            m_vorticityNode->Tick(m_textureProvider);
-            advectedVelocity = m_vorticityNode->GetOutput(0);
-        }
-
-        // divergence
-        m_solverNode->SetInput(0, advectedVelocity);
-        m_solverNode->Tick(m_textureProvider);
-        m_textureProvider.Release(m_velocityTexture);
-        m_velocityTexture = m_solverNode->GetOutput(0);
-
-        // render 3D
-        m_renderer.Render(m_densityTexture);
-
-        // swap advect/vel
-        m_textureProvider.Release(m_densityTexture);
-        m_densityTexture = advectedDensity;*/
-
-        m_renderer.Render(m_textureProvider.m_densityTexture);
     }
     else
     {
