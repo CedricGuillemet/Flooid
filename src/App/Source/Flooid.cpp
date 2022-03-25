@@ -6,6 +6,10 @@
 #include "GraphNode.h"
 
 /*
+ 
+ - move rendering in node
+ - smoke rendering
+ 
  - linear/saturate for vel/den gen
  - velgen: direction, vortex, inward, outward
  - mix perlin den/vel (perlin modulate)

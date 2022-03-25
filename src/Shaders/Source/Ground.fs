@@ -4,6 +4,10 @@ $input v_texcoord0, v_normal, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 
+SAMPLER3D(texDensity, 0);
+
+uniform vec4 directional;
+
 float grid(vec2 st, float res)
 {
     vec2 grid = fract((st + 0.5) * res);
@@ -23,6 +27,29 @@ void main()
     
     g *= illum;
 
+    
+    vec3 rayOrigin = v_positionWorld.xyz;
+    vec3 rayDir = -directional.xyz;
+    
+    
+    vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
+    if (abs(boxIntersection.y) > abs(boxIntersection.x))
+    {
+        vec3 rayPos = rayOrigin + rayDir * boxIntersection.x;
+        
+        float accum = 0.;
+        int MAX_STEPS = 20;
+        float step = (boxIntersection.y - boxIntersection.x) / float(MAX_STEPS);
+        for(int i = 0; i < MAX_STEPS; i ++)
+        {
+            float density = texture3D(texDensity, rayPos, 0).x;
+            accum += density;
+            rayPos += rayDir * step;
+        }
+        accum = min(accum, 1.);
+        g *= mix(1., 0.5, accum);
+    }
+    
     gl_FragColor = vec4(g, g, g, 1.0);
     //gl_FragColor = vec4(v_normal *0.5 + 0.5, 1.0);
 }

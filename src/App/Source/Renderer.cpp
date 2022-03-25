@@ -11,7 +11,7 @@ void GenerateCurvedGrid(std::vector<Renderer::Vertex>& vertices, std::vector<uin
     const float halfWidth = 20.f;
     const float halfDepth = 20.f;
     const float quarterCircleLength = 0.5f * Imm::PI;
-    const float offsetZ = 1.f;
+    const float offsetZ = 2.f;
     const uint32_t indexCount = tesselationSegments * 6;
     const uint32_t vertexCount = tesselationSegments * 2 + 2;
     indices.reserve(indexCount);
@@ -75,8 +75,39 @@ void Renderer::Init()
         1,  2,  3,
     };
     
+    static Vertex CubeVertices[] =
+    {
+        { 0.0f,  1.0f,  1.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 1.0f,  1.0f,  1.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 0.0f,  0.0f,  1.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 1.0f,  0.0f,  1.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 0.0f,  1.0f,  0.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 1.0f,  1.0f,  0.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 0.0f,  0.0f,  0.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+        { 1.0f,  0.0f,  0.0f,   0.f, 0.f, 1.f,  0.f, 0.f },
+    };
+    static const uint16_t CubeIndices[] =
+    {
+        0, 1, 2, // 0
+        1, 3, 2,
+        4, 6, 5, // 2
+        5, 6, 7,
+        0, 2, 4, // 4
+        4, 2, 6,
+        1, 5, 3, // 6
+        5, 7, 3,
+        0, 4, 1, // 8
+        4, 5, 1,
+        2, 3, 6, // 10
+        6, 3, 7,
+    };
+
+    
     m_vbh = bgfx::createVertexBuffer(bgfx::makeRef(quadVertices, sizeof(quadVertices)), Vertex::ms_layout);
     m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(quadIndices, sizeof(quadIndices) ) );
+
+    m_vbhCube = bgfx::createVertexBuffer(bgfx::makeRef(CubeVertices, sizeof(CubeVertices)), Vertex::ms_layout);
+    m_ibhCube = bgfx::createIndexBuffer(bgfx::makeRef(CubeIndices, sizeof(CubeIndices) ) );
 
     static std::vector<Renderer::Vertex> vertices;
     static std::vector<uint16_t> indices;
@@ -88,9 +119,11 @@ void Renderer::Init()
     m_viewProjectionUniform = bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4);
     //m_viewUniform = bgfx::createUniform("view", bgfx::UniformType::Vec4);
     m_renderProgram = App::LoadProgram("Render_vs", "Render_fs");
+    m_renderVolumeProgram = App::LoadProgram("RenderVolume_vs", "RenderVolume_fs");
     m_groundProgram = App::LoadProgram("Ground_vs", "Ground_fs");
     m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
     m_eyePositionUniform = bgfx::createUniform("eyePosition", bgfx::UniformType::Vec4);
+    m_directionalUniform = bgfx::createUniform("directional", bgfx::UniformType::Vec4);
 }
 
 void Renderer::Render(Texture* texture)
@@ -102,16 +135,22 @@ void Renderer::Render(Texture* texture)
     auto eye = m_camera.GetPosition();
     float eyePosition[4] = {eye.x, eye.y, eye.z, 0.f};
     bgfx::setUniform(m_eyePositionUniform, eyePosition);
+    
+    Imm::vec4 dir = Imm::normalized({-1.f, -1.f, -1.f, 0.f});
+    float directional[4] = {dir.x, dir.y, dir.z, 0.f};
+    bgfx::setUniform(m_directionalUniform, directional);
+    
 
+    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbhGround);
     bgfx::setIndexBuffer(m_ibhGround);
     bgfx::setState(state);
     bgfx::submit(0, m_groundProgram);
 
 
-    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setVertexBuffer(0, m_vbh);
-    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    bgfx::setVertexBuffer(0, m_vbhCube);
+    bgfx::setIndexBuffer(m_ibhCube);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
-    bgfx::submit(0, m_renderProgram);
+    bgfx::submit(0, m_renderVolumeProgram);
 }

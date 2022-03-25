@@ -1,19 +1,16 @@
 # include "bgfx_compute.sh"
 
-IMAGE2D_RW(s_density, rgba16f, 0);
+IMAGE3D_RW(s_density, rgba16f, 0);
 uniform vec4 position; // radius in w
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
-	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+	ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 
-	ivec2 dx = ivec2(1, 0);
-	ivec2 dy = ivec2(0, 1);
+	vec3 p = coord / 256.;
 
-	vec2 p = coord / 256.;
-
-    float linDistance = length(position.xy - p);
-	float dist = -(length(position.xy - p) - position.w);
+    float linDistance = length(position.xyz - p);
+	float dist = -(length(position.xyz - p) - position.w);
 	//float value = max(dist, 0.) * 10.;
     //float value = mix(1., 0., linDistance/position.w);
     float value = step(0., position.w - linDistance);

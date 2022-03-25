@@ -133,8 +133,8 @@ class DensityGen : public GraphNode
 public:
     DensityGen()
     : GraphNode(1, 1)
-    , m_position{0.5f, 0.05f, 0.f}
-    , m_radius(0.1f)
+    , m_position{0.5f, 0.5f, 0.5f}
+    , m_radius(0.3f)
     {}
     const char* GetName() const { return "Density Gen"; }
     

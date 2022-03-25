@@ -6,9 +6,9 @@
 struct Texture
 {
     Texture();
-    bgfx::FrameBufferHandle m_renderTarget;
+    //bgfx::FrameBufferHandle m_renderTarget;
+    bgfx::TextureHandle m_texture;
     bgfx::TextureHandle GetTexture();
-    void BindAsTarget(bgfx::ViewId viewId);
     PlugType::Enum m_type{PlugType::Invalid};
 };
 
@@ -26,7 +26,6 @@ public:
     
     void TickFrame(bgfx::ViewId viewId);
     Texture* Acquire(PlugType::Enum type);
-    Texture* AcquireWithClear(PlugType::Enum type, uint32_t clearColor);
     void Release(Texture* texture);
     
     // persistent datas

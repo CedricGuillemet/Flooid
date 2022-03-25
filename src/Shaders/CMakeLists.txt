@@ -32,6 +32,7 @@ if(WIN32)
                 COMMENT "Compiling shader ${SHADER}")
 elseif(APPLE OR (UNIX AND NOT EMSCRIPTEN))
             message("Compiling shaders on MacOS. HLSL will not be built.")
+            message("COMMAND $<TARGET_FILE:shaderc> -f ${SHADER} -o ${shaders_output}/${FILE_NAME}_${extension}_mtl.h --platform osx -p metal --type ${type} --bin2c ${FILE_NAME}_${extension}_mtl")
             set(SHADER_OUTPUT_TARGET "${shaders_output}/${FILE_NAME}_${extension}_mtl.h")
 
             add_custom_command(
@@ -39,7 +40,7 @@ elseif(APPLE OR (UNIX AND NOT EMSCRIPTEN))
                 COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_glsl.h" --platform asm.js -p 120 --type ${type} --bin2c ${FILE_NAME}_${extension}_glsl
                 COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_mtl.h" --platform osx -p metal --type ${type} --bin2c ${FILE_NAME}_${extension}_mtl
                 COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_spv.h" --platform linux -p spirv --type ${type} --bin2c ${FILE_NAME}_${extension}_spv
-                COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_essl.h" --platform android --type ${type} --bin2c ${FILE_NAME}_${extension}_essl
+                COMMAND "$<TARGET_FILE:shaderc>" -f ${SHADER} -o "${shaders_output}/${FILE_NAME}_${extension}_essl.h" --platform android -p 320_es --type ${type} --bin2c ${FILE_NAME}_${extension}_essl
                 DEPENDS ${SHADER}
                 COMMENT "Compiling shader ${SHADER}")
 else()

@@ -37,12 +37,17 @@ private:
     
     bgfx::VertexBufferHandle m_vbh;
     bgfx::IndexBufferHandle m_ibh;
+    bgfx::VertexBufferHandle m_vbhCube;
+    bgfx::IndexBufferHandle m_ibhCube;
+
     bgfx::VertexBufferHandle m_vbhGround;
     bgfx::IndexBufferHandle m_ibhGround;
     bgfx::UniformHandle m_viewProjectionUniform;
     bgfx::UniformHandle m_texDensityUniform;
     bgfx::UniformHandle m_eyePositionUniform;
+    bgfx::UniformHandle m_directionalUniform;
 
     bgfx::ProgramHandle m_renderProgram;
+    bgfx::ProgramHandle m_renderVolumeProgram;
     bgfx::ProgramHandle m_groundProgram;
 };

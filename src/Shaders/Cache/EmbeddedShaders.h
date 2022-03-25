@@ -42,6 +42,16 @@
 #include "Render_vs_spv.h"
 #include "Render_vs_essl.h"
 #ifdef WIN32
+#include "RenderVolume_vs_dx9.h"
+#include "RenderVolume_vs_dx11.h"
+#endif
+#include "RenderVolume_vs_glsl.h"
+#ifdef __APPLE__
+#include "RenderVolume_vs_mtl.h"
+#endif
+#include "RenderVolume_vs_spv.h"
+#include "RenderVolume_vs_essl.h"
+#ifdef WIN32
 #include "Advect_cs_dx9.h"
 #include "Advect_cs_dx11.h"
 #endif
@@ -171,3 +181,13 @@
 #endif
 #include "RenderRT_fs_spv.h"
 #include "RenderRT_fs_essl.h"
+#ifdef WIN32
+#include "RenderVolume_fs_dx9.h"
+#include "RenderVolume_fs_dx11.h"
+#endif
+#include "RenderVolume_fs_glsl.h"
+#ifdef __APPLE__
+#include "RenderVolume_fs_mtl.h"
+#endif
+#include "RenderVolume_fs_spv.h"
+#include "RenderVolume_fs_essl.h"
