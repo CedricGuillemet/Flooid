@@ -6,15 +6,6 @@
 #include "GraphNode.h"
 
 /*
- - use advect to reinject density/velocity
- - replace 'm_outputs[0] = velocity;' when ticking node with setoutputtexture, set texture type along
- - set refcount to texture, release decrease it, computing plugs also compute texture refcount
- - advect node with empty input = auto use density (?)
- 
- - keep density/velocity each frame
- - advect picture
- - graph solving with solving list
-
  - linear/saturate for vel/den gen
  - velgen: direction, vortex, inward, outward
  - mix perlin den/vel (perlin modulate)

@@ -101,6 +101,7 @@ void Solver::Init()
     m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
+    m_clearCSProgram = App::LoadProgram("Clear_cs", nullptr);
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
     m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
@@ -180,9 +181,11 @@ void Solver::Tick(TextureProvider& textureProvider)
     bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
-    // clear density
-    Texture* jacobi[2] = { textureProvider.AcquireWithClear(PlugType::Any, 0x00000000), textureProvider.Acquire(PlugType::Any) };
-
+    // clear jacobi
+    Texture* jacobi[2] = { textureProvider.Acquire(PlugType::Any), textureProvider.Acquire(PlugType::Any) };
+    bgfx::setImage(0, jacobi[0]->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+    
     // jacobi
     for (int i = 0; i < m_iterationCount; i++)
     {

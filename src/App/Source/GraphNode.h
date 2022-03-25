@@ -253,6 +253,7 @@ private:
     static inline bgfx::ProgramHandle m_jacobiCSProgram;
     static inline bgfx::ProgramHandle m_advectCSProgram;
     static inline bgfx::ProgramHandle m_vorticityCSProgram;
+    static inline bgfx::ProgramHandle m_clearCSProgram;
     static inline bgfx::ProgramHandle m_vorticityForceCSProgram;
     static inline bgfx::UniformHandle m_texVorticityUniform;
     static inline bgfx::UniformHandle m_texVelocityUniform;
