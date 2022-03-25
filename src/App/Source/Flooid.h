@@ -26,11 +26,8 @@ public:
     TextureProvider m_textureProvider;
     Renderer m_renderer;
 
-    Vorticity* m_vorticityNode{};
     VelocityGen* m_velocityGenNode{};
     DensityGen* m_densityGenNode{};
-    Advection* m_advectDensityNode{};
-    Advection* m_advectVelocityNode{};
     Solver* m_solverNode{};
     Display* m_displayNode{};
     Graph m_graph;

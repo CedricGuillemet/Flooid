@@ -11,70 +11,15 @@ const int TEX_SIZE = 256;
 void GraphNode::SetOutput(unsigned int outputIndex, Texture* texture)
 {
     texture->m_type = GetOutputTypes()[outputIndex];
-}
-
-void GraphNode::Tick(TextureProvider& textureProvider)
-{
-    printf("Ticking %s\n", this->GetName());
-    for(size_t i = 0; i < this->GetInputCount(); i++)
-    {
-        printf("  * Input %d : texture %p (%d)\n", (int)i, this, this->GetInput(i), this->GetInput(i)->m_type);
-    }
-}
-
-void Vorticity::Init()
-{
-    m_inputTypes = {PlugType::Velocity};
-    m_outputTypes = {PlugType::Velocity};
-
-    m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
-    m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
-    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
-    m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
-    m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
-    m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
-
-    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
-    _nodeType = GraphNode::_runtimeType++;
-}
-
-void Vorticity::Tick(TextureProvider& textureProvider)
-{
-    GraphNode::Tick(textureProvider);
-    
-    float epsilon[4] = { m_epsilon, 0.f, 0.f, 0.f };
-    bgfx::setUniform(m_epsilonUniform, epsilon);
-    float curl[4] = { m_curl, m_curl, 0.f, 0.f };
-    bgfx::setUniform(m_curlUniform, curl);
-
-    auto advectedVelocity = GetInput(0);
-    Texture* vorticity = textureProvider.Acquire(PlugType::Any);
-    bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, vorticity->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_vorticityCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-
-    Texture* vorticityForce = textureProvider.Acquire(PlugType::Velocity);
-    bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setTexture(1, m_texVorticityUniform, vorticity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(2, vorticityForce->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_vorticityForceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    textureProvider.Release(vorticity);
-    SetOutput(0, vorticityForce);
-}
-
-bool Vorticity::UI(UIGizmos& uiGizmos)
-{
-    bool changed = ImGui::InputFloat("Epsilon", &m_epsilon);
-    changed |= ImGui::InputFloat("Curl", &m_curl);
-    return changed;
+    m_outputs[outputIndex] = texture;
 }
 
 // -----------------------------------------------------------------------------------------------------
 
 void DensityGen::Init()
 {
-    m_inputTypes = {PlugType::Density};
-    m_outputTypes = {PlugType::Density};
+    m_inputTypes = {PlugType::Particles};
+    m_outputTypes = {PlugType::Particles };
 
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
@@ -85,8 +30,6 @@ void DensityGen::Init()
 
 void DensityGen::Tick(TextureProvider& textureProvider)
 {
-    GraphNode::Tick(textureProvider);
-    
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -123,8 +66,6 @@ void VelocityGen::Init()
 
 void VelocityGen::Tick(TextureProvider& textureProvider)
 {
-    GraphNode::Tick(textureProvider);
-    
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -152,57 +93,10 @@ bool VelocityGen::UI(UIGizmos& uiGizmos)
 
 // -----------------------------------------------------------------------------------------------------
 
-void Advection::Init()
-{
-    m_inputTypes = {PlugType::Velocity, PlugType::Any};
-    m_outputTypes = {PlugType::Any};
-
-    m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
-    m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
-    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
-    m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
-
-    GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
-    _nodeType = GraphNode::_runtimeType++;
-}
-
-void Advection::Tick(TextureProvider& textureProvider)
-{
-    GraphNode::Tick(textureProvider);
-    
-    float advection[4] = { m_timeScale, m_dissipation, 0.f, 0.f };
-    bgfx::setUniform(m_advectionUniform, advection);
-
-    auto velocity = GetInput(0);
-    auto toAdvectTexture = GetInput(1);
-    if (toAdvectTexture->m_type == PlugType::Velocity)
-    {
-        printf("Velocity");
-    } else if (toAdvectTexture->m_type == PlugType::Density)
-    {
-        printf("Density");
-    }
-    Texture* advected = textureProvider.Acquire(GetInput(1)->m_type);
-    bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setTexture(1, m_texAdvectUniform, toAdvectTexture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setImage(2, advected->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    SetOutput(0, advected);
-}
-
-bool Advection::UI(UIGizmos& uiGizmos)
-{
-    bool changed = ImGui::InputFloat("Time scale", &m_timeScale);
-    changed |= ImGui::InputFloat("Dissipation", &m_dissipation);
-    return changed;
-}
-
-// -----------------------------------------------------------------------------------------------------
-
 void Solver::Init()
 {
-    m_inputTypes = {PlugType::Velocity};
-    m_outputTypes = {PlugType::Velocity};
+    m_inputTypes = { PlugType::Particles, PlugType::Velocity };
+    m_outputTypes = { PlugType::Particles, PlugType::Velocity };
 
     m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
     m_divergenceCSProgram = App::LoadProgram("Divergence_cs", nullptr);
@@ -212,21 +106,79 @@ void Solver::Init()
     m_texJacoviUniform = bgfx::createUniform("s_texJacobi", bgfx::UniformType::Sampler);
     m_texDivergenceUniform = bgfx::createUniform("s_texDivergence", bgfx::UniformType::Sampler);
 
+    // vorticity
+    m_vorticityCSProgram = App::LoadProgram("Vorticity_cs", nullptr);
+    m_vorticityForceCSProgram = App::LoadProgram("VorticityForce_cs", nullptr);
+    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
+    m_texVorticityUniform = bgfx::createUniform("s_texVorticity", bgfx::UniformType::Sampler);
+    m_curlUniform = bgfx::createUniform("curl", bgfx::UniformType::Vec4);
+    m_epsilonUniform = bgfx::createUniform("epsilon", bgfx::UniformType::Vec4);
+
+    // advection
+    m_advectCSProgram = App::LoadProgram("Advect_cs", nullptr);
+    m_advectionUniform = bgfx::createUniform("advection", bgfx::UniformType::Vec4);
+    m_texVelocityUniform = bgfx::createUniform("s_texVelocity", bgfx::UniformType::Sampler);
+    m_texAdvectUniform = bgfx::createUniform("s_texAdvect", bgfx::UniformType::Sampler);
+
+
     GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
     _nodeType = GraphNode::_runtimeType++;
 }
 
+void Solver::Advect(TextureProvider& textureProvider, Texture* source, Texture* velocity, Texture* output)
+{
+    float advection[4] = { m_timeScale, m_dissipation, 0.f, 0.f };
+    bgfx::setUniform(m_advectionUniform, advection);
+
+    bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+    bgfx::setTexture(1, m_texAdvectUniform, source->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+    bgfx::setImage(2, output->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_advectCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+}
+
 void Solver::Tick(TextureProvider& textureProvider)
 {
-    GraphNode::Tick(textureProvider);
-    
     float jacobiParameters[4] = { -1.f, 4.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
 
+    auto velocity = GetInput(1);
+
+    // advection
+    auto particles = GetInput(0);
+    Texture* newParticles = textureProvider.Acquire(PlugType::Particles);
+    Texture* newVelocity = textureProvider.Acquire(PlugType::Velocity);
+    Advect(textureProvider, particles, velocity, newParticles);
+    Advect(textureProvider, velocity, velocity, newVelocity);
+
+    textureProvider.Release(textureProvider.m_densityTexture);
+    textureProvider.m_densityTexture = newParticles;
+
+    velocity = newVelocity;
+
+    if (m_vorticityEnable)
+    {
+        float epsilon[4] = { m_epsilon, 0.f, 0.f, 0.f };
+        bgfx::setUniform(m_epsilonUniform, epsilon);
+        float curl[4] = { m_curl, m_curl, 0.f, 0.f };
+        bgfx::setUniform(m_curlUniform, curl);
+
+        Texture* vorticity = textureProvider.Acquire(PlugType::Any);
+        bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setImage(1, vorticity->GetTexture(), 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), m_vorticityCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+        Texture* vorticityForce = textureProvider.Acquire(PlugType::Velocity);
+        bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setTexture(1, m_texVorticityUniform, vorticity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+        bgfx::setImage(2, vorticityForce->GetTexture(), 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), m_vorticityForceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+        textureProvider.Release(vorticity);
+        textureProvider.Release(velocity);
+        velocity = vorticityForce;
+    }
     // divergence
-    auto* advectedVelocity = GetInput(0);
     Texture* divergence = textureProvider.Acquire(PlugType::Any);
-    bgfx::setTexture(0, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
@@ -250,21 +202,43 @@ void Solver::Tick(TextureProvider& textureProvider)
     // gradient
     Texture* outputVelocity = textureProvider.Acquire(PlugType::Velocity);
     bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setTexture(1, m_texVelocityUniform, advectedVelocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, outputVelocity->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
     textureProvider.Release(jacobi[0]);
     textureProvider.Release(jacobi[1]);
-    textureProvider.Release(advectedVelocity);
+    textureProvider.Release(velocity);
 
-    SetOutput(0, outputVelocity);
+    // swap
+    textureProvider.Release(textureProvider.m_velocityTexture);
+    textureProvider.m_velocityTexture = outputVelocity;
+
+    // out
+    SetOutput(0, textureProvider.m_densityTexture);
+    SetOutput(0, textureProvider.m_velocityTexture);
 }
 
 bool Solver::UI(UIGizmos& uiGizmos)
 {
     bool changed = ImGui::InputFloat("Alpha", &m_alpha);
     changed |= ImGui::InputFloat("Beta", &m_beta);
+
+    changed |= ImGui::InputInt("Iterations", &m_iterationCount);
+    m_iterationCount = std::max(m_iterationCount, 1);
+    m_iterationCount = std::min(m_iterationCount, 10000);
+
+    ImGui::NewLine(); // advection
+    changed |= ImGui::InputFloat("Time scale", &m_timeScale);
+    changed |= ImGui::InputFloat("Dissipation", &m_dissipation);
+
+    ImGui::NewLine();
+    changed |= ImGui::Checkbox("Vorticity", &m_vorticityEnable);
+    if (m_vorticityEnable)
+    {
+        changed |= ImGui::InputFloat("Epsilon", &m_epsilon);
+        changed |= ImGui::InputFloat("Curl", &m_curl);
+    }
     return changed;
 }
 
@@ -272,7 +246,7 @@ bool Solver::UI(UIGizmos& uiGizmos)
 
 void Display::Init()
 {
-    m_inputTypes = {PlugType::Density};
+    m_inputTypes = {PlugType::Particles };
     m_outputTypes = {PlugType::Image};
 
     GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
@@ -281,9 +255,7 @@ void Display::Init()
 
 void Display::Tick(TextureProvider& textureProvider)
 {
-    GraphNode::Tick(textureProvider);
-    
-    SetOutput(0, GetInput(0));
+    //SetOutput(0, GetInput(0));
 }
 
 bool Display::UI(UIGizmos& uiGizmos)

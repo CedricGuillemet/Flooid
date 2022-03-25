@@ -25,7 +25,7 @@ struct PlugType
     enum Enum
     {
         Velocity,
-        Density,
+        Particles,
         Image,
         Any,
         
@@ -55,7 +55,7 @@ public:
     }
     
     virtual const char* GetName() const = 0;
-    virtual void Tick(TextureProvider& textureProvider);
+    virtual void Tick(TextureProvider& textureProvider) = 0;
     virtual bool UI(UIGizmos& uiGizmos) = 0;
     virtual uint16_t GetRuntimeType() const = 0;
     virtual size_t GetInputCount() const { return m_inputs.size(); }
@@ -106,7 +106,7 @@ public:
         {
             case PlugType::Velocity:
                 return IM_COL32(200, 100, 50, 255);
-            case PlugType::Density:
+            case PlugType::Particles:
                 return IM_COL32(0, 0, 200, 255);
             case PlugType::Image:
                 return IM_COL32(0, 200, 0, 255);
@@ -126,49 +126,6 @@ public:
     std::vector<Texture*> m_inputs;
     std::vector<Texture*> m_outputs;
     std::vector<uint16_t> m_outputUseCount;
-};
-
-class Vorticity : public GraphNode //, public GraphNodeIO<1,1>
-{
-public:
-    Vorticity()
-    : GraphNode(1, 1)
-    , m_curl(2.f)
-    , m_epsilon(0.0002f)
-    {}
-    const char* GetName() const { return "Vorticity"; }
-    
-    static void Init();
-    void Tick(TextureProvider& textureProvider);
-    bool UI(UIGizmos& uiGizmos);
-    
-    
-    static GraphEditor::Template GetTemplate()
-    {
-        return {
-            IM_COL32(160, 160, 180, 255),
-            IM_COL32(100, 100, 140, 255),
-            IM_COL32(110, 110, 150, 255),
-            1,
-            Imm::Array{"Velocity"},
-            Imm::Array{ GetPlugColor(PlugType::Velocity) },
-            1,
-            Imm::Array{"Velocity"},
-            Imm::Array{ GetPlugColor(PlugType::Velocity) }
-        };
-    }
-private:
-    static inline bgfx::ProgramHandle m_vorticityCSProgram;
-    static inline bgfx::ProgramHandle m_vorticityForceCSProgram;
-    static inline bgfx::UniformHandle m_texVorticityUniform;
-    static inline bgfx::UniformHandle m_texVelocityUniform;
-    static inline bgfx::UniformHandle m_curlUniform;
-    static inline bgfx::UniformHandle m_epsilonUniform;
-    
-    float m_curl;
-    float m_epsilon;
-    
-    __NODE_TYPE
 };
 
 class DensityGen : public GraphNode
@@ -193,10 +150,10 @@ public:
             IM_COL32(110, 110, 150, 255),
             1,
             Imm::Array{"Density"},
-            Imm::Array{ GetPlugColor(PlugType::Density) },
+            Imm::Array{ GetPlugColor(PlugType::Particles) },
             1,
             Imm::Array{"Density"},
-            Imm::Array{ GetPlugColor(PlugType::Density) }
+            Imm::Array{ GetPlugColor(PlugType::Particles) }
         };
     }
 private:
@@ -252,57 +209,20 @@ private:
 };
 
 
-class Advection : public GraphNode
-{
-public:
-    Advection()
-    : GraphNode(2, 1)
-    , m_timeScale(1.f)
-    , m_dissipation(0.997f)
-    {
-        
-    }
-    const char* GetName() const { return "Advection"; }
-    
-    static void Init();
-    void Tick(TextureProvider& textureProvider);
-    bool UI(UIGizmos& uiGizmos);
-
-    static GraphEditor::Template GetTemplate()
-    {
-        return {
-            IM_COL32(160, 160, 180, 255),
-            IM_COL32(100, 100, 140, 255),
-            IM_COL32(110, 110, 150, 255),
-            2,
-            Imm::Array{"Velocity", "Source"},
-            Imm::Array{ GetPlugColor(PlugType::Velocity), GetPlugColor(PlugType::Any)},
-            1,
-            Imm::Array{"Advected"},
-            Imm::Array{ GetPlugColor(PlugType::Any)}
-        };
-    }
-private:
-    static inline bgfx::ProgramHandle m_advectCSProgram;
-    static inline bgfx::UniformHandle m_advectionUniform;
-    static inline bgfx::UniformHandle m_texVelocityUniform;
-    static inline bgfx::UniformHandle m_texAdvectUniform;
-    float m_timeScale;
-    float m_dissipation;
-    
-    __NODE_TYPE
-};
-
 class Solver : public GraphNode
 {
 public:
     Solver()
-    : GraphNode(1, 1)
+    : GraphNode(2, 2)
     , m_alpha(-1.f)
     , m_beta(4)
     , m_iterationCount(50)
+    , m_timeScale(1.f)
+    , m_dissipation(0.997f)
+    , m_curl(2.f)
+    , m_epsilon(0.0002f)
+    , m_vorticityEnable(false)
     {
-        
     }
     const char* GetName() const { return "Solver"; }
     
@@ -316,27 +236,48 @@ public:
             IM_COL32(160, 160, 180, 255),
             IM_COL32(100, 100, 140, 255),
             IM_COL32(110, 110, 150, 255),
-            1,
-            Imm::Array{"Velocity"},
-            Imm::Array{ GetPlugColor(PlugType::Velocity)},
-            1,
-            Imm::Array{"Velocity"},
-            Imm::Array{ GetPlugColor(PlugType::Velocity)}
+            2,
+            Imm::Array{"Particles", "Velocity"},
+            Imm::Array{ GetPlugColor(PlugType::Particles), GetPlugColor(PlugType::Velocity)},
+            2,
+            Imm::Array{"Particles", "Velocity"},
+            Imm::Array{ GetPlugColor(PlugType::Particles), GetPlugColor(PlugType::Velocity)}
         };
     }
 private:
+
+    void Advect(TextureProvider& textureProviderTexture, Texture* source, Texture* velocity, Texture* output);
+
     static inline bgfx::ProgramHandle m_divergenceCSProgram;
     static inline bgfx::ProgramHandle m_gradientCSProgram;
     static inline bgfx::ProgramHandle m_jacobiCSProgram;
-    static inline bgfx::UniformHandle m_jacobiParametersUniform;
+    static inline bgfx::ProgramHandle m_advectCSProgram;
+    static inline bgfx::ProgramHandle m_vorticityCSProgram;
+    static inline bgfx::ProgramHandle m_vorticityForceCSProgram;
+    static inline bgfx::UniformHandle m_texVorticityUniform;
     static inline bgfx::UniformHandle m_texVelocityUniform;
+    static inline bgfx::UniformHandle m_curlUniform;
+    static inline bgfx::UniformHandle m_epsilonUniform;
+
+    
+    static inline bgfx::UniformHandle m_jacobiParametersUniform;
     static inline bgfx::UniformHandle m_texJacoviUniform;
     static inline bgfx::UniformHandle m_texDivergenceUniform;
     static inline bgfx::UniformHandle m_texColorUniform;
     static inline bgfx::UniformHandle m_texPressureUniform;
+    static inline bgfx::UniformHandle m_advectionUniform;
+    static inline bgfx::UniformHandle m_texAdvectUniform;
+
+    float m_timeScale;
+    float m_dissipation;
+    float m_curl;
+    float m_epsilon;
+
     float m_alpha;
     float m_beta;
     int m_iterationCount;
+
+    bool m_vorticityEnable;
     
     __NODE_TYPE
 };
@@ -362,8 +303,8 @@ public:
             IM_COL32(100, 100, 140, 255),
             IM_COL32(110, 110, 150, 255),
             1,
-            Imm::Array{"Density"},
-            Imm::Array{ GetPlugColor(PlugType::Density)},
+            Imm::Array{"Particles"},
+            Imm::Array{ GetPlugColor(PlugType::Particles)},
             1,
             Imm::Array{"Image"},
             Imm::Array{ GetPlugColor(PlugType::Image)}
@@ -480,7 +421,7 @@ public:
         for (auto link : m_links)
         {
             m_nodes[link.m_outputNodeIndex]->SetPlug(link.m_outputSlotIndex, {m_nodes[link.m_inputNodeIndex], link.m_inputSlotIndex});
-            m_nodes[link.m_outputNodeIndex]->IncreaseOuputCount(link.m_outputSlotIndex);
+            //m_nodes[link.m_outputNodeIndex]->IncreaseOuputCount(link.m_outputSlotIndex);
         }
     }
 };

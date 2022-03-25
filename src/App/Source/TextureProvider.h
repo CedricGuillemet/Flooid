@@ -20,7 +20,7 @@ public:
     
     void Init()
     {
-        m_densityTexture = Acquire(PlugType::Density);
+        m_densityTexture = Acquire(PlugType::Particles);
         m_velocityTexture = Acquire(PlugType::Velocity);
     }
     

@@ -49,15 +49,11 @@ void Flooid::Init()
     m_renderer.Init();
     m_textureProvider.Init();
 
-    Vorticity::Init();
     VelocityGen::Init();
     DensityGen::Init();
-    Advection::Init();
     Solver::Init();
     Display::Init();
 
-    m_vorticityNode = new Vorticity;
-    auto vorticityIndex = m_graph.AddNode(m_vorticityNode);
 
     m_velocityGenNode = new VelocityGen;
     auto velocityIndex = m_graph.AddNode(m_velocityGenNode);
@@ -65,25 +61,15 @@ void Flooid::Init()
     m_densityGenNode = new DensityGen;
     auto densityGenIndex = m_graph.AddNode(m_densityGenNode);
 
-    m_advectDensityNode = new Advection;
-    auto advectDensityIndex = m_graph.AddNode(m_advectDensityNode);
-
-    m_advectVelocityNode = new Advection;
-    auto advectVelocityIndex = m_graph.AddNode(m_advectVelocityNode);
-
     m_solverNode = new Solver;
     auto solverIndex = m_graph.AddNode(m_solverNode);
     
     m_displayNode = new Display;
     auto displayIndex = m_graph.AddNode(m_displayNode);
     
-    m_graph.AddLink({densityGenIndex, 0, advectDensityIndex, 1});
-    m_graph.AddLink({velocityIndex, 0, vorticityIndex, 0});
-    m_graph.AddLink({vorticityIndex, 0, solverIndex, 0});
-    m_graph.AddLink({solverIndex, 0, advectVelocityIndex, 0});
-    m_graph.AddLink({solverIndex, 0, advectVelocityIndex, 1});
-    m_graph.AddLink({solverIndex, 0, advectDensityIndex, 0});
-    m_graph.AddLink({advectDensityIndex, 0, displayIndex, 0});
+    m_graph.AddLink({densityGenIndex, 0, solverIndex, 0});
+    m_graph.AddLink({velocityIndex, 0, solverIndex, 1});
+    m_graph.AddLink({solverIndex, 1, displayIndex, 0});
     
     m_graph.Layout();
     m_ui.GraphFitAllNodes();
@@ -122,7 +108,7 @@ void Flooid::Tick(const Parameters& parameters)
                     // empty input
                     switch(node->GetInputTypes()[i])
                     {
-                        case PlugType::Density:
+                        case PlugType::Particles:
                             node->SetInput(i, m_textureProvider.m_densityTexture);
                             break;
                         case PlugType::Velocity:
@@ -179,6 +165,8 @@ void Flooid::Tick(const Parameters& parameters)
         // swap advect/vel
         m_textureProvider.Release(m_densityTexture);
         m_densityTexture = advectedDensity;*/
+
+        m_renderer.Render(m_textureProvider.m_densityTexture);
     }
     else
     {
