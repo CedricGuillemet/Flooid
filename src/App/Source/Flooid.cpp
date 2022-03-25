@@ -45,7 +45,7 @@ void Flooid::Init()
     Solver::Init();
     Display::Init();
 
-
+    /*
     m_velocityGenNode = new VelocityGen;
     auto velocityIndex = m_graph.AddNode(m_velocityGenNode);
 
@@ -61,7 +61,16 @@ void Flooid::Init()
     m_graph.AddLink({densityGenIndex, 0, solverIndex, 0});
     m_graph.AddLink({velocityIndex, 0, solverIndex, 1});
     m_graph.AddLink({solverIndex, 1, displayIndex, 0});
-    
+    */
+
+    m_densityGenNode = new DensityGen;
+    auto densityGenIndex = m_graph.AddNode(m_densityGenNode);
+
+    m_displayNode = new Display;
+    auto displayIndex = m_graph.AddNode(m_displayNode);
+
+    m_graph.AddLink({ densityGenIndex, 0, displayIndex, 0 });
+
     m_graph.Layout();
     m_ui.GraphFitAllNodes();
 }
