@@ -18,6 +18,12 @@ public:
         m_editing = true;
     }
 
+    void Edit(Imm::matrix* matrix)
+    {
+        m_matrix = matrix;
+        m_editing = true;
+    }
+    
     void Edit(Imm::vec3* position, Imm::vec3* orientation, float* scale)
     {
         m_position = position;
@@ -42,32 +48,48 @@ public:
         }
 
         Imm::matrix world;
-
         Imm::vec3 ori{0.f, 0.f, 0.f};
-        if (m_orientation)
-        {
-            ori = *m_orientation;
-        }
         Imm::vec3 sca{1.f, 1.f, 1.f};
-        if (m_scale)
+        
+        if (m_matrix)
         {
-            sca.x = *m_scale;
-            sca.y = *m_scale;
-            sca.z = *m_scale;
+            world = *m_matrix;
         }
-        ImGuizmo::RecomposeMatrixFromComponents(&m_position->x, &ori.x, &sca.x, world.m16);
+        else
+        {
+            if (m_orientation)
+            {
+                ori = *m_orientation;
+            }
+            
+            if (m_scale)
+            {
+                sca.x = *m_scale;
+                sca.y = *m_scale;
+                sca.z = *m_scale;
+            }
+            ImGuizmo::RecomposeMatrixFromComponents(&m_position->x, &ori.x, &sca.x, world.m16);
+        }
+        
         EditTransform(m_view, m_projection, world.m16);
 
-        ImGuizmo::DecomposeMatrixToComponents(world.m16, &m_position->x, &ori.x, &sca.x);
-        
-        if (m_scale)
+        if (m_matrix)
         {
-            *m_scale = sca.x;
+            *m_matrix = world;
         }
-
-        if (m_orientation)
+        else
         {
-            *m_orientation = ori;
+            ImGuizmo::DecomposeMatrixToComponents(world.m16, &m_position->x, &ori.x, &sca.x);
+            
+            if (m_scale)
+            {
+                *m_scale = sca.x;
+            }
+
+            if (m_orientation)
+            {
+                *m_orientation = ori;
+            }
         }
     }
     
@@ -77,6 +99,7 @@ private:
     bool m_editing{};
     Imm::vec3* m_position{};
     Imm::vec3* m_orientation{};
+    Imm::matrix* m_matrix{};
     float* m_scale{};
 
     std::vector<Imm::matrix> m_spheres;

@@ -22,7 +22,7 @@ void DensityGen::Init()
     m_outputTypes = {PlugType::Particles };
 
     m_densityGenCSProgram = App::LoadProgram("DensityGen_cs", nullptr);
-    m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
+    m_invWorldMatrixUniform = bgfx::createUniform("invWorldMatrix", bgfx::UniformType::Mat4);
 
     GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
     _nodeType = GraphNode::_runtimeType++;
@@ -30,10 +30,19 @@ void DensityGen::Init()
 
 void DensityGen::Tick(TextureProvider& textureProvider)
 {
-    float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
-    bgfx::setUniform(m_positionUniform, position);
+    //float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
+    //bgfx::setUniform(m_positionUniform, position);
 
+    Imm::matrix invWorld;
+    invWorld.inverse(m_matrix);
+    bgfx::setUniform(m_invWorldMatrixUniform, invWorld.m16);
+    
     auto density = GetInput(0);
+    
+    // clear
+    bgfx::setImage(0, density->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), Solver::m_clearCSProgram, TEX_SIZE / 8, TEX_SIZE / 8, TEX_SIZE / 8);
+
     bgfx::setImage(0, density->GetTexture(), 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), m_densityGenCSProgram, TEX_SIZE / 8, TEX_SIZE / 8, TEX_SIZE / 8);
     SetOutput(0, density);
@@ -41,12 +50,10 @@ void DensityGen::Tick(TextureProvider& textureProvider)
 
 bool DensityGen::UI(UIGizmos& uiGizmos)
 {
-    bool changed = ImGui::InputFloat("Radius", &m_radius);
-    uiGizmos.Edit(&m_position, &m_radius);
-    Imm::matrix sphereMatrix;
-    sphereMatrix.translationScale({ m_position.x, m_position.y, m_position.z }, {m_radius, m_radius, m_radius});
-    uiGizmos.AddSphere(sphereMatrix);
-    return changed;
+    //bool changed = ImGui::InputFloat("Radius", &m_radius);
+    uiGizmos.Edit(&m_matrix);
+    uiGizmos.AddSphere(m_matrix);
+    return false;
 }
 
 // -----------------------------------------------------------------------------------------------------
@@ -68,7 +75,7 @@ void VelocityGen::Tick(TextureProvider& textureProvider)
 {
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
-
+    
     Imm::matrix matrix;
     Imm::vec3 scale{m_radius, m_radius, m_radius};
     ImGuizmo::RecomposeMatrixFromComponents(&m_position.x, &m_orientation.x, &scale.x, matrix.m16);

@@ -112,6 +112,8 @@ public:
                 return IM_COL32(0, 200, 0, 255);
             case PlugType::Any:
                 return IM_COL32(200, 200, 200, 255);
+            default:
+                return IM_COL32(255, 0, 255, 255);
         }
         return IM_COL32(255, 0, 255, 255);
     }
@@ -133,9 +135,9 @@ class DensityGen : public GraphNode
 public:
     DensityGen()
     : GraphNode(1, 1)
-    , m_position{0.5f, 0.5f, 0.5f}
-    , m_radius(0.3f)
-    {}
+    {
+        m_matrix.translationScale({0.5f, 0.5f, 0.5f}, 0.45f);
+    }
     const char* GetName() const { return "Density Gen"; }
     
     static void Init();
@@ -158,11 +160,10 @@ public:
     }
 private:
     static inline bgfx::ProgramHandle m_densityGenCSProgram;
-    static inline bgfx::UniformHandle m_positionUniform;
+    static inline bgfx::UniformHandle m_invWorldMatrixUniform;
     
-    Imm::vec3 m_position;
-    float m_radius;
-    
+    Imm::matrix m_matrix;
+
     __NODE_TYPE
 };
 
@@ -244,6 +245,8 @@ public:
             Imm::Array{ GetPlugColor(PlugType::Particles), GetPlugColor(PlugType::Velocity)}
         };
     }
+    
+    static inline bgfx::ProgramHandle m_clearCSProgram;
 private:
 
     void Advect(TextureProvider& textureProviderTexture, Texture* source, Texture* velocity, Texture* output);
@@ -253,7 +256,7 @@ private:
     static inline bgfx::ProgramHandle m_jacobiCSProgram;
     static inline bgfx::ProgramHandle m_advectCSProgram;
     static inline bgfx::ProgramHandle m_vorticityCSProgram;
-    static inline bgfx::ProgramHandle m_clearCSProgram;
+    
     static inline bgfx::ProgramHandle m_vorticityForceCSProgram;
     static inline bgfx::UniformHandle m_texVorticityUniform;
     static inline bgfx::UniformHandle m_texVelocityUniform;
@@ -296,6 +299,8 @@ public:
     static void Init();
     void Tick(TextureProvider& textureProvider);
     bool UI(UIGizmos& uiGizmos);
+    
+    Imm::vec3 GetLightPosition() const { return m_lightPosition; }
 
     static GraphEditor::Template GetTemplate()
     {

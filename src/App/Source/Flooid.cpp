@@ -7,7 +7,9 @@
 
 /*
  
- - move rendering in node
+ - light color
+ - more gen prims + noise params
+ - move rendering in node, separate solver node
  - smoke rendering
  
  - linear/saturate for vel/den gen
@@ -91,7 +93,7 @@ void Flooid::Tick(const Parameters& parameters)
     {
         m_textureProvider.TickFrame(6);
 
-        m_renderer.Render(m_textureProvider.m_densityTexture);
+        m_renderer.Render(m_textureProvider.m_densityTexture, m_displayNode);
         
         std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
         m_graph.BuildPlugs();
@@ -129,7 +131,7 @@ void Flooid::Tick(const Parameters& parameters)
     }
     else
     {
-        m_renderer.Render(m_textureProvider.m_densityTexture);
+        m_renderer.Render(m_textureProvider.m_densityTexture, m_displayNode);
     }
 }
 

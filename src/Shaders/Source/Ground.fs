@@ -14,6 +14,7 @@ float grid(vec2 st, float res)
     return (step(res, grid.x) * step(res, grid.y));
 }
 
+
 void main()
 {
     vec3 lightDir = vec3(0.2, -0.6, 0.5);
@@ -26,6 +27,8 @@ void main()
     g -= 0.05;
     
     g *= illum;
+    
+    int MAX_STEPS = 5;
 
     
     vec3 rayOrigin = v_positionWorld.xyz;
@@ -33,21 +36,23 @@ void main()
     
     
     vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
+    
     if (abs(boxIntersection.y) > abs(boxIntersection.x))
     {
-        vec3 rayPos = rayOrigin + rayDir * boxIntersection.x;
+        float jitterScale = hash(vec4(rayOrigin.xy+vec2(MAX_STEPS), rayOrigin.yx * float(MAX_STEPS))) * 0.2;
+        
         
         float accum = 0.;
-        int MAX_STEPS = 20;
+        float absorption = 0.1;
+
         float step = (boxIntersection.y - boxIntersection.x) / float(MAX_STEPS);
         for(int i = 0; i < MAX_STEPS; i ++)
         {
-            float density = texture3D(texDensity, rayPos, 0).x;
-            accum += density;
-            rayPos += rayDir * step;
+            vec3 rayPos = rayOrigin + rayDir * (step * (float(i) + 0.5) + jitterScale + boxIntersection.x);
+            accum += texture3D(texDensity, rayPos, 0).x;
         }
-        accum = min(accum, 1.);
-        g *= mix(1., 0.5, accum);
+
+        g *= exp(-accum * absorption);
     }
     
     gl_FragColor = vec4(g, g, g, 1.0);

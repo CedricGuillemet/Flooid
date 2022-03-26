@@ -32,7 +32,6 @@ if(WIN32)
                 COMMENT "Compiling shader ${SHADER}")
 elseif(APPLE OR (UNIX AND NOT EMSCRIPTEN))
             message("Compiling shaders on MacOS. HLSL will not be built.")
-            message("COMMAND $<TARGET_FILE:shaderc> -f ${SHADER} -o ${shaders_output}/${FILE_NAME}_${extension}_mtl.h --platform osx -p metal --type ${type} --bin2c ${FILE_NAME}_${extension}_mtl")
             set(SHADER_OUTPUT_TARGET "${shaders_output}/${FILE_NAME}_${extension}_mtl.h")
 
             add_custom_command(

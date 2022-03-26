@@ -172,3 +172,17 @@ vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     float tFar = min(min(t2.x, t2.y), t2.z);
     return vec2(tNear, tFar);
 }
+
+float hash(vec4 p)
+{
+    p  = fract(p * 0.3183099 + vec4(0.1));
+    p *= 17.0;
+    return fract( p.x*p.y*p.z*p.w*(p.x+p.y+p.z+p.w) );
+}
+
+float sdTorus( vec3 p, vec2 t )
+{
+  vec2 q = vec2(length(p.xz)-t.x,p.y);
+  return length(q)-t.y;
+}
+
