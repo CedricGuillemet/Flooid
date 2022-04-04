@@ -143,16 +143,26 @@ void Renderer::Render(Texture* texture, Display* displayNode)
     bgfx::setUniform(m_directionalUniform, directional);
     
 
-    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    //bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbhGround);
     bgfx::setIndexBuffer(m_ibhGround);
     bgfx::setState(state);
     bgfx::submit(0, m_groundProgram);
 
 
+    /*
+     3D Cube
+     
     bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbhCube);
     bgfx::setIndexBuffer(m_ibhCube);
-    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
+    bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
     bgfx::submit(0, m_renderVolumeProgram);
+     */
+    
+    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
+    bgfx::submit(0, m_renderProgram);
 }

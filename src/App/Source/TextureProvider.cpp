@@ -5,13 +5,14 @@ const int TEX_SIZE = 256;
 Texture::Texture()
 {
     const auto texFormat = bgfx::TextureFormat::RGBA16F;
-    //m_renderTarget = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_texture = bgfx::createTexture3D(TEX_SIZE, TEX_SIZE, TEX_SIZE, false, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
+    m_renderTarget = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
+    //m_texture = bgfx::createTexture3D(TEX_SIZE, TEX_SIZE, TEX_SIZE, false, texFormat, BGFX_TEXTURE_COMPUTE_WRITE);
 }
 
 bgfx::TextureHandle Texture::GetTexture()
 {
-    return m_texture;//bgfx::getTexture(m_renderTarget);
+    return bgfx::getTexture(m_renderTarget);
+    //return m_texture;
 }
 
 TextureProvider::~TextureProvider()

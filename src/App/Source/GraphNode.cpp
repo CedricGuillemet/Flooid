@@ -40,11 +40,11 @@ void DensityGen::Tick(TextureProvider& textureProvider)
     auto density = GetInput(0);
     
     // clear
-    bgfx::setImage(0, density->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), Solver::m_clearCSProgram, TEX_SIZE / 8, TEX_SIZE / 8, TEX_SIZE / 8);
+    //bgfx::setImage(0, density->GetTexture(), 0, bgfx::Access::Write);
+    //bgfx::dispatch(textureProvider.GetViewId(), Solver::m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16, TEX_SIZE / 4);
 
     bgfx::setImage(0, density->GetTexture(), 0, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), m_densityGenCSProgram, TEX_SIZE / 8, TEX_SIZE / 8, TEX_SIZE / 8);
+    bgfx::dispatch(textureProvider.GetViewId(), m_densityGenCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     SetOutput(0, density);
 }
 

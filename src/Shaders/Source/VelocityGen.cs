@@ -27,7 +27,7 @@ void main()
     float linDistance = length(position.xy - p);
     float strength = step(0., position.w - linDistance);
 	//vec4 value = direction * max(dist, 0.);
-    vec4 value = vec4(derivative, 0., 0.) * 0.02 * strength;// * max(dist, 0.);
+    vec4 value = vec4(0., 1., 0., 0.) * 0.00005 * strength;// * max(dist, 0.);
 
 	vec4 color = imageLoad(s_velocity, coord);
 	color += value;

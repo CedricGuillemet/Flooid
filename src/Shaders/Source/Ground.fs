@@ -4,7 +4,7 @@ $input v_texcoord0, v_normal, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER3D(texDensity, 0);
+//SAMPLER3D(texDensity, 0);
 
 uniform vec4 directional;
 
@@ -27,7 +27,7 @@ void main()
     g -= 0.05;
     
     g *= illum;
-    
+/*
     int MAX_STEPS = 5;
 
     
@@ -54,7 +54,7 @@ void main()
 
         g *= exp(-accum * absorption);
     }
-    
+    */
     gl_FragColor = vec4(g, g, g, 1.0);
     //gl_FragColor = vec4(v_normal *0.5 + 0.5, 1.0);
 }

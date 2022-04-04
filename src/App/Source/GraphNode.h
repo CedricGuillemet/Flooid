@@ -222,7 +222,7 @@ public:
     , m_dissipation(0.997f)
     , m_curl(2.f)
     , m_epsilon(0.0002f)
-    , m_vorticityEnable(true)
+    , m_vorticityEnable(false)
     {
     }
     const char* GetName() const { return "Solver"; }

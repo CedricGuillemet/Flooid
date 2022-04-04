@@ -18,7 +18,7 @@ float GetAccum(vec3 rayOrigin, vec3 rayDir, int steps, float jitter)
     //vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
     //if (abs(boxIntersection.y) > abs(boxIntersection.x))
     {
-        float step = 1.73/*(boxIntersection.y - boxIntersection.x)*/ / float(steps);
+        float step = 1./*(boxIntersection.y - boxIntersection.x)*/ / float(steps);
         
         for(int i = 0; i < steps; i ++)
         {
@@ -69,6 +69,57 @@ vec2 March(vec3 rayOrigin, vec3 rayDir, int steps, float absorption)
     return vec2(transmittance, lightenergy);
 }
 
+
+float GetAccumEstShadow(vec3 rayOrigin, vec3 rayDir, int steps, float jitterScale)
+{
+    float accum = 0.;
+    float theshold = 3.5;
+    float step = 2 / float(steps);
+
+    for(int i = 0; i < steps; i ++)
+    {
+        vec3 rayPos = rayOrigin + rayDir * (step * (float(i) + 1.5 + jitterScale));
+        float density = texture3D(texDensity, rayPos, 0).x;
+        
+        accum += density;
+        
+        if (accum >= theshold)
+        {
+            return accum * (float(steps) / float(i));
+        }
+    }
+    return accum;
+}
+
+vec2 GetAccumEst(vec3 rayOrigin, vec3 rayDir, int steps, float jitter)
+{
+    float accum = 0.;
+    float theshold = 3.5;
+    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps), rayOrigin.yx * float(steps))) * jitter;
+    vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
+    if (abs(boxIntersection.y) > abs(boxIntersection.x))
+    {
+        float step = (boxIntersection.y - boxIntersection.x) / float(steps);
+
+        for(int i = 0; i < steps; i ++)
+        {
+            vec3 rayPos = rayOrigin + rayDir * (boxIntersection.x + step * (float(i) + 0.5 + jitterScale));
+            float density = texture3D(texDensity, rayPos, 0).x;
+            
+            accum += density;
+            
+            if (accum >= theshold)
+            {
+                float lgt = GetAccumEstShadow(rayPos, -directional.xyz, steps/2, jitterScale * 1.9);
+                return vec2(accum * (float(steps) / float(i)), lgt);
+            }
+        }
+        return vec2(accum, 0.);
+    }
+    return vec2(accum, 0.);
+}
+
+
 void main()
 {
     vec3 rayOrigin = v_positionWorld.xyz;
@@ -76,17 +127,29 @@ void main()
     vec3 rayPos = rayOrigin;
     vec3 result = vec3(0., 0., 0.);
     vec3 dir = vec3(0., 1., 0.);
-    vec3 lightColor = vec3(1., 0.6, 0.5) * 2.;
+    vec3 lightColor = vec3(0.9, 0.8, 0.9) * 2.;
     
-    float absorption = 0.05;
+    float absorption = 0.1;
     int MAX_STEPS = 40;
     
     // with shadow term
-    
+    /*
     vec2 transmitanceEnergy = March(rayOrigin, rayDir, MAX_STEPS, absorption);
     result = lightColor * transmitanceEnergy.y;
     gl_FragColor = vec4(result, 1. - transmitanceEnergy.x);
+     */
+    
      /*
     float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS);
     gl_FragColor = vec4(1., 1., 1., 1. - exp(-transmitance * absorption));*/
+     
+     vec2 estimate = GetAccumEst(rayOrigin, rayDir, MAX_STEPS, 0.8);
+     float transparency = 1. - exp(-estimate.x * absorption);
+     float l = mix(0.8, 1., max((exp(-estimate.y)), 0.)) * transparency;
+     gl_FragColor = vec4(l, l, l, transparency);
+
+     
+     // complexity
+     //float transmitance = GetAccumEst(rayOrigin, rayDir, MAX_STEPS, 0.6);
+     //gl_FragColor = vec4(transmitance/255., 0., 0., 1.);
 }

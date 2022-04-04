@@ -272,6 +272,7 @@ float perlin(vec2 p, float dim) {
  
 void main()
 {
+    /*
     vec3 lightDir = normalize(vec3(-1., 1., -1.));
     
     float step = 0.04;
@@ -313,9 +314,9 @@ void main()
     //accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;
     //gl_FragColor = vec4(accum, accum, accum, 1.);
     gl_FragColor = vec4(diffuse, accum);
+    */
     
-    
-    accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;
+    float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;
     gl_FragColor = vec4(accum, accum, accum, accum * 3.);
     
 }
