@@ -175,7 +175,7 @@ vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
 
 float hash(vec4 p)
 {
-    p  = fract(p * 0.3183099 + vec4(0.1));
+    p  = fract(p * 0.3183099 + vec4(0.1, 0.1, 0.1, 0.1));
     p *= 17.0;
     return fract( p.x*p.y*p.z*p.w*(p.x+p.y+p.z+p.w) );
 }

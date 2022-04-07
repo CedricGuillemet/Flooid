@@ -1,6 +1,8 @@
 #pragma once
 #include "Camera.h"
 #include "GraphNode.h"
+#include "tcpu.h"
+
 struct Texture;
 
 class Renderer
@@ -50,4 +52,6 @@ private:
     bgfx::ProgramHandle m_renderProgram;
     bgfx::ProgramHandle m_renderVolumeProgram;
     bgfx::ProgramHandle m_groundProgram;
+
+    CPU mCPU;
 };

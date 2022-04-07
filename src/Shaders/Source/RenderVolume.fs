@@ -14,7 +14,7 @@ uniform vec4 directional;
 float GetAccum(vec3 rayOrigin, vec3 rayDir, int steps, float jitter)
 {
     float accum = 0.;
-    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps), rayOrigin.yx * float(steps))) * jitter;
+    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps, steps), rayOrigin.yx * float(steps))) * jitter;
     //vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
     //if (abs(boxIntersection.y) > abs(boxIntersection.x))
     {
@@ -35,7 +35,7 @@ vec2 March(vec3 rayOrigin, vec3 rayDir, int steps, float absorption)
 {
     float lightenergy = 0.;
     float transmittance = 1.;
-    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps), rayOrigin.yx * float(steps))) * 0.8;
+    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps, steps), rayOrigin.yx * float(steps))) * 0.8;
     vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
     if (abs(boxIntersection.y) > abs(boxIntersection.x))
     {
@@ -74,7 +74,7 @@ float GetAccumEstShadow(vec3 rayOrigin, vec3 rayDir, int steps, float jitterScal
 {
     float accum = 0.;
     float theshold = 3.5;
-    float step = 2 / float(steps);
+    float step = 2. / float(steps);
 
     for(int i = 0; i < steps; i ++)
     {
@@ -95,7 +95,7 @@ vec2 GetAccumEst(vec3 rayOrigin, vec3 rayDir, int steps, float jitter)
 {
     float accum = 0.;
     float theshold = 3.5;
-    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps), rayOrigin.yx * float(steps))) * jitter;
+    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps, steps), rayOrigin.yx * float(steps))) * jitter;
     vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
     if (abs(boxIntersection.y) > abs(boxIntersection.x))
     {
@@ -143,10 +143,13 @@ void main()
     float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS);
     gl_FragColor = vec4(1., 1., 1., 1. - exp(-transmitance * absorption));*/
      
+     /*
      vec2 estimate = GetAccumEst(rayOrigin, rayDir, MAX_STEPS, 0.8);
      float transparency = 1. - exp(-estimate.x * absorption);
      float l = mix(0.8, 1., max((exp(-estimate.y)), 0.)) * transparency;
      gl_FragColor = vec4(l, l, l, transparency);
+     */
+     gl_FragColor = vec4(1.0,0.0,1.0,1.0);
 
      
      // complexity

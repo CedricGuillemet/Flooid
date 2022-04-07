@@ -315,8 +315,12 @@ void main()
     //gl_FragColor = vec4(accum, accum, accum, 1.);
     gl_FragColor = vec4(diffuse, accum);
     */
+
     
-    float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;
-    gl_FragColor = vec4(accum, accum, accum, accum * 3.);
-    
+    float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x * 100. + 0.5;
+    gl_FragColor = vec4(accum, accum, accum, 1.);
+    /*
+    vec2 accum = texture2D(s_texDensity, v_positionWorld.xy, 0).xy * 1. + 0.5;
+    gl_FragColor = vec4(accum, 0., 1.);
+    */
 }

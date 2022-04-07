@@ -124,6 +124,8 @@ void Renderer::Init()
     m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
     m_eyePositionUniform = bgfx::createUniform("eyePosition", bgfx::UniformType::Vec4);
     m_directionalUniform = bgfx::createUniform("directional", bgfx::UniformType::Vec4);
+
+    mCPU.Init();
 }
 
 void Renderer::Render(Texture* texture, Display* displayNode)
@@ -160,7 +162,9 @@ void Renderer::Render(Texture* texture, Display* displayNode)
     bgfx::submit(0, m_renderVolumeProgram);
      */
     
-    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    mCPU.Tick();
+    //bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
