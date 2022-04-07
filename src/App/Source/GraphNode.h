@@ -283,6 +283,20 @@ private:
 
     bool m_vorticityEnable;
     
+    void IterateJacobi(int iterationCount, TextureProvider& textureProvider, Texture* jacobi[2], Texture* divergence);
+    void IterateJacobi(int iterationCount, TextureProvider& textureProvider, bgfx::FrameBufferHandle jacobi[2], bgfx::FrameBufferHandle divergence);
+    
+    static inline bgfx::FrameBufferHandle m_residual0{}, m_residual1{};
+    static inline bgfx::FrameBufferHandle m_downscale0{}, m_downscale1{};
+    
+    static inline bgfx::FrameBufferHandle m_jacobi[2], m_jacobi0[2], m_jacobi1[2];
+    
+    static inline bgfx::ProgramHandle m_downscaleCSProgram;
+    static inline bgfx::ProgramHandle m_upscaleCSProgram;
+    static inline bgfx::ProgramHandle m_residualCSProgram;
+    
+    static inline bgfx::UniformHandle m_texInUniform;
+    static inline bgfx::UniformHandle m_texOutUniform;
     __NODE_TYPE
 };
 

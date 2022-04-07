@@ -92,6 +92,16 @@
 #include "Divergence_cs_spv.h"
 #include "Divergence_cs_essl.h"
 #ifdef WIN32
+#include "Downscale_cs_dx9.h"
+#include "Downscale_cs_dx11.h"
+#endif
+#include "Downscale_cs_glsl.h"
+#ifdef __APPLE__
+#include "Downscale_cs_mtl.h"
+#endif
+#include "Downscale_cs_spv.h"
+#include "Downscale_cs_essl.h"
+#ifdef WIN32
 #include "Gradient_cs_dx9.h"
 #include "Gradient_cs_dx11.h"
 #endif
@@ -111,6 +121,26 @@
 #endif
 #include "Jacobi_cs_spv.h"
 #include "Jacobi_cs_essl.h"
+#ifdef WIN32
+#include "Residual_cs_dx9.h"
+#include "Residual_cs_dx11.h"
+#endif
+#include "Residual_cs_glsl.h"
+#ifdef __APPLE__
+#include "Residual_cs_mtl.h"
+#endif
+#include "Residual_cs_spv.h"
+#include "Residual_cs_essl.h"
+#ifdef WIN32
+#include "Upscale_cs_dx9.h"
+#include "Upscale_cs_dx11.h"
+#endif
+#include "Upscale_cs_glsl.h"
+#ifdef __APPLE__
+#include "Upscale_cs_mtl.h"
+#endif
+#include "Upscale_cs_spv.h"
+#include "Upscale_cs_essl.h"
 #ifdef WIN32
 #include "VelocityGen_cs_dx9.h"
 #include "VelocityGen_cs_dx11.h"
