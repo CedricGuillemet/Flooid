@@ -333,11 +333,7 @@ void prolongate2D(const Buf& source, Buf& destination)
     for(iif = 1; iif < nf -1 ; iif +=2 ) {
         for(jf = 1; jf < nf-1;jf+=2) {
             indx = jf+iif*nf;
-#ifdef FULL
             uf[indx] = .25*(uf[indx+nf] + uf[indx+1] + uf[indx-nf] + uf[indx-1]);
-#else
-            uf[indx] = 0.;
-#endif
         }
     }
 }
@@ -367,9 +363,9 @@ void addint(const Buf& source, Buf& destination) //double *uf, const double *uc,
 
 void compute_residual(const Buf& bufferU, const Buf& bufferRhs, Buf& bufferRes, float invhsq)
 {
-    assert(source.mSize == residual.mSize);
-    assert(source.mSize == destination.mSize);
-    assert(source.mComponentCount == destination.mComponentCount);
+    assert(bufferU.mSize == bufferRhs.mSize);
+    assert(bufferU.mSize == bufferRes.mSize);
+    assert(bufferU.mComponentCount == bufferRhs.mComponentCount);
     /* Computes the negative residual for the poisson problem. */
     int i, j, indx, n;
 
@@ -460,19 +456,25 @@ void compute_and_coarsen_residual(const Buf& bufferU, const Buf& bufferRhs, Buf&
 
 void refine_and_add(Buf& bufferU, Buf& bufferUf)
 {
-    assert(source.mComponentCount == destination.mComponentCount);
-    assert(source.mComponentCount == 1);
-    assert(source.mSize * 2 == destination.mSize);
+    assert(bufferU.mComponentCount == bufferUf.mComponentCount);
+    assert(bufferU.mComponentCount == 1);
+    assert(bufferU.mSize * 2 == bufferUf.mSize);
 
     float* u = bufferU.mBuffer.data();
     float* uf = bufferUf.mBuffer.data();
-    /*
-    int i;
-    uf[1] += 0.5 * (u[0] + u[1]);
-    for (i = 1; i < N; ++i) {
-        uf[2 * i] += u[i];
-        uf[2 * i + 1] += 0.5 * (u[i] + u[i + 1]);
-    }*/
+    
+    int n = bufferU.mSize;
+    
+    for(int j = 0;j <n;j++)
+    {
+        int lnOfs = (j * 2 * n);
+        uf[1] += 0.5 * (u[0] + u[1]);
+        for (int i = 1; i < n; ++i)
+        {
+            uf[lnOfs + 2 * i] += u[i];
+            uf[lnOfs + 2 * i + 1] += 0.5 * (u[i] + u[i + 1]);
+        }
+    }
 }
 
 void CPU::Tick()
@@ -485,6 +487,7 @@ void CPU::Tick()
     FillVelocity(mVelocity);
     //Buf* divergence = new Buf(256, 1);
     Buf divergence(256, 1);
+
     //Buf* divergence = &divergence_;
     Divergence(mVelocity, divergence);
 
@@ -501,49 +504,11 @@ void CPU::Tick()
     int postSmoothIteration = 50;
     int smoothIteration = 1;
     /////////////////////////////////////////////////////////////////////////////////////////
-    // preparation
-    /*
-    Buf newPressure(256, 1); // end result
-    Buf newPressure2(256, 1); // end result
-
-    Buf divergence0(128, 1);
-    Buf divergence1(64, 1);
-    Buf residual0(256, 1);
-
-    //Buf residual1(128, 1);
-    Restrict(divergence, divergence0);
-    Restrict(divergence0, divergence1);
-    
-
-
-    // actual work
-
-    
-    Jacobi(divergence, nullptr, newPressure, preSmoothIteration);
-    
-    // 0 
-    Buf pressure0(128,1);
-    //Buf res0(256, 1);
-    Buf temp(128, 1);
-    Residual(residual0, newPressure, divergence); // 256
-    Restrict(residual0, pressure0);
-    
-    Jacobi(divergence0, nullptr, temp, smoothIteration);
-
-    addint(temp, newPressure);
-
-    Jacobi(newPressure, nullptr, newPressure2, postSmoothIteration);
-    newPressure.mBuffer = newPressure2.mBuffer;
-    */
-
     Buf newPressure(256, 1);
     Buf rhs(256, 1);
     Jacobi(divergence, rhs, newPressure, postSmoothIteration);
     /////////////////////////////////////////////////////////////////////////////////////////
 
-    /// <summary>
-    /// 
-    /// </summary>
     Buf newVelocity(256, 2);
     Gradient(newPressure, mVelocity, newVelocity);
 
@@ -558,6 +523,7 @@ void CPU::Tick()
   */
     static Buf display(256,1);
     display.mBuffer = newPressure.mBuffer;
+
     
     auto mem = bgfx::makeRef(display.mBuffer.data(), display.mBuffer.size() * sizeof(float));//, ReleaseBufFn, &display);
     bgfx::updateTexture2D(mTexture, 0,0,0,0, display.mSize, display.mSize,mem);
