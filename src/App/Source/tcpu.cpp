@@ -280,72 +280,6 @@ void ReleaseBufFn(void* _ptr, void* _userData)
 }
 
 
-void Restrict(const Buf& source, Buf& destination)
-{
-    assert(source.mComponentCount == destination.mComponentCount);
-    assert(source.mComponentCount == 1);
-    assert(source.mSize == destination.mSize * 2);
-    
-    float* uc = destination.mBuffer.data();
-    const float* uf = source.mBuffer.data();
-    /* Restrict from fine grid to coarse grid.
-     * Uses half weighting.
-     * Fine grid has 2^level + 1 points.
-     * Coarse grid has 2^(level-1) + 1 points
-     */
-
-    int nc,nf;
-    int ic, jc, iif, jf;
-    int i,j;
-    int indx;
-
-    nf = source.mSize;
-    nc = destination.mSize;
-
-
-/* Interior points */
-    for(i=1;i<nc-1;i++) {
-        for(j=1;j<nc-1;j++) {
-            indx = 2*j + 2*i*nf;
-#ifdef FULL
-            uc[j + nc*i] = .25 * uf[indx]
-                            + .125*( uf[indx+1]
-                                    + uf[indx -1]
-                                    + uf[indx+nf]
-                                    + uf[indx-nf])
-                            + .0625*( uf[indx+1+nf]
-                                    + uf[indx+1-nf]
-                                    + uf[indx-1+nf]
-                                    + uf[indx-1-nf]);
-#else
-            uc[j + nc*i] = .5 * uf[indx]
-                            + .125*( uf[indx+1]
-                                    + uf[indx -1]
-                                    + uf[indx+nf]
-                                    + uf[indx-nf]);
-#endif
-        }
-    }
-
-/* Boundary Points */
-
-    for(iif = 0; iif < nf; iif += nf-1) {
-        for(jf=0; jf < nf; jf+= 2) {
-            ic = iif >> 1;
-            jc = jf >> 1;
-            uc[jc + nc*ic] = uf[jf + iif*nf];
-        }
-    }
-
-    for(iif=1; iif < nf-1; iif += 2) {
-        for(jf=0; jf < nf; jf += nf-1) {
-            ic = iif >> 1;
-            jc = jf >> 1;
-            uc[jc + nc*ic] = uf[jf + nf*iif];
-        }
-    }
-}
-
 void prolongate2D(const Buf& source, Buf& destination)
 {
     assert(source.mComponentCount == destination.mComponentCount);
@@ -429,91 +363,6 @@ void addint(const Buf& source, Buf& destination) //double *uf, const double *uc,
     }
 }
 
-void Residual(Buf& destination, const Buf& source, const Buf& residual) //double *res, const double *u, const double *f, const int level) {
-{
-    assert(source.mSize == residual.mSize);
-    assert(source.mSize == destination.mSize);
-    /* Computes the negative residual for the poisson problem. */
-    int i,j,indx,n;
-    double h,invh2;
-    
-    float* res = destination.mBuffer.data();
-    const float* f = residual.mBuffer.data();
-    const float* u = source.mBuffer.data();
-
-    n = destination.mSize;//(2 << level);
-
-    h = 1./n;
-    invh2 = 1./(h*h);
-    //n+=1;
-
-    for(i=1; i<n-1 ; i++) {
-        for(j=1; j <n-1;j++) {
-            indx=  j+n*i;
-
-            res[indx] = -invh2*( u[indx+1] + u[indx-1]
-                                +u[indx+n] + u[indx-n]
-                                - 4. * u[indx]) + f[indx];
-        }
-    }
-
-    /* Boundary points have zero residual */
-
-    for(i=0;i<n;i++) {
-        res[n*i] = 0;
-        res[n*i + n-1] = 0;
-        res[i] = 0;
-        res[i + n*(n-1)] = 0;
-    }
-
-    return;
-}
-
-void gauss_seidel(const Buf& source, Buf& destination, const int numiter)//double *u, const double *f, const int level, const int numiter) {
-{
-    /* Red-black Gauss-Seidal relaxation, for poisson operator.
-     * u contains initial guess
-     */
-    
-float* u = destination.mBuffer.data();
-const float* f = source.mBuffer.data();
-
-
-    int i,j,k,indx;
-    int n = destination.mSize;//2 << level ;
-    double h = 1./n;
-    double h2 = h*h;
-    //n += 1;
-
-    for(k=0;k<numiter;k++) {
-
-    /* Red Points
-     * Exclude boundary values
-     */
-        for(i=1; i<n-1;i++) {
-            for(j=1 + (i&1); j< n-1;j+=2) {    // i&1 = 0 if i is even
-                indx = j + n*i;
-                u[indx] = .25*(u[indx+1] + u[indx-1]
-                            +  u[indx + n] + u[indx-n]
-                            - h2*f[indx]);
-            }
-        }
-    /* Black Points */
-        for(i=1;i<n-1;i++) {
-            for(j=2-(i&1);j<n-1;j+=2) {
-                indx= j + n*i;
-                u[indx] = .25*(u[indx+1] + u[indx-1]
-                            +  u[indx + n] + u[indx-n]
-                            - h2*f[indx]);
-            }
-        }
-
-    }
-
-
-    return;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////
 
 void compute_residual(const Buf& bufferU, const Buf& bufferRhs, Buf& bufferRes, float invhsq)
@@ -540,6 +389,91 @@ void compute_residual(const Buf& bufferU, const Buf& bufferRhs, Buf& bufferRes, 
     return;
 }
 
+
+void coarsen(const Buf& source, Buf& destination)
+{
+    assert(source.mComponentCount == destination.mComponentCount);
+    assert(source.mComponentCount == 1);
+    assert(source.mSize == destination.mSize * 2);
+
+    float* uc = destination.mBuffer.data();
+    const float* uf = source.mBuffer.data();
+    /* Restrict from fine grid to coarse grid.
+     * Uses half weighting.
+     * Fine grid has 2^level + 1 points.
+     * Coarse grid has 2^(level-1) + 1 points
+     */
+
+    int nc, nf;
+    int ic, jc, iif, jf;
+    int i, j;
+    int indx;
+
+    nf = source.mSize;
+    nc = destination.mSize;
+
+
+    /* Interior points */
+    for (i = 1; i < nc - 1; i++) {
+        for (j = 1; j < nc - 1; j++) {
+            indx = 2 * j + 2 * i * nf;
+
+            uc[j + nc * i] = .25 * uf[indx]
+                + .125 * (uf[indx + 1]
+                    + uf[indx - 1]
+                    + uf[indx + nf]
+                    + uf[indx - nf])
+                + .0625 * (uf[indx + 1 + nf]
+                    + uf[indx + 1 - nf]
+                    + uf[indx - 1 + nf]
+                    + uf[indx - 1 - nf]);
+        }
+    }
+
+    /* Boundary Points */
+
+    for (iif = 0; iif < nf; iif += nf - 1) {
+        for (jf = 0; jf < nf; jf += 2) {
+            ic = iif >> 1;
+            jc = jf >> 1;
+            uc[jc + nc * ic] = uf[jf + iif * nf];
+        }
+    }
+
+    for (iif = 1; iif < nf - 1; iif += 2) {
+        for (jf = 0; jf < nf; jf += nf - 1) {
+            ic = iif >> 1;
+            jc = jf >> 1;
+            uc[jc + nc * ic] = uf[jf + nf * iif];
+        }
+    }
+}
+
+void compute_and_coarsen_residual(const Buf& bufferU, const Buf& bufferRhs, Buf& bufferRes, double invhsq)
+{
+    Buf temp(bufferU.mSize, 1);
+
+    compute_residual(bufferU, bufferRhs, temp, invhsq);
+    coarsen(temp, bufferRes);
+}
+
+
+void refine_and_add(Buf& bufferU, Buf& bufferUf)
+{
+    assert(source.mComponentCount == destination.mComponentCount);
+    assert(source.mComponentCount == 1);
+    assert(source.mSize * 2 == destination.mSize);
+
+    float* u = bufferU.mBuffer.data();
+    float* uf = bufferUf.mBuffer.data();
+    /*
+    int i;
+    uf[1] += 0.5 * (u[0] + u[1]);
+    for (i = 1; i < N; ++i) {
+        uf[2 * i] += u[i];
+        uf[2 * i + 1] += 0.5 * (u[i] + u[i + 1]);
+    }*/
+}
 
 void CPU::Tick()
 {
