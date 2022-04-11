@@ -1,5 +1,6 @@
 #include "tcpu.h"
 #include "Immath.h"
+#include <assert.h>
 
 #define FULL
 CPU::CPU()
@@ -131,7 +132,7 @@ void Sample(Buf& source, float x, float y, float* values, float damp)
 {
     int px = floorf(x);
     int py = floorf(y);
-    if (px < 0 || px >= source.mSize || py < 0 || py >= source.mSize)
+    if (px < 0 || px >= source.mSize-1 || py < 0 || py >= source.mSize-1)
     {
         for (int i = 0; i < source.mComponentCount; i++)
         {
@@ -170,8 +171,9 @@ void Advect(Buf& source, Buf& velocity, Buf& destination)
             float* pd = &destination.mBuffer[index];
             float* pv = &velocity.mBuffer[index];
 
-            float px = x - pv[0];
-            float py = y - pv[1];
+            const float scale = 0.1f;
+            float px = x - pv[0] * scale;
+            float py = y - pv[1] * scale;
 
             Sample(source, px, py, pd, 1.f);//0.999f);
         }
@@ -210,11 +212,13 @@ void Gradient(Buf& pressure, Buf& velocity, Buf& destination)
     }
 }
 
-void JacobiStep(Buf& source, Buf& divergence, Buf& destination)
+void JacobiStep(Buf& source, Buf& divergence, Buf& rhs, Buf& destination)
 {
     assert(source.mComponentCount == 1);
     assert(divergence.mComponentCount == 1);
     assert(destination.mComponentCount == 1);
+    assert(source.mSize == divergence.mSize);
+    assert(source.mSize == destination.mSize);
     
     for (int y = 1; y < source.mSize - 1; y++)
     {
@@ -240,30 +244,29 @@ void JacobiStep(Buf& source, Buf& divergence, Buf& destination)
     }
 }
 
-void Jacobi(Buf& divergence, Buf& destination)
+void Jacobi(Buf& divergence, Buf& rhs, Buf& destination, int iterationCount)
 {
     assert(divergence.mComponentCount == 1);
     assert(destination.mComponentCount == 1);
-    
-    Buf jacobi0(256, 1);
-    Buf jacobi1(256, 1);
+
+    Buf jacobi0(destination.mSize, 1);
+    Buf jacobi1(destination.mSize, 1);
 
     Buf* jacobi[2] = {&jacobi0, &jacobi1};
-    int m_iterationCount = 100;
-    for (int i = 0; i < m_iterationCount; i++)
+    for (int i = 0; i < iterationCount; i++)
     {
         const int indexSource = i & 1;
         const int indexDestination = (i + 1) & 1;
 
-        JacobiStep(*jacobi[indexSource], divergence, *jacobi[indexDestination]);
+        JacobiStep(*jacobi[indexSource], divergence, rhs, *jacobi[indexDestination]);
     }
-    const int lastJacobiIndex = m_iterationCount & 1;
+    const int lastJacobiIndex = iterationCount & 1;
     destination.mBuffer = jacobi[lastJacobiIndex]->mBuffer;
 }
 
 void CPU::Init()
 {
-    mTexture = bgfx::createTexture2D(128, 128, false, 1, (true) ? bgfx::TextureFormat::R32F : bgfx::TextureFormat::RGBA32F);
+    mTexture = bgfx::createTexture2D(256, 256, false, 1, (true) ? bgfx::TextureFormat::R32F : bgfx::TextureFormat::RGBA32F);
 
 
     FillDensity(mDensity);
@@ -276,35 +279,15 @@ void ReleaseBufFn(void* _ptr, void* _userData)
     delete buf;
 }
 
-void matfill(Buf* source, Buf& destination) //double *u, const double *fill, const int n) {
-{
-    /* Fill u with the values in fill array.
-     * If fill is NULL, then fill u with zeros
-     */
-    float* u = destination.mBuffer.data();
-    
-    auto n = destination.mSize;
-    
-    int i;
 
-    if (source) {
-        for(i=0;i<n;i++) u[i] = 0.0;
-    }
-    else {
-        float* fill = source->mBuffer.data();
-        for(i=0;i<n;i++) u[i] = fill[i];
-    }
-
-    return;
-}
-
-void Restrict(Buf& source, Buf& destination)
+void Restrict(const Buf& source, Buf& destination)
 {
     assert(source.mComponentCount == destination.mComponentCount);
     assert(source.mComponentCount == 1);
+    assert(source.mSize == destination.mSize * 2);
     
     float* uc = destination.mBuffer.data();
-    float* uf = source.mBuffer.data();
+    const float* uf = source.mBuffer.data();
     /* Restrict from fine grid to coarse grid.
      * Uses half weighting.
      * Fine grid has 2^level + 1 points.
@@ -363,14 +346,14 @@ void Restrict(Buf& source, Buf& destination)
     }
 }
 
-
-void prolongate2D(Buf& source, Buf& destination)
+void prolongate2D(const Buf& source, Buf& destination)
 {
     assert(source.mComponentCount == destination.mComponentCount);
     assert(source.mComponentCount == 1);
+    assert(source.mSize *2 == destination.mSize);
     
     float* uf = destination.mBuffer.data();
-    float* uc = source.mBuffer.data();
+    const float* uc = source.mBuffer.data();
 
     /* Prolongate from coarse to fine mesh.
      * The coarse mesh has 2^level + 1 points.
@@ -425,42 +408,44 @@ void prolongate2D(Buf& source, Buf& destination)
     }
 }
 
-void addint(Buf& source, Buf& destination, Buf& destinationFinal) //double *uf, const double *uc, double *res, const int level)
+void addint(const Buf& source, Buf& destination) //double *uf, const double *uc, double *res, const int level)
 {
     /* Prolongates solution from course mesh to fine mesh
      * and adds that to fine mesh solution
      * level is the course level, where there are 2^level + 1 points
      * res is used for temp storage
      */
+
+    assert(destination.mSize == source.mSize *2);
     
-    float* uf = destinationFinal.mBuffer.data();
-    float* res = destination.mBuffer.data();
+    Buf temp(destination.mSize, destination.mComponentCount);
+    float* uf = destination.mBuffer.data();
+    float* res = temp.mBuffer.data();
     int i;
-    int n = destinationFinal.mSize;//1 + (2 << (level+1));
-    prolongate2D(source, destination);//res,uc,level);
+    int n = temp.mSize;//1 + (2 << (level+1));
+    prolongate2D(source, temp);//res,uc,level);
     for(i=0;i<n*n;i++) {
         uf[i] += res[i];
     }
-
-    return;
 }
 
-
-void residual(Buf& source, Buf& residual, Buf& destination) //double *res, const double *u, const double *f, const int level) {
+void Residual(Buf& destination, const Buf& source, const Buf& residual) //double *res, const double *u, const double *f, const int level) {
 {
+    assert(source.mSize == residual.mSize);
+    assert(source.mSize == destination.mSize);
     /* Computes the negative residual for the poisson problem. */
     int i,j,indx,n;
     double h,invh2;
     
     float* res = destination.mBuffer.data();
-    float* f = residual.mBuffer.data();
-    float* u = source.mBuffer.data();
+    const float* f = residual.mBuffer.data();
+    const float* u = source.mBuffer.data();
 
     n = destination.mSize;//(2 << level);
 
     h = 1./n;
     invh2 = 1./(h*h);
-    n+=1;
+    //n+=1;
 
     for(i=1; i<n-1 ; i++) {
         for(j=1; j <n-1;j++) {
@@ -484,16 +469,14 @@ void residual(Buf& source, Buf& residual, Buf& destination) //double *res, const
     return;
 }
 
-
-
-void gauss_seidel(Buf& source, Buf& destination, const int numiter)//double *u, const double *f, const int level, const int numiter) {
+void gauss_seidel(const Buf& source, Buf& destination, const int numiter)//double *u, const double *f, const int level, const int numiter) {
 {
     /* Red-black Gauss-Seidal relaxation, for poisson operator.
      * u contains initial guess
      */
     
 float* u = destination.mBuffer.data();
-float* f = source.mBuffer.data();
+const float* f = source.mBuffer.data();
 
 
     int i,j,k,indx;
@@ -531,6 +514,33 @@ float* f = source.mBuffer.data();
     return;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void compute_residual(const Buf& bufferU, const Buf& bufferRhs, Buf& bufferRes, float invhsq)
+{
+    assert(source.mSize == residual.mSize);
+    assert(source.mSize == destination.mSize);
+    assert(source.mComponentCount == destination.mComponentCount);
+    /* Computes the negative residual for the poisson problem. */
+    int i, j, indx, n;
+
+    float* res = bufferRes.mBuffer.data();
+    const float* rhs = bufferRhs.mBuffer.data();
+    const float* u = bufferU.mBuffer.data();
+
+    n = bufferRes.mSize;
+
+    for (i = 1; i < n - 1; i++) {
+        for (j = 1; j < n - 1; j++) {
+            indx = j + n * i;
+
+            res[indx] = (rhs[indx] - (4. * u[indx] - u[indx - 1] - u[indx + 1] - u[indx + n] - u[indx -n]) * invhsq);
+        }
+    }
+    return;
+}
+
+
 void CPU::Tick()
 {
     Buf advectedVelocity(256, 2);
@@ -540,21 +550,71 @@ void CPU::Tick()
     Boundary(mVelocity);
     FillVelocity(mVelocity);
     //Buf* divergence = new Buf(256, 1);
-    Buf divergence_(256, 1);
-    Buf* divergence = &divergence_;
-    Divergence(mVelocity, *divergence);
+    Buf divergence(256, 1);
+    //Buf* divergence = &divergence_;
+    Divergence(mVelocity, divergence);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    
+
+    /*
+    Buf newPressure(256, 1);
+    Jacobi(divergence, nullptr, newPressure, 50);
+    */
+    int preSmoothIteration = 1;
+    int postSmoothIteration = 50;
+    int smoothIteration = 1;
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // preparation
+    /*
+    Buf newPressure(256, 1); // end result
+    Buf newPressure2(256, 1); // end result
+
+    Buf divergence0(128, 1);
+    Buf divergence1(64, 1);
+    Buf residual0(256, 1);
+
+    //Buf residual1(128, 1);
+    Restrict(divergence, divergence0);
+    Restrict(divergence0, divergence1);
+    
+
+
+    // actual work
+
+    
+    Jacobi(divergence, nullptr, newPressure, preSmoothIteration);
+    
+    // 0 
+    Buf pressure0(128,1);
+    //Buf res0(256, 1);
+    Buf temp(128, 1);
+    Residual(residual0, newPressure, divergence); // 256
+    Restrict(residual0, pressure0);
+    
+    Jacobi(divergence0, nullptr, temp, smoothIteration);
+
+    addint(temp, newPressure);
+
+    Jacobi(newPressure, nullptr, newPressure2, postSmoothIteration);
+    newPressure.mBuffer = newPressure2.mBuffer;
+    */
 
     Buf newPressure(256, 1);
-    Jacobi(*divergence, newPressure);
+    Buf rhs(256, 1);
+    Jacobi(divergence, rhs, newPressure, postSmoothIteration);
+    /////////////////////////////////////////////////////////////////////////////////////////
 
+    /// <summary>
+    /// 
+    /// </summary>
     Buf newVelocity(256, 2);
     Gradient(newPressure, mVelocity, newVelocity);
 
     mVelocity.mBuffer = newVelocity.mBuffer;
 
-    
-    Buf* reduced = new Buf(128, 1);
-    Restrict(*divergence, *reduced);
     
 
 /*    if (bgfx::isValid(mTexture))
@@ -562,8 +622,9 @@ void CPU::Tick()
         bgfx::destroy(mTexture);
     }
   */
-    Buf& display = *reduced;
+    static Buf display(256,1);
+    display.mBuffer = newPressure.mBuffer;
     
-    auto mem = bgfx::makeRef(display.mBuffer.data(), display.mBuffer.size() * sizeof(float), ReleaseBufFn, &display);
+    auto mem = bgfx::makeRef(display.mBuffer.data(), display.mBuffer.size() * sizeof(float));//, ReleaseBufFn, &display);
     bgfx::updateTexture2D(mTexture, 0,0,0,0, display.mSize, display.mSize,mem);
 }
