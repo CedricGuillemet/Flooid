@@ -1,5 +1,5 @@
-#include "tcpu.h"
 #include "Immath.h"
+#include "tcpu.h"
 #include <assert.h>
 
 #define FULL
@@ -50,10 +50,10 @@ void FillVelocity(Buf& buf)
             float npx = 0.5f;
             float npy = 0.1f;
             float dist = length(px - npx, py - npy) - 0.1f;
-            float v = (dist < 0.f) ? 0.4f : 0.f;
+            float v = (dist < 0.f) ? 1.4f : 0.f;
             if (v > FLT_EPSILON)
             {
-                p[0] = 0;
+                p[0] = (float(rand()&255) / 255.f - 0.5f) * 10.f;
                 p[1] += v;
             }
         }
@@ -171,7 +171,7 @@ void Advect(Buf& source, Buf& velocity, Buf& destination)
             float* pd = &destination.mBuffer[index];
             float* pv = &velocity.mBuffer[index];
 
-            const float scale = 0.1f;
+            const float scale = 1.f;
             float px = x - pv[0] * scale;
             float py = y - pv[1] * scale;
 
@@ -460,30 +460,76 @@ void refine_and_add(Buf& bufferU, Buf& bufferUf)
     assert(bufferU.mComponentCount == 1);
     assert(bufferU.mSize * 2 == bufferUf.mSize);
 
-    float* u = bufferU.mBuffer.data();
-    float* uf = bufferUf.mBuffer.data();
+    float* src = bufferU.mBuffer.data();
+    float* dst = bufferUf.mBuffer.data();
     
-    int n = bufferU.mSize;
+    int nSrc = bufferU.mSize;
+    int nDst = bufferUf.mSize;
     
-    for(int j = 0;j <n;j++)
+    for(int j = 0; j < nSrc-1; j++)
     {
-        int lnOfs = (j * 2 * n);
-        uf[1] += 0.5 * (u[0] + u[1]);
-        for (int i = 1; i < n; ++i)
+        int ofsSrc = (j * nSrc);
+        int ofsDst = (j * nDst * 2);
+        for (int i = 0; i < nSrc-1; i++)
         {
-            uf[lnOfs + 2 * i] += u[i];
-            uf[lnOfs + 2 * i + 1] += 0.5 * (u[i] + u[i + 1]);
+            float horz = 0.5 * (src[ofsSrc + i] + src[ofsSrc + 1]);
+            float vert = 0.5 * (src[ofsSrc + i] + src[ofsSrc + nSrc]);
+
+            dst[ofsDst + i * 2] += src[ofsSrc + i];
+            dst[ofsDst + i * 2 + 1] += horz;
+
+            dst[ofsDst + nDst + i * 2] += vert;
+            dst[ofsDst + nDst + i * 2 + 1] += 0.25 * (src[ofsSrc + i] + src[ofsSrc + i + 1] + src[ofsSrc + i + nSrc] + src[ofsSrc + i + nSrc + 1]);
         }
     }
 }
 
+void jacobi2(Buf& bufferU, Buf& bufferRhs, float hsq, int ssteps)
+{
+    /* Jacobi damping parameter -- plays an important role in MG */
+    float omega = 4.f / 5.f;
+    Buf bufferUNew(bufferU.mSize, 1);
+    
+    int N = bufferU.mSize;
+    bufferUNew.Set(0.f);
+    
+    for (int step = 0; step < ssteps; step++) {
+        float* unew = bufferUNew.mBuffer.data();//(double*)malloc(sizeof(double) * (N + 1));
+        float* rhs = bufferRhs.mBuffer.data();//(double*)malloc(sizeof(double) * (N + 1));
+        float* u = bufferU.mBuffer.data();
+        for (int j = 1; j < N - 1; j++) {
+            for (int i = 1; i < N - 1; i++) {
+                int idx = j * N + i;
+                unew[idx] = u[idx] + omega * 0.25f * (hsq * rhs[idx] + u[idx - 1] + u[idx + 1] + u[idx - N] + u[idx + N] - 4.f * u[idx]);
+                //unew[idx] = u[idx] + omega * 0.5 * (/*hsq * rhs[idx] +*/ u[idx - 1] + u[idx + 1] - 2.f * u[idx]);
+                //unew[idx] = u[idx] + omega * 0.25f * (hsq * rhs[i] + u[idx - 1] + u[idx + 1] + u[idx - N] + u[idx + N] - 4.f * u[idx]);
+            }
+        }
+        //memcpy(u, unew, (N + 1) * sizeof(double));
+        bufferU.mBuffer = bufferUNew.mBuffer;
+    }
+    //free(unew);
+}
+
+void boundary(Buf& buffer)
+{
+    float* ptr = buffer.mBuffer.data();
+    int n = buffer.mSize;
+    for (int i = 0; i < n; i++)
+    {
+        ptr[i] = 0.f;
+        ptr[n*n-1-i] = 0.f;
+        ptr[i * n] = 0.f;
+        ptr[i * n + n - 1] = 0.f;
+    }
+}
 void CPU::Tick()
 {
     Buf advectedVelocity(256, 2);
     Advect(mVelocity, mVelocity, advectedVelocity);
     mVelocity.mBuffer = advectedVelocity.mBuffer;
 
-    Boundary(mVelocity);
+    //Boundary(mVelocity);
     FillVelocity(mVelocity);
     //Buf* divergence = new Buf(256, 1);
     Buf divergence(256, 1);
@@ -501,12 +547,43 @@ void CPU::Tick()
     Jacobi(divergence, nullptr, newPressure, 50);
     */
     int preSmoothIteration = 1;
-    int postSmoothIteration = 50;
+    int postSmoothIteration = 1;
     int smoothIteration = 1;
     /////////////////////////////////////////////////////////////////////////////////////////
-    Buf newPressure(256, 1);
+
+    Buf u(256, 1);
+    Buf u2(128, 1);
+
     Buf rhs(256, 1);
-    Jacobi(divergence, rhs, newPressure, postSmoothIteration);
+    rhs.Set(1.f);
+    Buf rhs2(128, 1);
+
+    
+    float h = 1.f / 256.f;
+    float h2 = 1.f / 128.f;
+    float hsq = h * h;
+    float hsq2 = h2 * h2;
+    float invsq = 1.f / hsq;
+#if 0
+    jacobi2(u, rhs, hsq, preSmoothIteration);
+    compute_and_coarsen_residual(u, rhs, rhs2, invsq);
+
+
+    jacobi2(u2, rhs2, hsq2, smoothIteration);
+
+
+    refine_and_add(u2, u);
+    /* post-smoothing steps */
+    jacobi2(u, rhs, hsq, postSmoothIteration);
+#endif
+    boundary(divergence);
+    jacobi2(divergence, rhs, hsq, 1000);
+
+    /// <summary>
+    /// //
+    /// </summary>
+    Buf newPressure(256, 1);
+    newPressure.mBuffer = divergence.mBuffer;
     /////////////////////////////////////////////////////////////////////////////////////////
 
     Buf newVelocity(256, 2);
