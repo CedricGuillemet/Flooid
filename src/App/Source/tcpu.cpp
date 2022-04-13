@@ -53,7 +53,7 @@ void FillVelocity(Buf& buf)
             float v = (dist < 0.f) ? 1.4f : 0.f;
             if (v > FLT_EPSILON)
             {
-                p[0] = (float(rand()&255) / 255.f - 0.5f) * 10.f;
+                p[0] += 0.f;//(float(rand()&255) / 255.f - 0.5f) * 1.f;
                 p[1] += v;
             }
         }
@@ -172,6 +172,10 @@ void Advect(Buf& source, Buf& velocity, Buf& destination)
             float* pv = &velocity.mBuffer[index];
 
             const float scale = 1.f;
+            if (fabsf(pv[0]) > FLT_EPSILON || fabsf(pv[1]) > FLT_EPSILON)
+            {
+                int a = 1;
+            }
             float px = x - pv[0] * scale;
             float py = y - pv[1] * scale;
 
@@ -523,8 +527,249 @@ void boundary(Buf& buffer)
         ptr[i * n + n - 1] = 0.f;
     }
 }
+
+
+/* set vector to zero */
+void set_zero(double* u, int N) {
+    int i;
+    for (i = 0; i < (N + 1) * (N + 1); i++)
+        u[i] = 0.0;
+}
+
+/* coarsen uf from length N+1 to lenght N/2+1
+   assuming N = 2^l
+*/
+void coarsen(double* uf, double* uc, int N) {
+    int ic, jc;
+    int idx = 0;
+    memset(uc, 0, sizeof(double) * (N/2 + 1) * (N/2 + 1));
+    for (jc = 1; jc < N / 2; ++jc)
+    {
+        for (ic = 1; ic < N / 2; ++ic)
+        {
+            int index = jc * (N + 1) + ic;
+            uc[idx++] = 0.5 * uf[index] + 0.25 * (uf[index - 1] + uf[index + 1] + uf[index - N - 1] + uf[index + N + 1]);
+        }
+        idx++;
+    }
+}
+
+
+/* refine u from length N+1 to lenght 2*N+1
+   assuming N = 2^l, and add to existing uf
+*/
+void refine_and_add(double* u, double* uf, int N)
+{
+    int i, j;
+    //uf[1] += 0.5 * (u[0] + u[1]);
+    for (j = 1; j < N; j++)
+    {
+        for (i = 1; i < N; ++i)
+        {
+            int dst = j * (N + 1) * 2 + i * 2;
+            int src = j * (N + 1) + i;
+            uf[dst] += u[src];
+            uf[dst + 1] += 0.5 * (u[src] + u[src + 1]);
+            uf[dst + N*2 + 1] += 0.5 * (u[src] + u[src + N + 1]);
+
+            uf[dst + N*2 + 1 + 1] += 0.25 * (u[src] + u[src + N + 1] + u[src + 1] + u[src + N + 1 + 1]);
+        }
+    }
+}
+
+/* compute residual vector */
+void compute_residual(double* u, double* rhs, double* res, int N, double invhsq)
+{
+    int i, j;
+    for (j = 1; j < N; j++)
+    {
+        for (i = 1; i < N; i++)
+        {
+            int index = j * (N + 1) + i;
+            res[index] = (rhs[index] - (4. * u[index] - u[index - 1] - u[index + 1] - u[index - N -1] - u[index + N + 1]) * invhsq);
+        }
+    }
+
+}
+
+
+/* compute residual and coarsen */
+void compute_and_coarsen_residual(double* u, double* rhs, double* resc,
+    int N, double invhsq)
+{
+    size_t memsize = sizeof(double) * (N + 1) * (N + 1);
+    double* resf = (double*)malloc(memsize);
+    memset(resf, 0, memsize);
+    compute_residual(u, rhs, resf, N, invhsq);
+    coarsen(resf, resc, N);
+    free(resf);
+}
+
+
+void test_compute_and_coarsen_residual()
+{
+    size_t N = 32;
+    size_t count = (N + 1) * (N + 1);
+    size_t half = (N/2 + 1) * (N/2 + 1);
+    
+    double* res = new double[half];
+    memset(res, 0, sizeof(double) * half);
+
+    double* u = new double[count];
+    memset(u, 0, sizeof(double) * count);
+
+    double* rhs = new double[count];
+    memset(rhs, 0, sizeof(double) * count);
+
+    for (int j = 1; j < N; j++)
+    {
+        for (int i = 1; i < N; i++)
+        {
+            u[j * (N+1) + i] = j * 100;// + i;
+            rhs[j * (N + 1) + i] = 0.;
+        }
+    }
+
+    compute_and_coarsen_residual(u, rhs, res, N, 1.f/256.f);
+
+    delete [] res;
+    delete [] u;
+    delete [] rhs;
+}
+
+/* Perform Jacobi iterations on u */
+void jacobi(double* u, double* rhs, int N, double hsq, int ssteps)
+{
+    int i, j, k;
+    /* Jacobi damping parameter -- plays an important role in MG */
+    double omega = 4. / 5.;
+    double* unew = (double*)malloc(sizeof(double) * (N + 1) * (N + 1));
+    for (i = 0; i < (N + 1) * (N + 1); ++i) {
+        unew[i] = 0.;
+    }
+    for (j = 0; j < ssteps; ++j) {
+        for (k = 1; k < N; k++) {
+            for (i = 1; i < N; i++) {
+                int idx = k * (N+1) + i;
+                unew[idx] = u[idx] + omega * 0.25 * (hsq * rhs[idx] + u[idx - 1] + u[idx + 1] + u[idx - N - 1 - 1] + u[idx + N + 1 + 1] - 4 * u[idx]);
+            }
+        }
+        memcpy(u, unew, (N + 1) * (N + 1) * sizeof(double));
+    }
+    free(unew);
+}
+
+
+void doit(Buf& mybuf)
+{
+    int i, j, Nfine, l, iter, max_iters, levels, ssteps = 3;
+    /*
+    if (argc < 3 || argc > 4) {
+        fprintf(stderr, "Usage: ./multigrid_1d Nfine maxiter [s-steps]\n");
+        fprintf(stderr, "Nfine: # of intervals, must be power of two number\n");
+        fprintf(stderr, "s-steps: # jacobi smoothing steps (optional, default is 3)\n");
+        abort();
+    }
+    sscanf(argv[1], "%d", &Nfine);
+    sscanf(argv[2], "%d", &max_iters);
+    if (argc > 3)
+        sscanf(argv[3], "%d", &ssteps);
+        */
+
+    Nfine = 256;
+    max_iters = 1;
+    ssteps = 3;
+
+    /* compute number of multigrid levels */
+    levels = floor(log2(Nfine));
+    printf("Multigrid Solve using V-cycles for -u'' = f on (0,1)\n");
+    printf("Number of intervals = %d, max_iters = %d\n", Nfine, max_iters);
+    printf("Number of MG levels: %d \n", levels);
+
+    
+
+    /* Allocation of vectors, including left and right bdry points */
+    double** u = new double*[levels], ** rhs = new double*[levels];
+    /* N, h*h and 1/(h*h) on each level */
+    int* N = (int*)malloc(sizeof(int) * levels);
+    double* invhsq = (double*)malloc(sizeof(double) * levels);
+    double* hsq = (double*)malloc(sizeof(double) * levels);
+    double* res = (double*)malloc(sizeof(double) * (Nfine + 1));
+    for (l = 0; l < levels; ++l) {
+        N[l] = Nfine / (int)pow(2, l);
+        double h = 1.0 / N[l];
+        hsq[l] = h * h;
+        printf("MG level %2d, N = %8d\n", l, N[l]);
+        invhsq[l] = 1.0 / hsq[l];
+        u[l] = (double*)malloc(sizeof(double) * (N[l] + 1) * (N[l] + 1));
+        for (int i = 0; i < N[l] + 1; ++i) {
+            u[l][i] = 0.;
+        }
+        rhs[l] = (double*)malloc(sizeof(double) * (N[l] + 1) * (N[l] + 1));
+    }
+    /* rhs on finest mesh */
+    for (i = 0; i <= N[0] * (N[0]+1); ++i) {
+        rhs[0][i] = 1.0;
+    }
+
+    for (j = 0; j <= N[0]; ++j) {
+        for (i = 0; i <= N[0]; ++i) {
+            u[0][j*(N[0] +1) + i] = 0.f;//mybuf.mBuffer[j * 256 + i];
+        }
+    }
+
+    for (j = 0; j < N[0]; ++j) {
+        for (i = 0; i < N[0]; ++i) {
+            u[0][j * (N[0] + 1) + i] = mybuf.mBuffer[j * 256 + i];
+        }
+    }
+
+
+    /* set boundary values (unnecessary if calloc is used) */
+    //u[0][0] = u[0][N[0]] = 0.0;
+
+    for (iter = 0; iter < max_iters; iter++) {
+        /* V-cycle: Coarsening */
+        for (l = 0; l < levels - 1; ++l) {
+            /* pre-smoothing and coarsen */
+            jacobi(u[l], rhs[l], N[l], hsq[l], ssteps);
+            compute_and_coarsen_residual(u[l], rhs[l], rhs[l + 1], N[l], invhsq[l]);
+            /* initialize correction for solution with zero */
+            set_zero(u[l + 1], N[l + 1]);
+        }
+        /* V-cycle: Solve on coarsest grid using many smoothing steps */
+        jacobi(u[levels - 1], rhs[levels - 1], N[levels - 1], hsq[levels - 1], 50);
+
+        /* V-cycle: Refine and correct */
+        for (l = levels - 1; l > 0; --l) {
+            /* refine and add to u */
+            refine_and_add(u[l], u[l - 1], N[l]);
+            /* post-smoothing steps */
+            jacobi(u[l - 1], rhs[l - 1], N[l - 1], hsq[l - 1], ssteps);
+        }
+    }
+
+    for (j = 0; j < N[0]; ++j) {
+        for (i = 0; i < N[0]; ++i) {
+            mybuf.mBuffer[j * 256 + i] = u[0][j * (N[0] + 1) + i];
+        }
+    }
+
+    /* Clean up */
+    free(hsq);
+    free(invhsq);
+    free(N);
+    free(res);
+    for (l = levels - 1; l >= 0; --l) {
+        free(u[l]);
+        free(rhs[l]);
+    }
+}
+
 void CPU::Tick()
 {
+    test_compute_and_coarsen_residual();
+
     Buf advectedVelocity(256, 2);
     Advect(mVelocity, mVelocity, advectedVelocity);
     mVelocity.mBuffer = advectedVelocity.mBuffer;
@@ -551,6 +796,9 @@ void CPU::Tick()
     int smoothIteration = 1;
     /////////////////////////////////////////////////////////////////////////////////////////
 
+
+    doit(divergence);
+#if 0
     Buf u(256, 1);
     Buf u2(128, 1);
 
@@ -577,17 +825,18 @@ void CPU::Tick()
     jacobi2(u, rhs, hsq, postSmoothIteration);
 #endif
     boundary(divergence);
-    jacobi2(divergence, rhs, hsq, 1000);
+    //jacobi2(divergence, rhs, hsq, 1000);
 
     /// <summary>
     /// //
     /// </summary>
     Buf newPressure(256, 1);
     newPressure.mBuffer = divergence.mBuffer;
+#endif
     /////////////////////////////////////////////////////////////////////////////////////////
 
     Buf newVelocity(256, 2);
-    Gradient(newPressure, mVelocity, newVelocity);
+    Gradient(divergence, mVelocity, newVelocity);
 
     mVelocity.mBuffer = newVelocity.mBuffer;
 
@@ -599,7 +848,7 @@ void CPU::Tick()
     }
   */
     static Buf display(256,1);
-    display.mBuffer = newPressure.mBuffer;
+    display.mBuffer = divergence.mBuffer;
 
     
     auto mem = bgfx::makeRef(display.mBuffer.data(), display.mBuffer.size() * sizeof(float));//, ReleaseBufFn, &display);
