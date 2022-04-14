@@ -541,16 +541,15 @@ void set_zero(double* u, int N) {
 */
 void coarsen(double* uf, double* uc, int N) {
     int ic, jc;
-    int idx = 0;
     memset(uc, 0, sizeof(double) * (N/2 + 1) * (N/2 + 1));
     for (jc = 1; jc < N / 2; ++jc)
     {
         for (ic = 1; ic < N / 2; ++ic)
         {
-            int index = jc * (N + 1) + ic;
-            uc[idx++] = 0.5 * uf[index] + 0.25 * (uf[index - 1] + uf[index + 1] + uf[index - N - 1] + uf[index + N + 1]);
+            int index = jc * (N + 1) + ic * 2;
+            int dst = jc * (N /2 + 1) + ic;
+            uc[dst] = 0.5 * uf[index] + 0.25 * (uf[index - 1] + uf[index + 1] + uf[index - N - 1] + uf[index + N + 1]);
         }
-        idx++;
     }
 }
 
@@ -586,7 +585,7 @@ void compute_residual(double* u, double* rhs, double* res, int N, double invhsq)
         for (i = 1; i < N; i++)
         {
             int index = j * (N + 1) + i;
-            res[index] = (rhs[index] - (4. * u[index] - u[index - 1] - u[index + 1] - u[index - N -1] - u[index + N + 1]) * invhsq);
+            res[index] = (rhs[index] - (4. * u[index] - u[index - 1] - u[index + 1] - u[index - N - 1] - u[index + N + 1]) * invhsq);
         }
     }
 
@@ -651,7 +650,7 @@ void jacobi(double* u, double* rhs, int N, double hsq, int ssteps)
         for (k = 1; k < N; k++) {
             for (i = 1; i < N; i++) {
                 int idx = k * (N+1) + i;
-                unew[idx] = u[idx] + omega * 0.25 * (hsq * rhs[idx] + u[idx - 1] + u[idx + 1] + u[idx - N - 1 - 1] + u[idx + N + 1 + 1] - 4 * u[idx]);
+                unew[idx] = u[idx] + omega * 0.25 * (hsq * rhs[idx] + u[idx - 1] + u[idx + 1] + u[idx - N - 1] + u[idx + N + 1] - 4 * u[idx]);
             }
         }
         memcpy(u, unew, (N + 1) * (N + 1) * sizeof(double));
@@ -678,7 +677,7 @@ void doit(Buf& mybuf)
 
     Nfine = 256;
     max_iters = 1;
-    ssteps = 3;
+    ssteps = 1;
 
     /* compute number of multigrid levels */
     levels = floor(log2(Nfine));
