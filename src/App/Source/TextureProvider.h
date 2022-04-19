@@ -5,11 +5,12 @@
 
 struct Texture
 {
-    Texture();
+    Texture(size_t size);
     bgfx::FrameBufferHandle m_renderTarget;
     //bgfx::TextureHandle m_texture;
     bgfx::TextureHandle GetTexture();
     PlugType::Enum m_type{PlugType::Invalid};
+    size_t m_size;
 };
 
 class TextureProvider
@@ -20,12 +21,12 @@ public:
     
     void Init()
     {
-        m_densityTexture = Acquire(PlugType::Particles);
-        m_velocityTexture = Acquire(PlugType::Velocity);
+        m_densityTexture = Acquire(PlugType::Particles, 256);
+        m_velocityTexture = Acquire(PlugType::Velocity, 256);
     }
     
     void TickFrame(bgfx::ViewId viewId);
-    Texture* Acquire(PlugType::Enum type);
+    Texture* Acquire(PlugType::Enum type, size_t size);
     void Release(Texture* texture);
     
     // persistent datas

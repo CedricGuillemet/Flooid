@@ -422,34 +422,6 @@ void CPU::Tick()
     Jacobi(newPressure, divergence, 50);
 */
     
-#if 0
-     good
-    int ssteps = 3;
-    Buf u0(256, 1);
-    Buf u1(128, 1);
-    Buf rhs0(256, 1);
-    rhs0.mBuffer = divergence.mBuffer;
-    Buf rhs1(128, 1);
-    
-    float hsq = 1.f;
-    Jacobi(u0, rhs0, 3, hsq);
-    compute_and_coarsen_residual(u0, rhs0, rhs1, hsq);
-          /* initialize correction for solution with zero */
-          //set_zero(u1);
-    u1.Set(0.f);
-        
-    /* V-cycle: Solve on coarsest grid using many smoothing steps */
-    hsq = 1.4142f;
-    Jacobi(u1, rhs1, 50, hsq);
-
-
-  /* refine and add to u */
-  refine_and_add(u1, u0);
-  /* post-smoothing steps */
-    hsq = 1.f;
-  Jacobi(u0, rhs0, ssteps, hsq);
-    
-#endif
     Buf u(256, 1);
     vcycle(divergence, u, u.mSize, 0, 2);
     
