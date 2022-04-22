@@ -285,18 +285,22 @@ private:
     
     void IterateJacobi(int iterationCount, TextureProvider& textureProvider, Texture* jacobi[2], Texture* divergence);
     void IterateJacobi(int iterationCount, TextureProvider& textureProvider, bgfx::FrameBufferHandle jacobi[2], bgfx::FrameBufferHandle divergence);
-    
-    static inline bgfx::FrameBufferHandle m_residual0{}, m_residual1{};
-    static inline bgfx::FrameBufferHandle m_downscale0{}, m_downscale1{};
-    
-    static inline bgfx::FrameBufferHandle m_jacobi[2], m_jacobi0[2], m_jacobi1[2];
-    
+        
     static inline bgfx::ProgramHandle m_downscaleCSProgram;
     static inline bgfx::ProgramHandle m_upscaleCSProgram;
     static inline bgfx::ProgramHandle m_residualCSProgram;
     
-    static inline bgfx::UniformHandle m_texInUniform;
-    static inline bgfx::UniformHandle m_texOutUniform;
+    static inline bgfx::UniformHandle m_texUUniform;
+    static inline bgfx::UniformHandle m_texRHSUniform;
+    static inline bgfx::UniformHandle m_invhsqUniform;
+    
+    void coarsen(TextureProvider& textureProvider, const Texture* uf, Texture* uc);
+    void refine_and_add(TextureProvider& textureProvider, const Texture* u, Texture* uf);
+    void compute_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* res, float hsq);
+    void compute_and_coarsen_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* resc, float hsq);
+    void vcycle(TextureProvider& textureProvider, const Texture* rhs, Texture* u, int fineSize, int level, int max);
+    void Jacobi(TextureProvider& textureProvider, Texture* u, const Texture* rhs, int iterationCount, float hsq);
+    void JacobiStep(TextureProvider& textureProvider, const Texture* source, const Texture* rhs, Texture* destination, float hsq);
     __NODE_TYPE
 };
 

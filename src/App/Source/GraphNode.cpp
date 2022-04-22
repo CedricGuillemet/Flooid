@@ -129,30 +129,15 @@ void Solver::Init()
     
     // V cycle
     const auto texFormat = bgfx::TextureFormat::RGBA16F;
-    m_residual0 = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_residual1 = bgfx::createFrameBuffer(TEX_SIZE / 2, TEX_SIZE / 2, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    
-    m_downscale0 = bgfx::createFrameBuffer(TEX_SIZE/ 2, TEX_SIZE / 2, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_downscale1 = bgfx::createFrameBuffer(TEX_SIZE / 4, TEX_SIZE / 4, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    
-
-    m_jacobi[0] = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_jacobi[1] = bgfx::createFrameBuffer(TEX_SIZE, TEX_SIZE, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-
-    m_jacobi0[0] = bgfx::createFrameBuffer(TEX_SIZE/2, TEX_SIZE/2, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_jacobi0[1] = bgfx::createFrameBuffer(TEX_SIZE/2, TEX_SIZE/2, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_jacobi1[0] = bgfx::createFrameBuffer(TEX_SIZE/4, TEX_SIZE/4, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    m_jacobi1[1] = bgfx::createFrameBuffer(TEX_SIZE/4, TEX_SIZE/4, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
-    
     
     m_downscaleCSProgram = App::LoadProgram("Downscale_cs", nullptr);
     m_upscaleCSProgram = App::LoadProgram("Upscale_cs", nullptr);
     m_residualCSProgram = App::LoadProgram("Residual_cs", nullptr);
     
-    m_texInUniform = bgfx::createUniform("s_texIn", bgfx::UniformType::Sampler);
-    m_texOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler);
-
-
+    m_texUUniform = bgfx::createUniform("s_texU", bgfx::UniformType::Sampler);
+    m_texRHSUniform = bgfx::createUniform("s_texRHS", bgfx::UniformType::Sampler);
+    
+    m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
     
     GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
     _nodeType = GraphNode::_runtimeType++;
@@ -195,6 +180,206 @@ void Solver::IterateJacobi(int iterationCount, TextureProvider& textureProvider,
         bgfx::setImage(2, bgfx::getTexture(jacobi[indexDestination]), 0, bgfx::Access::Write);
         bgfx::dispatch(textureProvider.GetViewId(), m_jacobiCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     }
+}
+
+
+void Solver::JacobiStep(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* destination, float hsq)
+{
+/*    assert(source.mComponentCount == 1);
+    //assert(divergence.mComponentCount == 1);
+    assert(destination.mComponentCount == 1);
+    //assert(source.mSize == divergence.mSize);
+    assert(source.mSize == destination.mSize);
+    
+    for (int y = 1; y < source.mSize - 1; y++)
+    {
+        for (int x = 1; x < source.mSize - 1; x++)
+        {
+            int index = (y * source.mSize + x);
+
+            const float omega = 4.f / 5.f;
+            //float hsq = 1.f / 128.f;
+            //hsq *= hsq;
+            float value = source.mBuffer[index] + omega * 0.25f * (-hsq * rhs.mBuffer[index] +
+                source.mBuffer[index - 1] +
+                source.mBuffer[index + 1] +
+                source.mBuffer[index - source.mSize] +
+                source.mBuffer[index + source.mSize] -
+                4.f * source.mBuffer[index]
+            );
+            float* pd = &destination.mBuffer[index];
+            pd[0] = value;
+        }
+    }*/
+    
+    bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texRHSUniform, rhs->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(2, destination->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_jacobiCSProgram, destination->m_size / 16, destination->m_size / 16);
+
+}
+
+void Solver::Jacobi(TextureProvider& textureProvider, Texture* u, const Texture* rhs, int iterationCount, float hsq)
+{
+    /*assert(u.mComponentCount == 1);
+    assert(rhs.mComponentCount == 1);
+
+    Buf jacobiBuf(u.mSize, 1);
+    
+    Buf* jacobis[2] = {&u, &jacobiBuf};
+    iterationCount &= ~1;
+    for (int i = 0; i < iterationCount; i++)
+    {
+        const int indexSource = i & 1;
+        const int indexDestination = (i + 1) & 1;
+
+        JacobiStep(*jacobis[indexSource], rhs, *jacobis[indexDestination], hsq);
+    }*/
+    
+    float jacobiParameters[4] = { hsq, 0.f, 0.f, 0.f };
+    bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
+
+    
+    Texture* jacobiBuf = textureProvider.Acquire(PlugType::Any, u->m_size);
+    
+    Texture* jacobis[2] = {u, jacobiBuf};
+    iterationCount &= ~1;
+    for (int i = 0; i < iterationCount; i++)
+    {
+        const int indexSource = i & 1;
+        const int indexDestination = (i + 1) & 1;
+
+        JacobiStep(textureProvider, jacobis[indexSource], rhs, jacobis[indexDestination], hsq);
+    }
+    textureProvider.Release(jacobiBuf);
+}
+
+void Solver::coarsen(TextureProvider& textureProvider, const Texture* uf, Texture* uc)
+{
+    /*assert(uf.mSize == uc.mSize * 2);
+    for (int jc = 1; jc < uc.mSize; jc++)
+    {
+      for (int ic = 1; ic < uc.mSize; ic++)
+      {
+          int indexDst = jc * uc.mSize + ic;
+          int indexSrc = jc * 2 * uf.mSize + ic * 2;
+          uc.mBuffer[indexDst] = 0.5 * uf.mBuffer[indexSrc] + 0.25 * (uf.mBuffer[indexSrc - 1] +
+                                                                       uf.mBuffer[indexSrc + 1] +
+                                                                       uf.mBuffer[indexSrc - uf.mSize] +
+                                                                       uf.mBuffer[indexSrc + uf.mSize])
+          
+          + 0.125 * (uf.mBuffer[indexSrc - 1 - uf.mSize] +
+                                                                      uf.mBuffer[indexSrc + 1 - uf.mSize] +
+                                                                      uf.mBuffer[indexSrc - 1 + uf.mSize] +
+                                                                      uf.mBuffer[indexSrc + 1 + uf.mSize])
+          ;
+      }
+    }*/
+    bgfx::setTexture(0, m_texUUniform, uf->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP| BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(1, uc->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_downscaleCSProgram, uf->m_size / 16, uf->m_size / 16);
+
+}
+
+void Solver::refine_and_add(TextureProvider& textureProvider, const Texture* u, Texture* uf)
+{
+    /*for (int jc = 1; jc < u.mSize; jc++)
+    {
+      for (int ic = 1; ic < u.mSize; ic++)
+      {
+          int indexSrc = jc * u.mSize + ic;
+          int indexDst = jc * 2 * uf.mSize + ic * 2;
+
+          int dx =(ic >= u.mSize-1) ? 0 : 1;
+          int dy =(jc >= u.mSize-1) ? 0 : 1;
+          float v00 = u.mBuffer[indexSrc];
+          float v01 = u.mBuffer[indexSrc + dx];
+          float v10 = u.mBuffer[indexSrc + dy * u.mSize];
+          float v11 = u.mBuffer[indexSrc + dy * u.mSize + dx];
+          
+          uf.mBuffer[indexDst] += v00;
+          uf.mBuffer[indexDst+1] += (v00 + v01) * 0.5;
+          uf.mBuffer[indexDst+uf.mSize] += (v00 + v10) * 0.5;
+          uf.mBuffer[indexDst+uf.mSize+1] += (v00 + v01 + v10 + v11) * 0.25;
+      }
+    }*/
+    bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+    bgfx::setImage(1, uf->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_upscaleCSProgram, uf->m_size / 16, uf->m_size / 16);
+}
+
+void Solver::compute_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* res, float hsq)
+{
+    /*const float invhsq = 1.f / hsq;
+    for (int jc = 1; jc < u.mSize; jc++)
+    {
+      for (int ic = 1; ic < u.mSize; ic++)
+      {
+          int index = jc * u.mSize + ic;
+          int dx =(ic >= u.mSize-1) ? 0 : 1;
+          int dy =(jc >= u.mSize-1) ? 0 : 1;
+
+          res.mBuffer[index] = rhs.mBuffer[index] - (
+                                                     4. * u.mBuffer[index]
+                                                     - u.mBuffer[index - dx]
+                                                     - u.mBuffer[index + dx]
+                                                     - u.mBuffer[index - dy * u.mSize]
+                                                     - u.mBuffer[index + dy * u.mSize]
+                                                     ) * invhsq;
+      }
+    }*/
+    
+    float invhsq[4] = { 1.f / hsq, 0.f, 0.f, 0.f };
+    bgfx::setUniform(m_invhsqUniform, invhsq);
+
+    
+    bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texRHSUniform, rhs->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(2, res->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_residualCSProgram, res->m_size / 16, res->m_size / 16);
+
+}
+
+void Solver::compute_and_coarsen_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* resc, float hsq)
+{
+    //Buf resf(u.mSize, 1);
+    Texture* resf = textureProvider.Acquire(PlugType::Any, u->m_size);
+    //resf.Set(0.f);
+    compute_residual(textureProvider, u, rhs, resf, hsq);
+    coarsen(textureProvider, resf, resc);
+    textureProvider.Release(resf);
+}
+
+void Solver::vcycle(TextureProvider& textureProvider, const Texture* rhs, Texture* u, int fineSize, int level, int max)
+{
+    int ssteps = 4;
+    float hsq = level+1;//sqrtf((level+1)*2);
+    
+    if (level == max)
+    {
+        Jacobi(textureProvider, u, rhs, 50, hsq);
+        return;
+    }
+    
+    int sizeNext = fineSize / powf(2.f, level+1);
+    
+    //Buf rhsNext(sizeNext, 1);
+    //Buf uNext(sizeNext, 1);
+    Texture* rhsNext = textureProvider.Acquire(PlugType::Any, sizeNext);
+    Texture* uNext = textureProvider.Acquire(PlugType::Any, sizeNext);
+    
+    Jacobi(textureProvider, u, rhs, ssteps, hsq);
+    compute_and_coarsen_residual(textureProvider, u, rhs, rhsNext, hsq);
+    //uNext.Set(0.f);
+    bgfx::setImage(0, uNext->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, sizeNext / 16, sizeNext / 16);
+
+    
+    vcycle(textureProvider, rhsNext, uNext, fineSize, level+1, max);
+    textureProvider.Release(rhsNext);
+    refine_and_add(textureProvider, uNext, u);
+    textureProvider.Release(uNext);
+    Jacobi(textureProvider, u, rhs, ssteps, hsq);
 }
 
 void Solver::Tick(TextureProvider& textureProvider)
@@ -243,80 +428,29 @@ void Solver::Tick(TextureProvider& textureProvider)
     bgfx::setImage(1, divergence->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_divergenceCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
-    // clear jacobi
-    Texture* jacobi[2] = { textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE) };
-    bgfx::setImage(0, jacobi[0]->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    /*
-    int presmoothIterationCount = 3;
-    int iterationCount = 10;
-    int postsmoothIterationCount = 3;
     
-    // pre smooth 0
-    bgfx::setImage(0, bgfx::getTexture(m_jacobi[0]), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    IterateJacobi(presmoothIterationCount, textureProvider, m_jacobi, divergence->m_renderTarget);
     
-    // residual 0
-    bgfx::setTexture(0, m_texInUniform, divergence->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, bgfx::getTexture(m_residual0), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_residualCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     
-    // downscale residual 0
-    bgfx::setTexture(0, m_texInUniform, bgfx::getTexture(m_residual0), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, bgfx::getTexture(m_downscale0), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_downscaleCSProgram, TEX_SIZE / 32, TEX_SIZE / 32);
-
-    // jacobi 1
-    bgfx::setImage(0, bgfx::getTexture(m_jacobi0[0]), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    IterateJacobi(presmoothIterationCount, textureProvider, m_jacobi0, m_downscale0);
     
-    // residual 1
-    bgfx::setTexture(0, m_texInUniform, bgfx::getTexture(m_jacobi0[presmoothIterationCount&1]), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, bgfx::getTexture(m_residual1), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_residualCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
     
-    // downscale 1
-    bgfx::setTexture(0, m_texInUniform, bgfx::getTexture(m_residual0), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, bgfx::getTexture(m_downscale0), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_downscaleCSProgram, TEX_SIZE / 32, TEX_SIZE / 32);
-
-    // solve
-    bgfx::setImage(0, bgfx::getTexture(jacobi[0]), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    IterateJacobi(presmoothIterationCount, textureProvider, jacobi, divergence->m_renderTarget);
+    Texture* u = textureProvider.Acquire(PlugType::Any, 256);
+    vcycle(textureProvider, divergence, u, 256, 0, 0);
     
-    // upscale 1
-    bgfx::setTexture(0, m_texInUniform, bgfx::getTexture(m_residual0), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setImage(1, bgfx::getTexture(m_downscale0), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_downscaleCSProgram, TEX_SIZE / 32, TEX_SIZE / 32);
-*/
-    // jacobi
-    /*for (int i = 0; i < m_iterationCount; i++)
-    {
-        const int indexSource = i & 1;
-        const int indexDestination = (i + 1) & 1;
-
-        bgfx::setTexture(0, m_texJacoviUniform, jacobi[indexSource]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setTexture(1, m_texDivergenceUniform, divergence->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-        bgfx::setImage(2, jacobi[indexDestination]->GetTexture(), 0, bgfx::Access::Write);
-        bgfx::dispatch(textureProvider.GetViewId(), m_jacobiCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-    }*/
-    IterateJacobi(m_iterationCount, textureProvider, jacobi, divergence);
-    
-    const int lastJacobiIndex = m_iterationCount & 1;
     textureProvider.Release(divergence);
-
+    
+    
+    
+    
+    
     // gradient
     Texture* outputVelocity = textureProvider.Acquire(PlugType::Velocity, TEX_SIZE);
-    bgfx::setTexture(0, m_texPressureUniform, jacobi[lastJacobiIndex]->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(0, m_texPressureUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, outputVelocity->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
-    textureProvider.Release(jacobi[0]);
-    textureProvider.Release(jacobi[1]);
+    textureProvider.Release(u);
+    //textureProvider.Release(jacobi[1]);
     textureProvider.Release(velocity);
 
     // swap

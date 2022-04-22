@@ -317,7 +317,7 @@ void main()
     */
 
     
-    float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x * 0.2 + 0.5;
+    float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;// * 0.2 + 0.5;
     gl_FragColor = vec4(accum, accum, accum, 1.);
     /*
     vec2 accum = texture2D(s_texDensity, v_positionWorld.xy, 0).xy * 1. + 0.5;

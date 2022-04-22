@@ -251,21 +251,17 @@ void Jacobi(Buf& u, const Buf& rhs, int iterationCount, float hsq)
     assert(u.mComponentCount == 1);
     assert(rhs.mComponentCount == 1);
 
-    Buf jacobi0(u.mSize, 1);
-    Buf jacobi1(u.mSize, 1);
+    Buf jacobiBuf(u.mSize, 1);
     
-    jacobi0.mBuffer = u.mBuffer;
-
-    Buf* jacobi[2] = {&jacobi0, &jacobi1};
+    Buf* jacobis[2] = {&u, &jacobiBuf};
+    iterationCount &= ~1;
     for (int i = 0; i < iterationCount; i++)
     {
         const int indexSource = i & 1;
         const int indexDestination = (i + 1) & 1;
 
-        JacobiStep(*jacobi[indexSource], rhs, *jacobi[indexDestination], hsq);
+        JacobiStep(*jacobis[indexSource], rhs, *jacobis[indexDestination], hsq);
     }
-    const int lastJacobiIndex = iterationCount & 1;
-    u.mBuffer = jacobi[lastJacobiIndex]->mBuffer;
 }
 
 
@@ -423,7 +419,7 @@ void CPU::Tick()
 */
     
     Buf u(256, 1);
-    vcycle(divergence, u, u.mSize, 0, 2);
+    vcycle(divergence, u, u.mSize, 0, 0);
     
     ///
     Buf newVelocity(256, 2);

@@ -8,7 +8,7 @@ struct Texture
     Texture(size_t size);
     bgfx::FrameBufferHandle m_renderTarget;
     //bgfx::TextureHandle m_texture;
-    bgfx::TextureHandle GetTexture();
+    bgfx::TextureHandle GetTexture() const;
     PlugType::Enum m_type{PlugType::Invalid};
     size_t m_size;
 };

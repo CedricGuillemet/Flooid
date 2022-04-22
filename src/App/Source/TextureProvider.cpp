@@ -10,7 +10,7 @@ Texture::Texture(size_t size)
     //m_texture = bgfx::createTexture3D(TEX_SIZE, TEX_SIZE, TEX_SIZE, false, texFormat, BGFX_TEXTURE_COMPUTE_WRITE);
 }
 
-bgfx::TextureHandle Texture::GetTexture()
+bgfx::TextureHandle Texture::GetTexture() const
 {
     return bgfx::getTexture(m_renderTarget);
     //return m_texture;

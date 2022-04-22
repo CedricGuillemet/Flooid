@@ -47,12 +47,13 @@ void main()
 
 	float omega = 4.f / 5.f;
 	
-	vec4 value = texelFetch(s_texU, coord, 0) + omega * 0.25f * (-jacobiParameters.x/*hsq*/ * texelFetch(s_texRHS, coord, 0)
+    vec4 u = texelFetch(s_texU, coord, 0);
+	vec4 value = u + omega * 0.25f * (-jacobiParameters.x * texelFetch(s_texRHS, coord, 0)
 		+ texelFetch(s_texU, coord - dx, 0) +
 		+ texelFetch(s_texU, coord + dx, 0) +
 		+ texelFetch(s_texU, coord - dy, 0) +
 		+ texelFetch(s_texU, coord + dy, 0) 
-		- 4.f * texelFetch(s_texU, coord, 0)
+		- 4.f * u
 	);
 
 	imageStore(s_Out, coord, value);
