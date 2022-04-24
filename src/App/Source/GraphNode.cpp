@@ -406,7 +406,7 @@ void Solver::Tick(TextureProvider& textureProvider)
     textureProvider.m_densityTexture = newParticles;
 
     velocity = newVelocity;
-
+/*
     if (m_vorticityEnable)
     {
         float epsilon[4] = { m_epsilon, 0.f, 0.f, 0.f };
@@ -427,7 +427,7 @@ void Solver::Tick(TextureProvider& textureProvider)
         textureProvider.Release(vorticity);
         textureProvider.Release(velocity);
         velocity = vorticityForce;
-    }
+    }*/
     // divergence
     Texture* divergence = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     bgfx::setTexture(0, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);

@@ -367,7 +367,7 @@ void vcycle(const Buf& rhs, Buf& u, int fineSize, int level, int max)
     
     if (level == max)
     {
-        Jacobi(u, rhs, 2, hsq);
+        Jacobi(u, rhs, 50, hsq);
         return;
     }
     
@@ -401,7 +401,7 @@ void CPU::Tick()
 
     //Buf* divergence = &divergence_;
     Divergence(mVelocity, divergence);
-    boundary(divergence);
+    //boundary(divergence);
     /// <summary>
     /// 
     /// </summary>
