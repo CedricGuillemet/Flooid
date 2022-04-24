@@ -363,7 +363,7 @@ void Solver::vcycle(TextureProvider& textureProvider, const Texture* rhs, Textur
     
     if (level == max)
     {
-        Jacobi(textureProvider, u, rhs, 2, hsq);
+        Jacobi(textureProvider, u, rhs, 50, hsq);
         return;
     }
     
