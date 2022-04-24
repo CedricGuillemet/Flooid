@@ -34,4 +34,7 @@ struct CPU
 
     Buf mDensity;
     Buf mVelocity;
+    
+    bgfx::ProgramHandle m_gradientCSProgram;
+    bgfx::FrameBufferHandle m_renderTarget;
 };

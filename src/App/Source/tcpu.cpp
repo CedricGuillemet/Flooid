@@ -1,6 +1,7 @@
 #include "Immath.h"
 #include "tcpu.h"
 #include <assert.h>
+#include "Shaders.h"
 
 #define FULL
 CPU::CPU()
@@ -172,6 +173,10 @@ void Advect(Buf& source, Buf& velocity, Buf& destination)
             float* pv = &velocity.mBuffer[index];
 
             const float scale = 1.f;
+            if (fabsf(pv[0]) > FLT_EPSILON || fabsf(pv[1]) > FLT_EPSILON)
+            {
+                int a = 1;
+            }
             float px = x - pv[0] * scale;
             float py = y - pv[1] * scale;
 
@@ -344,7 +349,11 @@ void CPU::Init()
 
 
     FillDensity(mDensity);
-    (mVelocity);
+    FillVelocity(mVelocity);
+    
+    m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
+    
+    m_renderTarget = bgfx::createFrameBuffer(size, size, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
 }
 
 void boundary(Buf& buffer)
@@ -367,7 +376,7 @@ void vcycle(const Buf& rhs, Buf& u, int fineSize, int level, int max)
     
     if (level == max)
     {
-        Jacobi(u, rhs, 50, hsq);
+        Jacobi(u, rhs, 100, hsq);
         return;
     }
     
@@ -401,7 +410,7 @@ void CPU::Tick()
 
     //Buf* divergence = &divergence_;
     Divergence(mVelocity, divergence);
-    //boundary(divergence);
+    boundary(divergence);
     /// <summary>
     /// 
     /// </summary>
@@ -436,4 +445,11 @@ void CPU::Tick()
     
     auto mem = bgfx::makeRef(display.mBuffer.data(), display.mBuffer.size() * sizeof(float));//, ReleaseBufFn, &display);
     bgfx::updateTexture2D(mTexture, 0,0,0,0, display.mSize, display.mSize,mem);
+    
+    
+    bgfx::setTexture(0, m_texPressureUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(2, outputVelocity->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
 }
