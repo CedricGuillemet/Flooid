@@ -136,8 +136,9 @@ void Solver::Init()
     
     m_texUUniform = bgfx::createUniform("s_texU", bgfx::UniformType::Sampler);
     m_texRHSUniform = bgfx::createUniform("s_texRHS", bgfx::UniformType::Sampler);
-    
+
     m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
+    m_fineTexSizeUniform = bgfx::createUniform("fineTexSize", bgfx::UniformType::Vec4);
     
     GraphEditorDelegate::mTemplateFunctions.push_back(GetTemplate);
     _nodeType = GraphNode::_runtimeType++;
@@ -303,8 +304,13 @@ void Solver::refine_and_add(TextureProvider& textureProvider, const Texture* u, 
           uf.mBuffer[indexDst+uf.mSize+1] += (v00 + v01 + v10 + v11) * 0.25;
       }
     }*/
+    
+    float refineParameters[4] = { static_cast<float>(uf->m_size), 0.f, 0.f, 0.f };
+    bgfx::setUniform(m_fineTexSizeUniform, refineParameters);
+
+    
     bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-    bgfx::setImage(1, uf->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::setImage(1, uf->GetTexture(), 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), m_upscaleCSProgram, uf->m_size / 16, uf->m_size / 16);
 }
 
@@ -357,7 +363,7 @@ void Solver::vcycle(TextureProvider& textureProvider, const Texture* rhs, Textur
     
     if (level == max)
     {
-        Jacobi(textureProvider, u, rhs, 50, hsq);
+        Jacobi(textureProvider, u, rhs, 2, hsq);
         return;
     }
     

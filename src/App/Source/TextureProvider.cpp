@@ -5,7 +5,7 @@ const int TEX_SIZE = 256;
 Texture::Texture(size_t size)
     : m_size(size)
 {
-    const auto texFormat = bgfx::TextureFormat::RGBA16F;
+    const auto texFormat = bgfx::TextureFormat::RGBA32F;
     m_renderTarget = bgfx::createFrameBuffer(size, size, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
     //m_texture = bgfx::createTexture3D(TEX_SIZE, TEX_SIZE, TEX_SIZE, false, texFormat, BGFX_TEXTURE_COMPUTE_WRITE);
 }

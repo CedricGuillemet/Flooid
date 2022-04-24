@@ -9,9 +9,9 @@ void main()
 {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
 
-    vec2 uv = gl_GlobalInvocationID.xy / fineTexSize;
+    vec2 uv = gl_GlobalInvocationID.xy / fineTexSize.x;
 
-    vec4 v = texture2DLod(s_texU, uv + 0.5 / fineTexSize, 0);
+    vec4 v = texture2DLod(s_texU, uv + 1.0 / fineTexSize.x, 0);
 
     vec4 color = imageLoad(s_texOut, coord);
     color += v;

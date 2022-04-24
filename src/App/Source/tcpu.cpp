@@ -172,10 +172,6 @@ void Advect(Buf& source, Buf& velocity, Buf& destination)
             float* pv = &velocity.mBuffer[index];
 
             const float scale = 1.f;
-            if (fabsf(pv[0]) > FLT_EPSILON || fabsf(pv[1]) > FLT_EPSILON)
-            {
-                int a = 1;
-            }
             float px = x - pv[0] * scale;
             float py = y - pv[1] * scale;
 
@@ -348,7 +344,7 @@ void CPU::Init()
 
 
     FillDensity(mDensity);
-    FillVelocity(mVelocity);
+    (mVelocity);
 }
 
 void boundary(Buf& buffer)
@@ -371,7 +367,7 @@ void vcycle(const Buf& rhs, Buf& u, int fineSize, int level, int max)
     
     if (level == max)
     {
-        Jacobi(u, rhs, 50, hsq);
+        Jacobi(u, rhs, 2, hsq);
         return;
     }
     

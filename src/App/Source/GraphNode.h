@@ -293,6 +293,7 @@ private:
     static inline bgfx::UniformHandle m_texUUniform;
     static inline bgfx::UniformHandle m_texRHSUniform;
     static inline bgfx::UniformHandle m_invhsqUniform;
+    static inline bgfx::UniformHandle m_fineTexSizeUniform;
     
     void coarsen(TextureProvider& textureProvider, const Texture* uf, Texture* uc);
     void refine_and_add(TextureProvider& textureProvider, const Texture* u, Texture* uf);
