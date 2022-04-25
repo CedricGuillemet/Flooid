@@ -24,11 +24,11 @@ void main()
 
     
 	float dist = -(length(position.xy - p) - position.w);
-    float linDistance = length(position.xy - p);
+    float linDistance = length(position.xy - p) - position.w;
     //float strength = step(0., position.w - linDistance);
 	//vec4 value = direction * max(dist, 0.);
     vec4 value = vec4(0.,0.,0.,0.);
-    if (linDistance > 0.001) {
+    if (linDistance < -0.001) {
         value = vec4(0., 0.0014, 0., 0.);// * max(dist, 0.);
         }
 

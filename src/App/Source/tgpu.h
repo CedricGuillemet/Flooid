@@ -11,7 +11,7 @@ public:
     TGPU();
 
     void Init(TextureProvider& textureProvider);
-    void Tick();
+    void Tick(TextureProvider& textureProvider);
 
     bgfx::ProgramHandle m_downscaleCSProgram;
     bgfx::ProgramHandle m_upscaleCSProgram;
@@ -51,5 +51,15 @@ public:
 
 
     bgfx::UniformHandle m_texVelocityUniform;
-
+    
+    
+    
+    //
+    void DensityGen(TextureProvider& textureProvider);
+    void VelocityGen(TextureProvider& textureProvider);
+    
+    void Advect(TextureProvider& textureProvider, Texture* source, Texture* velocity, Texture* output);
+    void Gradient(TextureProvider& textureProvider, Texture* u, Texture* velocity, Texture* destination);
+    void Divergence(TextureProvider& textureProvider, Texture* velocity, Texture* destination);
+    void Jacobi(TextureProvider& textureProvider, Texture* jacobi[2], Texture* rhs, int iterationCount);
 };

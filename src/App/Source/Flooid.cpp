@@ -150,10 +150,11 @@ void Flooid::Tick(const Parameters& parameters)
     else
     */
 
-    mGPU.Tick();
-    {
-        m_renderer.Render(m_textureProvider, mGPU.m_densityTexture, nullptr);
-    }
+    m_textureProvider.TickFrame(6);
+    m_renderer.Render(m_textureProvider, mGPU.m_densityTexture, nullptr);
+    mGPU.Tick(m_textureProvider);
+    
+    
 }
 
 void Flooid::UI()
