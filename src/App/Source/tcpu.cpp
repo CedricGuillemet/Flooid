@@ -2,11 +2,12 @@
 #include "tcpu.h"
 #include <assert.h>
 #include "Shaders.h"
+#include "TextureProvider.h"
 
-#define FULL
+
 CPU::CPU()
-    : mDensity(256, 1)
-    , mVelocity(256, 2)
+    //: mDensity(256, 1)
+    //, mVelocity(256, 2)
 {}
 
 float length(float x, float y)
@@ -217,7 +218,99 @@ void Gradient(Buf& pressure, Buf& velocity, Buf& destination)
     }
 }
 
-void JacobiStep(const Buf& source, const Buf& rhs, Buf& destination, float hsq)
+
+
+void coarsen(const Buf& uf, Buf& uc)
+{
+    assert(uf.mSize == uc.mSize * 2);
+    for (int jc = 1; jc < uc.mSize; jc++)
+    {
+        for (int ic = 1; ic < uc.mSize; ic++)
+        {
+            int indexDst = jc * uc.mSize + ic;
+            int indexSrc = jc * 2 * uf.mSize + ic * 2;
+            uc.mBuffer[indexDst] = 0.5 * uf.mBuffer[indexSrc] + 0.25 * (uf.mBuffer[indexSrc - 1] +
+                uf.mBuffer[indexSrc + 1] +
+                uf.mBuffer[indexSrc - uf.mSize] +
+                uf.mBuffer[indexSrc + uf.mSize])
+
+                + 0.125 * (uf.mBuffer[indexSrc - 1 - uf.mSize] +
+                    uf.mBuffer[indexSrc + 1 - uf.mSize] +
+                    uf.mBuffer[indexSrc - 1 + uf.mSize] +
+                    uf.mBuffer[indexSrc + 1 + uf.mSize])
+                ;
+        }
+    }
+}
+
+void refine_and_add(const Buf& u, Buf& uf)
+{
+    for (int jc = 1; jc < u.mSize; jc++)
+    {
+        for (int ic = 1; ic < u.mSize; ic++)
+        {
+            int indexSrc = jc * u.mSize + ic;
+            int indexDst = jc * 2 * uf.mSize + ic * 2;
+
+            int dx = (ic >= u.mSize - 1) ? 0 : 1;
+            int dy = (jc >= u.mSize - 1) ? 0 : 1;
+            float v00 = u.mBuffer[indexSrc];
+            float v01 = u.mBuffer[indexSrc + dx];
+            float v10 = u.mBuffer[indexSrc + dy * u.mSize];
+            float v11 = u.mBuffer[indexSrc + dy * u.mSize + dx];
+
+            uf.mBuffer[indexDst] += v00;
+            uf.mBuffer[indexDst + 1] += (v00 + v01) * 0.5;
+            uf.mBuffer[indexDst + uf.mSize] += (v00 + v10) * 0.5;
+            uf.mBuffer[indexDst + uf.mSize + 1] += (v00 + v01 + v10 + v11) * 0.25;
+        }
+    }
+}
+
+void compute_residual(const Buf& u, const Buf& rhs, Buf& res, float hsq)
+{
+    const float invhsq = 1.f / hsq;
+    for (int jc = 1; jc < u.mSize; jc++)
+    {
+        for (int ic = 1; ic < u.mSize; ic++)
+        {
+            int index = jc * u.mSize + ic;
+            int dx = (ic >= u.mSize - 1) ? 0 : 1;
+            int dy = (jc >= u.mSize - 1) ? 0 : 1;
+
+            res.mBuffer[index] = rhs.mBuffer[index] - (
+                4. * u.mBuffer[index]
+                - u.mBuffer[index - dx]
+                - u.mBuffer[index + dx]
+                - u.mBuffer[index - dy * u.mSize]
+                - u.mBuffer[index + dy * u.mSize]
+                ) * invhsq;
+        }
+    }
+}
+
+void compute_and_coarsen_residual(const Buf& u, const Buf& rhs, Buf& resc, float hsq)
+{
+    Buf resf(u.mSize, 1);
+    resf.Set(0.f);
+    compute_residual(u, rhs, resf, hsq);
+    coarsen(resf, resc);
+}
+
+void boundary(Buf& buffer)
+{
+    float* ptr = buffer.mBuffer.data();
+    int n = buffer.mSize;
+    for (int i = 0; i < n; i++)
+    {
+        ptr[i] = 0.f;
+        ptr[n * n - 1 - i] = 0.f;
+        ptr[i * n] = 0.f;
+        ptr[i * n + n - 1] = 0.f;
+    }
+}
+
+void _JacobiStep(const Buf& source, const Buf& rhs, Buf& destination, float hsq)
 {
     assert(source.mComponentCount == 1);
     //assert(divergence.mComponentCount == 1);
@@ -247,12 +340,52 @@ void JacobiStep(const Buf& source, const Buf& rhs, Buf& destination, float hsq)
     }
 }
 
-void Jacobi(Buf& u, const Buf& rhs, int iterationCount, float hsq)
+void CPU::JacobiStep(TextureProvider& textureProvider, const Buf& source, const Buf& rhs, Buf& destination, float hsq)
+{
+    assert(source.mComponentCount == 1);
+    //assert(divergence.mComponentCount == 1);
+    assert(destination.mComponentCount == 1);
+    //assert(source.mSize == divergence.mSize);
+    assert(source.mSize == destination.mSize);
+    /*
+    for (int y = 1; y < source.mSize - 1; y++)
+    {
+        for (int x = 1; x < source.mSize - 1; x++)
+        {
+            int index = (y * source.mSize + x);
+
+            const float omega = 4.f / 5.f;
+            //float hsq = 1.f / 128.f;
+            //hsq *= hsq;
+            float value = source.mBuffer[index] + omega * 0.25f * (-hsq * rhs.mBuffer[index] +
+                source.mBuffer[index - 1] +
+                source.mBuffer[index + 1] +
+                source.mBuffer[index - source.mSize] +
+                source.mBuffer[index + source.mSize] -
+                4.f * source.mBuffer[index]
+                );
+            float* pd = &destination.mBuffer[index];
+            pd[0] = value;
+        }
+    }
+    */
+
+    bgfx::setTexture(0, m_texUUniform, bgfx::getTexture(source.m_renderTarget), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texRHSUniform, rhs.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setImage(2, bgfx::getTexture(destination.m_renderTarget), 0, bgfx::Access::Write);
+    auto TEX_SIZE = 256;
+    bgfx::dispatch(textureProvider.GetViewId(), m_jacobiCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+}
+
+void CPU::Jacobi(TextureProvider& textureProvider, Buf& u, const Buf& rhs, int iterationCount, float hsq)
 {
     assert(u.mComponentCount == 1);
     assert(rhs.mComponentCount == 1);
 
-    Buf jacobiBuf(u.mSize, 1);
+    static Buf jacobiBuf(u.mSize, 1);
+
+    u.InitRT();
+    jacobiBuf.InitRT();
     
     Buf* jacobis[2] = {&u, &jacobiBuf};
     iterationCount &= ~1;
@@ -261,122 +394,39 @@ void Jacobi(Buf& u, const Buf& rhs, int iterationCount, float hsq)
         const int indexSource = i & 1;
         const int indexDestination = (i + 1) & 1;
 
-        JacobiStep(*jacobis[indexSource], rhs, *jacobis[indexDestination], hsq);
+        JacobiStep(textureProvider, *jacobis[indexSource], rhs, *jacobis[indexDestination], hsq);
     }
 }
 
-
-void coarsen(const Buf& uf, Buf& uc)
-{
-    assert(uf.mSize == uc.mSize * 2);
-    for (int jc = 1; jc < uc.mSize; jc++)
-    {
-      for (int ic = 1; ic < uc.mSize; ic++)
-      {
-          int indexDst = jc * uc.mSize + ic;
-          int indexSrc = jc * 2 * uf.mSize + ic * 2;
-          uc.mBuffer[indexDst] = 0.5 * uf.mBuffer[indexSrc] + 0.25 * (uf.mBuffer[indexSrc - 1] +
-                                                                       uf.mBuffer[indexSrc + 1] +
-                                                                       uf.mBuffer[indexSrc - uf.mSize] +
-                                                                       uf.mBuffer[indexSrc + uf.mSize])
-          
-          + 0.125 * (uf.mBuffer[indexSrc - 1 - uf.mSize] +
-                                                                      uf.mBuffer[indexSrc + 1 - uf.mSize] +
-                                                                      uf.mBuffer[indexSrc - 1 + uf.mSize] +
-                                                                      uf.mBuffer[indexSrc + 1 + uf.mSize])
-          ;
-      }
-    }
-}
-
-void refine_and_add(const Buf& u, Buf& uf)
-{
-    for (int jc = 1; jc < u.mSize; jc++)
-    {
-      for (int ic = 1; ic < u.mSize; ic++)
-      {
-          int indexSrc = jc * u.mSize + ic;
-          int indexDst = jc * 2 * uf.mSize + ic * 2;
-
-          int dx =(ic >= u.mSize-1) ? 0 : 1;
-          int dy =(jc >= u.mSize-1) ? 0 : 1;
-          float v00 = u.mBuffer[indexSrc];
-          float v01 = u.mBuffer[indexSrc + dx];
-          float v10 = u.mBuffer[indexSrc + dy * u.mSize];
-          float v11 = u.mBuffer[indexSrc + dy * u.mSize + dx];
-          
-          uf.mBuffer[indexDst] += v00;
-          uf.mBuffer[indexDst+1] += (v00 + v01) * 0.5;
-          uf.mBuffer[indexDst+uf.mSize] += (v00 + v10) * 0.5;
-          uf.mBuffer[indexDst+uf.mSize+1] += (v00 + v01 + v10 + v11) * 0.25;
-      }
-    }
-}
-
-void compute_residual(const Buf& u, const Buf& rhs, Buf& res, float hsq)
-{
-    const float invhsq = 1.f / hsq;
-    for (int jc = 1; jc < u.mSize; jc++)
-    {
-      for (int ic = 1; ic < u.mSize; ic++)
-      {
-          int index = jc * u.mSize + ic;
-          int dx =(ic >= u.mSize-1) ? 0 : 1;
-          int dy =(jc >= u.mSize-1) ? 0 : 1;
-
-          res.mBuffer[index] = rhs.mBuffer[index] - (
-                                                     4. * u.mBuffer[index]
-                                                     - u.mBuffer[index - dx]
-                                                     - u.mBuffer[index + dx]
-                                                     - u.mBuffer[index - dy * u.mSize]
-                                                     - u.mBuffer[index + dy * u.mSize]
-                                                     ) * invhsq;
-      }
-    }
-}
-
-void compute_and_coarsen_residual(const Buf& u, const Buf& rhs, Buf& resc, float hsq)
-{
-    Buf resf(u.mSize, 1);
-    resf.Set(0.f);
-    compute_residual(u, rhs, resf, hsq);
-    coarsen(resf, resc);
-}
 
 void CPU::Init()
 {
-    mTexture = bgfx::createTexture2D(256, 256, false, 1, (true) ? bgfx::TextureFormat::R32F : bgfx::TextureFormat::RGBA32F);
+    //mTexture = bgfx::createTexture2D(256, 256, false, 1, (true) ? bgfx::TextureFormat::R32F : bgfx::TextureFormat::RGBA32F);
 
 
-    FillDensity(mDensity);
-    FillVelocity(mVelocity);
+    //FillDensity(mDensity);
+    //FillVelocity(mVelocity);
     
     m_gradientCSProgram = App::LoadProgram("Gradient_cs", nullptr);
     
-    m_renderTarget = bgfx::createFrameBuffer(size, size, texFormat, BGFX_TEXTURE_COMPUTE_WRITE | BGFX_TEXTURE_RT);
+
+    m_jacobiCSProgram = App::LoadProgram("Jacobi_cs", nullptr);
+
+    m_texUUniform = bgfx::createUniform("s_texU", bgfx::UniformType::Sampler);
+    m_texRHSUniform = bgfx::createUniform("s_texRHS", bgfx::UniformType::Sampler);
+
+    m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
 }
 
-void boundary(Buf& buffer)
-{
-    float* ptr = buffer.mBuffer.data();
-    int n = buffer.mSize;
-    for (int i = 0; i < n; i++)
-    {
-        ptr[i] = 0.f;
-        ptr[n*n-1-i] = 0.f;
-        ptr[i * n] = 0.f;
-        ptr[i * n + n - 1] = 0.f;
-    }
-}
 
-void vcycle(const Buf& rhs, Buf& u, int fineSize, int level, int max)
+void CPU::vcycle(TextureProvider& textureProvider, const Buf& rhs, Buf& u, int fineSize, int level, int max)
 {
     int ssteps = 3;
     float hsq = level+1;//sqrtf((level+1)*2);
     
     if (level == max)
     {
-        Jacobi(u, rhs, 100, hsq);
+        Jacobi(textureProvider, u, rhs, 100, hsq);
         return;
     }
     
@@ -385,28 +435,31 @@ void vcycle(const Buf& rhs, Buf& u, int fineSize, int level, int max)
     Buf rhsNext(sizeNext, 1);
     Buf uNext(sizeNext, 1);
     
-    Jacobi(u, rhs, ssteps, hsq);
+    Jacobi(textureProvider, u, rhs, ssteps, hsq);
     compute_and_coarsen_residual(u, rhs, rhsNext, hsq);
     uNext.Set(0.f);
     
-    vcycle(rhsNext, uNext, fineSize, level+1, max);
+    vcycle(textureProvider,rhsNext, uNext, fineSize, level+1, max);
     
     refine_and_add(uNext, u);
 
-    Jacobi(u, rhs, ssteps, hsq);
+    Jacobi(textureProvider,u, rhs, ssteps, hsq);
 }
 
-void CPU::Tick()
+void CPU::Tick(TextureProvider& textureProvider)
 {
+    static Buf mVelocity(256, 2);
+    FillVelocity(mVelocity);
+
     Buf advectedVelocity(256, 2);
     Advect(mVelocity, mVelocity, advectedVelocity);
     mVelocity.mBuffer = advectedVelocity.mBuffer;
 
     //Boundary(mVelocity);
-    FillVelocity(mVelocity);
+    
     
     //Buf* divergence = new Buf(256, 1);
-    Buf divergence(256, 1);
+    static Buf divergence(256, 1);
 
     //Buf* divergence = &divergence_;
     Divergence(mVelocity, divergence);
@@ -422,9 +475,9 @@ void CPU::Tick()
     Buf rhs(256, 1);
     Jacobi(newPressure, divergence, 50);
 */
-    
-    Buf u(256, 1);
-    vcycle(divergence, u, u.mSize, 0, 0);
+    divergence.Upload();
+    static Buf u(256, 1);
+    vcycle(textureProvider, divergence, u, u.mSize, 0, 0);
     
     ///
     Buf newVelocity(256, 2);
@@ -434,22 +487,18 @@ void CPU::Tick()
 
     
 
-/*    if (bgfx::isValid(mTexture))
-    {
-        bgfx::destroy(mTexture);
-    }
-  */
-    static Buf display(256,1);
+    /*static Buf display(256, 1);
     display.mBuffer = u.mBuffer;
 
     
     auto mem = bgfx::makeRef(display.mBuffer.data(), display.mBuffer.size() * sizeof(float));//, ReleaseBufFn, &display);
     bgfx::updateTexture2D(mTexture, 0,0,0,0, display.mSize, display.mSize,mem);
-    
-    
+    */
+    mTexture = bgfx::getTexture(u.m_renderTarget);
+    /*
     bgfx::setTexture(0, m_texPressureUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texVelocityUniform, velocity->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, outputVelocity->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_gradientCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-
+    */
 }

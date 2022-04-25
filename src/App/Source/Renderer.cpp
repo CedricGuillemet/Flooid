@@ -128,7 +128,7 @@ void Renderer::Init()
     mCPU.Init();
 }
 
-void Renderer::Render(Texture* texture, Display* displayNode)
+void Renderer::Render(TextureProvider& textureProvider, Texture* texture, Display* displayNode)
 {
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
     Imm::matrix vp = m_camera.GetViewProjection();
@@ -137,13 +137,13 @@ void Renderer::Render(Texture* texture, Display* displayNode)
     auto eye = m_camera.GetPosition();
     float eyePosition[4] = {eye.x, eye.y, eye.z, 0.f};
     bgfx::setUniform(m_eyePositionUniform, eyePosition);
-    
+    /*
     Imm::vec3 lightDir = Imm::vec3{0.5f, 0.5f, 0.5f};
     lightDir -= displayNode->GetLightPosition();
     Imm::vec4 dir = Imm::normalized({lightDir.x, lightDir.y, lightDir.z, 0.f});
     float directional[4] = {dir.x, dir.y, dir.z, 0.f};
     bgfx::setUniform(m_directionalUniform, directional);
-    
+    */
 
     //bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbhGround);
@@ -162,7 +162,7 @@ void Renderer::Render(Texture* texture, Display* displayNode)
     bgfx::submit(0, m_renderVolumeProgram);
      */
     
-    mCPU.Tick();
+    mCPU.Tick(textureProvider);
     //bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbh);

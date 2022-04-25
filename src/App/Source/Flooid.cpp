@@ -52,8 +52,8 @@
  */
 
 Flooid::Flooid()
-: m_graph{}
-, m_ui(m_graph)
+//: m_graph{}
+//, m_ui(m_graph)
 {
 }
 
@@ -61,7 +61,7 @@ void Flooid::Init()
 {
     m_renderer.Init();
     m_textureProvider.Init();
-
+#if 0
     VelocityGen::Init();
     DensityGen::Init();
     Solver::Init();
@@ -95,6 +95,8 @@ void Flooid::Init()
 */
     m_graph.Layout();
     m_ui.GraphFitAllNodes();
+#endif
+    mGPU.Init(m_textureProvider);
 }
 
 void Flooid::Tick(const Parameters& parameters)
@@ -105,11 +107,11 @@ void Flooid::Tick(const Parameters& parameters)
     }
     m_renderer.Tick();
 
-    if (m_ui.Running())
+    /*if (m_ui.Running())
     {
         m_textureProvider.TickFrame(6);
 
-        m_renderer.Render(m_textureProvider.m_densityTexture, m_displayNode);
+        m_renderer.Render(m_textureProvider, m_textureProvider.m_densityTexture, m_displayNode);
         
         std::vector<size_t> evaluationOrder = m_graph.ComputeEvaluationOrder();
         m_graph.BuildPlugs();
@@ -146,12 +148,15 @@ void Flooid::Tick(const Parameters& parameters)
         }
     }
     else
+    */
+
+    mGPU.Tick();
     {
-        m_renderer.Render(m_textureProvider.m_densityTexture, m_displayNode);
+        m_renderer.Render(m_textureProvider, mGPU.m_densityTexture, nullptr);
     }
 }
 
 void Flooid::UI()
 {
-    m_ui.UI(m_renderer.GetCamera());
+    //m_ui.UI(m_renderer.GetCamera());
 }

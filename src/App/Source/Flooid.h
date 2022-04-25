@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "GraphEditorDelegate.h"
 #include "FlooidUI.h"
+#include "tgpu.h"
 
 class Flooid
 {
@@ -26,12 +27,14 @@ public:
     TextureProvider m_textureProvider;
     Renderer m_renderer;
 
-    VelocityGen* m_velocityGenNode{};
+    /*VelocityGen* m_velocityGenNode{};
     DensityGen* m_densityGenNode{};
     Solver* m_solverNode{};
     Display* m_displayNode{};
     Graph m_graph;
-    
+    */
+
+    TGPU mGPU;
 protected:
-    FlooidUI m_ui;
+    //FlooidUI m_ui;
 };

@@ -13,7 +13,7 @@ public:
     
     void Input(float dx, float dy) { m_camera.Input(dx, dy); }
     void SetDisplaySize(uint16_t width, uint16_t height) { m_camera.SetDisplaySize(width, height); }
-    void Render(Texture* texture, Display* displayNode);
+    void Render(TextureProvider& textureProvider, Texture* texture, Display* displayNode);
     void Tick() { m_camera.ComputeMatrices(); }
     const Camera& GetCamera() const { return m_camera; }
     struct Vertex
