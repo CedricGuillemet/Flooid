@@ -26,6 +26,8 @@ public:
     Texture* m_densityTexture{};
     Texture* m_velocityTexture{};
 
+    Texture* m_dummy;
+
     bgfx::ProgramHandle m_divergenceCSProgram;
     bgfx::ProgramHandle m_gradientCSProgram;
     bgfx::ProgramHandle m_jacobiCSProgram;

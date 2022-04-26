@@ -1,7 +1,7 @@
 # include "bgfx_compute.sh"
 
 SAMPLER2D(s_texVelocity, 0);
-IMAGE2D_WR(s_divergenceOut, r32f, 1);
+IMAGE2D_WR(s_divergenceOut, rgba32f, 1);
 
 NUM_THREADS(16, 16, 1)
 void main()
@@ -18,9 +18,9 @@ void main()
 
 	float scale = 0.5 / 1.; // 0.5 / gridscale
 	float divergence = scale * (wR - wL + wT - wB);
-    if (coord.x == 0 || coord.x == 255 || coord.y == 0 || coord.y == 255) {
+    /*if (coord.x == 0 || coord.x == 255 || coord.y == 0 || coord.y == 255) {
         divergence = 0.;
-    }
+    }*/
     //divergence = 1.;
 	imageStore(s_divergenceOut, coord, vec4(divergence, 0, 0, 1));
 }

@@ -22,7 +22,7 @@ void TGPU::DensityGen(TextureProvider& textureProvider)
 void TGPU::VelocityGen(TextureProvider& textureProvider)
 {
     Imm::vec3 m_position{0.5f, 0.1f, 0.f};
-    float m_radius = 0.1;
+    float m_radius = 0.05;
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -131,7 +131,10 @@ void TGPU::Tick(TextureProvider& textureProvider)
     
     
     Texture* jacobi[2] = {textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE)};
-    Jacobi(textureProvider, jacobi, tempRHS, 500);
+    bgfx::setImage(0, jacobi[0]->GetTexture(), 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+    Jacobi(textureProvider, jacobi, tempRHS, 50);
     
     textureProvider.Release(tempRHS);
     

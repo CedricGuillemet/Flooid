@@ -29,7 +29,7 @@ void main()
 	//vec4 value = direction * max(dist, 0.);
     vec4 value = vec4(0.,0.,0.,0.);
     if (linDistance < -0.001) {
-        value = vec4(0., 0.0014, 0., 0.);// * max(dist, 0.);
+        value = vec4(0., 0.014, 0., 0.);// * max(dist, 0.);
         }
 
 	vec4 color = imageLoad(s_velocity, coord);

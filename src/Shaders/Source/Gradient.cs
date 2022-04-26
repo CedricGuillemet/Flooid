@@ -3,7 +3,7 @@
 SAMPLER2D(s_texPressure, 0);
 SAMPLER2D(s_texVelocity, 1);
 
-IMAGE2D_WR(s_gradientOut, rg16f, 2);
+IMAGE2D_WR(s_gradientOut, rgba32f, 2);
 
 NUM_THREADS(16, 16, 1)
 void main()

@@ -35,7 +35,7 @@ SAMPLER2D(s_texRHS, 1); // b
 
 uniform vec4 jacobiParameters;//alpha, beta
 
-IMAGE2D_WR(s_Out, rgba16f, 2);
+IMAGE2D_WR(s_Out, rgba32f, 2);
 
 NUM_THREADS(16, 16, 1)
 void main()
