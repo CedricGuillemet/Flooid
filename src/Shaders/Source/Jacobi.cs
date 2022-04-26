@@ -55,6 +55,6 @@ void main()
 		+ texelFetch(s_texU, coord + dy, 0) 
 		- 4.f * u
 	);
-
+ 
 	imageStore(s_Out, coord, value);
 }

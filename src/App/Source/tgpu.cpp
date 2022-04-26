@@ -125,35 +125,39 @@ void TGPU::Tick(TextureProvider& textureProvider)
 {
     VelocityGen(textureProvider);
     DensityGen(textureProvider);
+
+    // advection
+
+    Texture* advectedVelocity = textureProvider.Acquire(PlugType::Any, 256);
+    Texture* newDensity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
+    Advect(textureProvider, m_densityTexture, m_velocityTexture, newDensity);
+    textureProvider.Release(m_densityTexture);
+    
+    Advect(textureProvider, m_velocityTexture, m_velocityTexture, advectedVelocity);
+    
     
     Texture* tempRHS = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
-    Divergence(textureProvider, m_velocityTexture, tempRHS);
+    Divergence(textureProvider, advectedVelocity, tempRHS);
     
     
     Texture* jacobi[2] = {textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE)};
     bgfx::setImage(0, jacobi[0]->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
-    Jacobi(textureProvider, jacobi, tempRHS, 50);
+    Jacobi(textureProvider, jacobi, tempRHS, 1000);
     
     textureProvider.Release(tempRHS);
+    textureProvider.Release(jacobi[1]);
     
     Texture* newVelocity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
-    Gradient(textureProvider, jacobi[0], m_velocityTexture, newVelocity);
+    Gradient(textureProvider, jacobi[0], advectedVelocity, newVelocity);
     
     textureProvider.Release(jacobi[0]);
-    textureProvider.Release(jacobi[1]);
-    // advection
-    Texture* newDensity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
-    Advect(textureProvider, m_densityTexture, newVelocity, newDensity);
     
-    Texture* newAdvectedVelocity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
-    Advect(textureProvider, m_velocityTexture, newVelocity, newAdvectedVelocity);
+    textureProvider.Release(advectedVelocity);
     
-    textureProvider.Release(m_densityTexture);
-    textureProvider.Release(newVelocity);
     textureProvider.Release(m_velocityTexture);
     
     m_densityTexture = newDensity;
-    m_velocityTexture = newAdvectedVelocity;
+    m_velocityTexture = newVelocity;
 }

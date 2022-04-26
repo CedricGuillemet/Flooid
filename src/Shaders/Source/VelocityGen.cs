@@ -1,6 +1,6 @@
 # include "bgfx_compute.sh"
 
-IMAGE2D_RW(s_velocity, rgba16f, 0);
+IMAGE2D_RW(s_velocity, rgba32f, 0);
 uniform vec4 position; // radius in w
 uniform vec4 direction; // xy
 
@@ -24,13 +24,8 @@ void main()
 
     
 	float dist = -(length(position.xy - p) - position.w);
-    float linDistance = length(position.xy - p) - position.w;
-    //float strength = step(0., position.w - linDistance);
-	//vec4 value = direction * max(dist, 0.);
-    vec4 value = vec4(0.,0.,0.,0.);
-    if (linDistance < -0.001) {
-        value = vec4(0., 0.014, 0., 0.);// * max(dist, 0.);
-        }
+    float linDistance = position.w - length(position.xy - p);
+    vec4 value = vec4(0.,0.3,0.,0.) * max(linDistance, 0.);
 
 	vec4 color = imageLoad(s_velocity, coord);
 	color += value;
