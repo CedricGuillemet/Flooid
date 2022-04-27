@@ -1,7 +1,7 @@
 # include "bgfx_compute.sh"
 
 SAMPLER2D(s_texU, 0);
-IMAGE2D_RW(s_texOut, rgba16f, 1);
+IMAGE2D_RW(s_texOut, rgba32f, 1);
 
 uniform vec4 fineTexSize;
 NUM_THREADS(16, 16, 1)

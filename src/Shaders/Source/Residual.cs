@@ -2,7 +2,7 @@
 
 SAMPLER2D(s_texU, 0);
 SAMPLER2D(s_texRHS, 1);
-IMAGE2D_WR(s_texOut, rgba16f, 2);
+IMAGE2D_WR(s_texOut, rgba32f, 2);
 
 uniform vec4 invhsq;
 NUM_THREADS(16, 16, 1)
