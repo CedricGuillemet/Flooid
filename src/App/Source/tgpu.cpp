@@ -355,7 +355,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
 
     bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, 3);
+    bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, invocationx * invocationy);
     
 }
 

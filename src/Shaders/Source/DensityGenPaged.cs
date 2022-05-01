@@ -5,6 +5,7 @@ BUFFER_WR(bufferPages, uint, 3);
 
 IMAGE2D_RW(s_texOut, rgba16f, 0);
 
+uniform vec4 parameters;
 
 NUM_THREADS(16, 16, 1)
 void main()
