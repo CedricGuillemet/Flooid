@@ -72,6 +72,16 @@ public:
     void compute_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* res, float hsq);
     void compute_and_coarsen_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* resc, float hsq);
     void vcycle(TextureProvider& textureProvider, const Texture* rhs, Texture* u, int fineSize, int level, int max);
-
     void Jacobi(TextureProvider& textureProvider, Texture* u, const Texture* rhs, int iterationCount, float hsq);
+    
+    
+    void TestPages(TextureProvider& textureProvider);
+    bgfx::TextureHandle mWorldToPages;
+    bgfx::TextureHandle mDensityPages;
+    bgfx::DynamicIndexBufferHandle mBufferCounter, mFreePages, mBufferPages, mBufferAddressPages;
+    bgfx::ProgramHandle mAllocatePagesCSProgram;
+    bgfx::ProgramHandle mInitPagesCSProgram;
+    bgfx::ProgramHandle mDensityGenPagedCSProgram;
+    bgfx::UniformHandle mGroupMinUniform;
+    bgfx::UniformHandle mTexOutUniform; // s_texOut
 };

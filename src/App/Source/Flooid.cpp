@@ -7,18 +7,14 @@
 
 /*
  
- - residual
- - restrict
- - prolongate
+ shd:
+ - from BB to pages
+ - pages filling
+ - pages display
  
- - put back 2D solver functional
  
+ - tex: worldToPages, pages
  
- - solver2
- - graph with solver and solver2
- 
- - V cycle
-  *  understand 
  - sparse
  
  

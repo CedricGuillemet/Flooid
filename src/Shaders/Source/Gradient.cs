@@ -24,5 +24,9 @@ void main()
     vec2 wc = texelFetch(s_texVelocity, coord, 0).xy;
     vec2 value = wc - gradient;
 
+    if (coord.x == 0 || coord.x == 255 || coord.y == 0 || coord.y == 255) {
+        value = vec2(0., 0.);
+    }
+
     imageStore(s_gradientOut, coord, vec4(value, 0, 1));
 }

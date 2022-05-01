@@ -62,6 +62,16 @@
 #include "Advect_cs_spv.h"
 #include "Advect_cs_essl.h"
 #ifdef WIN32
+#include "AllocatePages_cs_dx9.h"
+#include "AllocatePages_cs_dx11.h"
+#endif
+#include "AllocatePages_cs_glsl.h"
+#ifdef __APPLE__
+#include "AllocatePages_cs_mtl.h"
+#endif
+#include "AllocatePages_cs_spv.h"
+#include "AllocatePages_cs_essl.h"
+#ifdef WIN32
 #include "Clear_cs_dx9.h"
 #include "Clear_cs_dx11.h"
 #endif
@@ -81,6 +91,16 @@
 #endif
 #include "DensityGen_cs_spv.h"
 #include "DensityGen_cs_essl.h"
+#ifdef WIN32
+#include "DensityGenPaged_cs_dx9.h"
+#include "DensityGenPaged_cs_dx11.h"
+#endif
+#include "DensityGenPaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "DensityGenPaged_cs_mtl.h"
+#endif
+#include "DensityGenPaged_cs_spv.h"
+#include "DensityGenPaged_cs_essl.h"
 #ifdef WIN32
 #include "Divergence_cs_dx9.h"
 #include "Divergence_cs_dx11.h"
@@ -111,6 +131,16 @@
 #endif
 #include "Gradient_cs_spv.h"
 #include "Gradient_cs_essl.h"
+#ifdef WIN32
+#include "InitPages_cs_dx9.h"
+#include "InitPages_cs_dx11.h"
+#endif
+#include "InitPages_cs_glsl.h"
+#ifdef __APPLE__
+#include "InitPages_cs_mtl.h"
+#endif
+#include "InitPages_cs_spv.h"
+#include "InitPages_cs_essl.h"
 #ifdef WIN32
 #include "Jacobi_cs_dx9.h"
 #include "Jacobi_cs_dx11.h"

@@ -22,7 +22,7 @@ void TGPU::DensityGen(TextureProvider& textureProvider)
 void TGPU::VelocityGen(TextureProvider& textureProvider)
 {
     Imm::vec3 m_position{0.5f, 0.1f, 0.f};
-    float m_radius = 0.03;
+    float m_radius = 0.07;
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -275,11 +275,93 @@ void TGPU::Init(TextureProvider& textureProvider)
 
     m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
     m_fineTexSizeUniform = bgfx::createUniform("fineTexSize", bgfx::UniformType::Vec4);
+    
+    ///
+    ///
+    const int pageSize = 16;
+    const int masterSize = 256;
+    mWorldToPages = bgfx::createTexture2D(masterSize/pageSize, masterSize/pageSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
+    mDensityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    
+    mAllocatePagesCSProgram = App::LoadProgram("AllocatePages_cs", nullptr);
+    mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
+    mDensityGenPagedCSProgram = App::LoadProgram("DensityGenPaged_cs", nullptr);
+    
+    uint32_t pageCount = (256/pageSize) * (256/pageSize);
+    
+    mBufferCounter = bgfx::createDynamicIndexBuffer(3, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+    mBufferPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+    mBufferAddressPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+    mGroupMinUniform = bgfx::createUniform("groupMin", bgfx::UniformType::Vec4);
+    mTexOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler);; //
+    
+
+    mFreePages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+}
+
+void TGPU::TestPages(TextureProvider& textureProvider)
+{
+    // t allocate
+    Imm::vec3 densityCenter{0.25f, 0.25f, 0.f};
+    Imm::vec3 densityExtend{0.15f, 0.15f, 0.f};
+    Imm::vec3 wmin = {0.1f, 0.1f, 0.0f};
+    Imm::vec3 wmax = {0.4f, 0.4f, 0.0f};
+    
+    int groupMinx = wmin.x * 256;
+    groupMinx -= groupMinx % 16;
+
+    int groupMiny = wmin.y * 256;
+    groupMiny -= groupMiny % 16;
+
+    int groupMaxx = wmax.x * 256;
+    int modmx = groupMaxx % 16;
+    groupMaxx -= modmx;
+    groupMaxx += modmx ? 1 : 0;
+
+    int groupMaxy = wmax.y * 256;
+    int modmy = groupMaxy % 16;
+    groupMaxy -= modmy;
+    groupMaxy += modmy ? 1 : 0;
+
+    //float invhsq[4] = { 1.f / hsq, 0.f, 0.f, 0.f };
+    //bgfx::setUniform(m_invhsqUniform, invhsq);
+    int invocationx = (groupMaxx - groupMinx) / 16;
+    int invocationy = (groupMaxy - groupMiny) / 16;
+
+    
+    // init pages
+    
+    
+    bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
+    bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
+    bgfx::dispatch(textureProvider.GetViewId(), mInitPagesCSProgram, 1, 1);
+    
+    
+    // allocate pages
+    float groupMin[4] = { float(groupMinx), float(groupMiny), 0.f, 0.f };
+    bgfx::setUniform(mGroupMinUniform, groupMin);
+
+    
+    //bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    //bgfx::setTexture(1, m_texRHSUniform, rhs->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
+    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
+    bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
+    bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);
+
+    
+    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
+
+    bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, 3);
+    
 }
 
 void TGPU::Tick(TextureProvider& textureProvider)
 {
-    VelocityGen(textureProvider);
+    /*VelocityGen(textureProvider);
     DensityGen(textureProvider);
 
     // advection
@@ -317,4 +399,6 @@ void TGPU::Tick(TextureProvider& textureProvider)
     
     m_densityTexture = newDensity;
     m_velocityTexture = newVelocity;
+     */
+    TestPages(textureProvider);
 }
