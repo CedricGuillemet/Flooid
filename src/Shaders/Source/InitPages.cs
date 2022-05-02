@@ -9,6 +9,6 @@ void main()
     bufferCounter[0] = 0;
     for (uint i = 0; i < 256; i++)
     {
-        bufferFreePages[i] = i;
+        bufferFreePages[i] = i + 1;
     }
 }

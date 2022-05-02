@@ -126,16 +126,21 @@ void Renderer::Init()
     m_directionalUniform = bgfx::createUniform("directional", bgfx::UniformType::Vec4);
 
     mCPU.Init();
+
+
+    mTexDensityPages = bgfx::createUniform("s_texDensityPages", bgfx::UniformType::Sampler); //
+    mTexWorldToPage = bgfx::createUniform("s_texWorldToPage", bgfx::UniformType::Sampler); //
 }
 
-void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle texture, Display* displayNode)
+
+void Renderer::RenderBackground(TextureProvider& textureProvider)
 {
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
     Imm::matrix vp = m_camera.GetViewProjection();
     bgfx::setUniform(m_viewProjectionUniform, vp.m16);
-    
+
     auto eye = m_camera.GetPosition();
-    float eyePosition[4] = {eye.x, eye.y, eye.z, 0.f};
+    float eyePosition[4] = { eye.x, eye.y, eye.z, 0.f };
     bgfx::setUniform(m_eyePositionUniform, eyePosition);
     /*
     Imm::vec3 lightDir = Imm::vec3{0.5f, 0.5f, 0.5f};
@@ -150,7 +155,12 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
     bgfx::setIndexBuffer(m_ibhGround);
     bgfx::setState(state);
     bgfx::submit(0, m_groundProgram);
+}
 
+void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle texture, Display* displayNode)
+{
+    
+    RenderBackground(textureProvider);
 
     /*
      3D Cube
@@ -161,9 +171,41 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
     bgfx::submit(0, m_renderVolumeProgram);
      */
-    
+    const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
+
     //mCPU.Tick(textureProvider);
     bgfx::setTexture(0, m_texDensityUniform, texture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    //bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
+    bgfx::setVertexBuffer(0, m_vbh);
+    bgfx::setIndexBuffer(m_ibh);
+    bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
+    bgfx::submit(0, m_renderProgram);
+}
+
+
+void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle densityPages, Display* displayNode)
+{
+
+    RenderBackground(textureProvider);
+
+    /*
+     3D Cube
+
+    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    bgfx::setVertexBuffer(0, m_vbhCube);
+    bgfx::setIndexBuffer(m_ibhCube);
+    bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
+    bgfx::submit(0, m_renderVolumeProgram);
+     */
+    const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
+
+    //mCPU.Tick(textureProvider);
+
+   
+
+
+    bgfx::setTexture(1, mTexWorldToPage, textureWorldToPages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(0, mTexDensityPages, densityPages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     //bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);

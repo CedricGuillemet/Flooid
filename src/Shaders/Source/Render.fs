@@ -4,7 +4,8 @@ $input v_texcoord0, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER2D(s_texDensity,  0);
+SAMPLER2D(s_texDensityPages,  0);
+SAMPLER2D(s_texWorldToPage,  1);
 
 uniform vec4 eyePosition;
 /*
@@ -317,10 +318,19 @@ void main()
     */
 
     
-    float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;// * 0.2 + 0.5;
-    gl_FragColor = vec4(accum, accum, accum, 1.);
+    //float accum = texture2D(s_texDensity, v_positionWorld.xy, 0).x;// * 0.2 + 0.5;
+    //gl_FragColor = vec4(accum, accum, accum, 1.);
     /*
     vec2 accum = texture2D(s_texDensity, v_positionWorld.xy, 0).xy * 1. + 0.5;
     gl_FragColor = vec4(accum, 0., 1.);
     */
+
+    vec4 page = texture2D(s_texWorldToPage, v_texcoord0.xy, 0);
+
+    vec2 pageCoord = (page.xy * 255.) * 1./16.;
+
+    vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
+
+    vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0);
+    gl_FragColor = color;
 }

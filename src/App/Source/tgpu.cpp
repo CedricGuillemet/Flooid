@@ -294,7 +294,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mBufferAddressPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
     mGroupMinUniform = bgfx::createUniform("groupMin", bgfx::UniformType::Vec4);
     mTexOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler); //
-    
+
 
     mFreePages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
 }

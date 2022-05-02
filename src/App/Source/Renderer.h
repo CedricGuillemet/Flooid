@@ -35,6 +35,8 @@ public:
         static bgfx::VertexLayout ms_layout;
     };
 
+    void RenderBackground(TextureProvider& textureProvider);
+    void Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle densityPages, Display* displayNode);
 private:
     Camera m_camera;
     
@@ -55,4 +57,8 @@ private:
     bgfx::ProgramHandle m_groundProgram;
 
     CPU mCPU;
+
+    bgfx::UniformHandle mTexDensityPages; // s_texDensityPages
+    bgfx::UniformHandle mTexWorldToPage; // s_texWorldToPage
+
 };

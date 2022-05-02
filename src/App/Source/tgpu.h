@@ -84,4 +84,5 @@ public:
     bgfx::ProgramHandle mDensityGenPagedCSProgram;
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mTexOutUniform; // s_texOut
+
 };
