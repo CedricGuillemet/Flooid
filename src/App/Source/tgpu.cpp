@@ -351,6 +351,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     //bgfx::setTexture(1, m_texRHSUniform, rhs->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Write);
     bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
     bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);

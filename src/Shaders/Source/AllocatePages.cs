@@ -4,6 +4,7 @@
 BUFFER_RW(bufferCounter, uint, 4);
 BUFFER_RO(bufferFreePages, uint, 0);
 BUFFER_WR(bufferAddressPages, uint, 1);
+IMAGE2D_WR(s_worldToPages, rgba8, 2);
 BUFFER_WR(bufferPages, uint, 3);
 
 uniform vec4 groupMin;//, worldMax;
@@ -25,4 +26,7 @@ void main()
     
     bufferPages[counter] = page;
     bufferAddressPages[counter] = pageAddress;
+
+
+    imageStore(s_worldToPages, addr.xy, ivec4(page&0xFF, (page>>8)&0xFF, 0, 0) / 255.);
 }
