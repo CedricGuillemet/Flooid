@@ -293,7 +293,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mBufferPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
     mBufferAddressPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
     mGroupMinUniform = bgfx::createUniform("groupMin", bgfx::UniformType::Vec4);
-    mTexOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler);; //
+    mTexOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler); //
     
 
     mFreePages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
@@ -316,23 +316,28 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     int groupMaxx = wmax.x * 256;
     int modmx = groupMaxx % 16;
     groupMaxx -= modmx;
-    groupMaxx += modmx ? 1 : 0;
+    groupMaxx += modmx ? 16 : 0;
 
     int groupMaxy = wmax.y * 256;
     int modmy = groupMaxy % 16;
     groupMaxy -= modmy;
-    groupMaxy += modmy ? 1 : 0;
+    groupMaxy += modmy ? 16 : 0;
+
+    groupMinx /= 16;
+    groupMiny /= 16;
+    groupMaxx /= 16;
+    groupMaxy /= 16;
 
     //float invhsq[4] = { 1.f / hsq, 0.f, 0.f, 0.f };
     //bgfx::setUniform(m_invhsqUniform, invhsq);
-    int invocationx = (groupMaxx - groupMinx) / 16;
-    int invocationy = (groupMaxy - groupMiny) / 16;
+    int invocationx = groupMaxx - groupMinx + 1;
+    int invocationy = groupMaxy - groupMiny + 1;
 
     
     // init pages
     
     
-    bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
+    bgfx::setBuffer(0, mFreePages, bgfx::Access::Write);
     bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mInitPagesCSProgram, 1, 1);
     
@@ -353,6 +358,10 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     
     bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
     bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
+
+
+    float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
+    bgfx::setUniform(m_positionUniform, position);
 
     bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, invocationx * invocationy);

@@ -15,7 +15,7 @@ void main()
     
     uint counter;
     atomicFetchAndAdd(bufferCounter[0], 1, counter);
-    ivec3 groupMini = ivec3(groupMin);
+    ivec3 groupMini = ivec3(groupMin.xyz);
 
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
     

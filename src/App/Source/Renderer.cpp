@@ -128,7 +128,7 @@ void Renderer::Init()
     mCPU.Init();
 }
 
-void Renderer::Render(TextureProvider& textureProvider, Texture* texture, Display* displayNode)
+void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle texture, Display* displayNode)
 {
     const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
     Imm::matrix vp = m_camera.GetViewProjection();
@@ -163,10 +163,16 @@ void Renderer::Render(TextureProvider& textureProvider, Texture* texture, Displa
      */
     
     //mCPU.Tick(textureProvider);
-    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    bgfx::setTexture(0, m_texDensityUniform, texture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     //bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
     bgfx::submit(0, m_renderProgram);
+}
+
+void Renderer::Render(TextureProvider& textureProvider, Texture* texture, Display* displayNode)
+{
+    Render(textureProvider, texture->GetTexture(), displayNode);
+
 }
