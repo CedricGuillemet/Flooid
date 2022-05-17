@@ -78,10 +78,12 @@ public:
     void TestPages(TextureProvider& textureProvider);
     bgfx::TextureHandle mWorldToPages;
     bgfx::TextureHandle mDensityPages;
+    bgfx::TextureHandle mVelocityPages;
     bgfx::DynamicIndexBufferHandle mBufferCounter, mFreePages, mBufferPages, mBufferAddressPages;
     bgfx::ProgramHandle mAllocatePagesCSProgram;
     bgfx::ProgramHandle mInitPagesCSProgram;
     bgfx::ProgramHandle mDensityGenPagedCSProgram;
+    bgfx::ProgramHandle mVelocityGenPagedCSProgram;
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mTexOutUniform; // s_texOut
 

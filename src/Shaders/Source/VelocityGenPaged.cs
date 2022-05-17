@@ -6,7 +6,8 @@ BUFFER_WR(bufferPages, uint, 3);
 
 IMAGE2D_RW(s_texOut, rgba16f, 0);
 
-uniform vec4 position;
+uniform vec4 position; // radius in w
+uniform vec4 direction; // xy
 
 NUM_THREADS(16, 16, 1)
 void main()
@@ -24,7 +25,7 @@ void main()
     float linDistance = length(position.xy - voxelWorldPos.xy);
     float value = step(0., position.w - linDistance);
 
-    vec4 color = vec4(value, value, value, 1.);
+    vec4 velocity = vec4(direction.xy * value, 0., 1.);
     
-    imageStore(s_texOut, outBase, color);
+    imageStore(s_texOut, outBase, velocity);
 }

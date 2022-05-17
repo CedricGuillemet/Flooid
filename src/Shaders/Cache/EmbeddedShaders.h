@@ -182,6 +182,16 @@
 #include "VelocityGen_cs_spv.h"
 #include "VelocityGen_cs_essl.h"
 #ifdef WIN32
+#include "VelocityGenPaged_cs_dx9.h"
+#include "VelocityGenPaged_cs_dx11.h"
+#endif
+#include "VelocityGenPaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "VelocityGenPaged_cs_mtl.h"
+#endif
+#include "VelocityGenPaged_cs_spv.h"
+#include "VelocityGenPaged_cs_essl.h"
+#ifdef WIN32
 #include "Vorticity_cs_dx9.h"
 #include "Vorticity_cs_dx11.h"
 #endif

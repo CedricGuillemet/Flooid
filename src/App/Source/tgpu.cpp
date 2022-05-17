@@ -282,10 +282,12 @@ void TGPU::Init(TextureProvider& textureProvider)
     const int masterSize = 256;
     mWorldToPages = bgfx::createTexture2D(masterSize/pageSize, masterSize/pageSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
     mDensityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    
+    mVelocityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+
     mAllocatePagesCSProgram = App::LoadProgram("AllocatePages_cs", nullptr);
     mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
     mDensityGenPagedCSProgram = App::LoadProgram("DensityGenPaged_cs", nullptr);
+    mVelocityGenPagedCSProgram = App::LoadProgram("VelocityGenPaged_cs", nullptr);
     
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
@@ -330,8 +332,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
 
     //float invhsq[4] = { 1.f / hsq, 0.f, 0.f, 0.f };
     //bgfx::setUniform(m_invhsqUniform, invhsq);
-    int invocationx = groupMaxx - groupMinx + 1;
-    int invocationy = groupMaxy - groupMiny + 1;
+    int invocationx = groupMaxx - groupMinx;
+    int invocationy = groupMaxy - groupMiny;
 
     
     // init pages
@@ -361,11 +363,20 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
 
 
+    // density
     float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
     bgfx::setUniform(m_positionUniform, position);
 
     bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, invocationx * invocationy);
+
+
+    // velocity
+    float direction[4] = { 0.f, 1.f, 0.f, 0.f };
+    bgfx::setUniform(m_directionUniform, direction);
+
+    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
     
 }
 

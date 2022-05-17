@@ -326,11 +326,22 @@ void main()
     */
 
     vec4 page = texture2D(s_texWorldToPage, v_texcoord0.xy, 0);
-
-    vec2 pageCoord = (page.xy * 255.) * 1./16.;
-
     vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
 
-    vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0);
-    gl_FragColor = color;
+    if (length(page.xyz) > 0.)
+    {
+        vec2 pageCoord = (page.xy * 255.) * 1./16.;
+
+        
+
+        vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0);
+        gl_FragColor = color;
+    } 
+    else
+    {
+        gl_FragColor = vec4(0.,1.,0.,1.);
+    }
+
+    float mx = step(localCoord.x, 1./255.) + step(localCoord.y, 1./255.);
+    gl_FragColor = mix(gl_FragColor, vec4(1.,1.,1.,1.), mx);
 }
