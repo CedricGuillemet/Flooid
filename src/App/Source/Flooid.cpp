@@ -6,6 +6,15 @@
 #include "GraphNode.h"
 
 /*
+ - debug rendering/ combo
+ - tag transient pages
+ - allocate transient pages
+ - divergence Paged
+ - jacobi paged (no multigrid)
+ - gradient paged
+ - advection paged
+ 
+ 
  
  shd:
  - from BB to pages
