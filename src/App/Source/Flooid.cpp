@@ -147,7 +147,8 @@ void Flooid::Tick(const Parameters& parameters)
     */
 
     m_textureProvider.TickFrame(6);
-    m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mDensityPages, nullptr);
+    //m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mDensityPages, nullptr);
+    m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mVelocityPages, nullptr);
     mGPU.Tick(m_textureProvider);
     
     

@@ -331,11 +331,18 @@ void main()
     if (length(page.xyz) > 0.)
     {
         vec2 pageCoord = (page.xy * 255.) * 1./16.;
+        // density
+        {
+            vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0);
+            gl_FragColor = color;
+        }
+        // velocity
+        {
+            vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0) * 0.5 + 0.5;
+            color.a = 1.;
+            gl_FragColor = color;
+        }
 
-        
-
-        vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0);
-        gl_FragColor = color;
     } 
     else
     {
