@@ -35,5 +35,6 @@ void main()
     vec4 color = vec4(value, value, value, 1.);
     
     imageStore(s_texOut, outBase, color);
-    barrier();
+    //memoryBarrierShared();
+    //barrier();
 }

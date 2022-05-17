@@ -28,5 +28,5 @@ void main()
     bufferAddressPages[counter] = pageAddress;
 
 
-    imageStore(s_worldToPages, addr.xy, ivec4(page&0xFF, (page>>8)&0xFF, 0, 0) / 255.);
+    imageStore(s_worldToPages, addr.xy, ivec4(page&0xF, (page>>4)&0xF, 0, 0) / 255.);
 }
