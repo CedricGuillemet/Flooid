@@ -160,7 +160,7 @@ void TGPU::refine_and_add(TextureProvider& textureProvider, const Texture* u, Te
 
     bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
     bgfx::setImage(1, uf->GetTexture(), 0, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), m_upscaleCSProgram, uf->m_size / 16, uf->m_size / 16);
+    bgfx::dispatch(textureProvider.GetViewId(), m_upscaleCSProgram, uint32_t(uf->m_size / 16), uint32_t(uf->m_size / 16));
 }
 
 void TGPU::compute_residual(TextureProvider& textureProvider, const Texture* u, const Texture* rhs, Texture* res, float hsq)
@@ -281,6 +281,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     const int pageSize = 16;
     const int masterSize = 256;
     mWorldToPages = bgfx::createTexture2D(masterSize/pageSize, masterSize/pageSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
+    mWorldToPageTags = bgfx::createTexture2D(masterSize / pageSize, masterSize / pageSize, false, 0, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
     mDensityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
 
@@ -360,6 +361,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Write);
     bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
     bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
+    bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);
 
     
@@ -434,7 +436,7 @@ void TGPU::Tick(TextureProvider& textureProvider)
 
 void TGPU::UI()
 {
-    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0");
+    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0");
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -445,6 +447,7 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     {
     case 0: return mDensityPages;
     case 1: return mVelocityPages;
+    case 2: return mWorldToPageTags;
     }
     return { bgfx::kInvalidHandle };
 }

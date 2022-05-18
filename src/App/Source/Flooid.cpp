@@ -6,7 +6,6 @@
 #include "GraphNode.h"
 
 /*
- - debug rendering/ combo
  - tag transient pages
  - allocate transient pages
  - divergence Paged
