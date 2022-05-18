@@ -4,10 +4,12 @@ $input v_texcoord0, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER2D(s_texDensityPages,  0);
+SAMPLER2D(s_texPages,  0);
 SAMPLER2D(s_texWorldToPage,  1);
 
 uniform vec4 eyePosition;
+uniform vec4 debugDisplay; // grid, page allocation, texture type
+
 /*
 float hash(vec4 p)  // replace this by something better
 {
@@ -332,13 +334,15 @@ void main()
     {
         vec2 pageCoord = (page.xy * 255.) * 1./16.;
         // density
+        if (abs(debugDisplay.z - 0.) < 0.001)
         {
-            vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0);
+            vec4 color = texture2D(s_texPages, pageCoord + localCoord, 0);
             gl_FragColor = color;
         }
         // velocity
+        else if (abs(debugDisplay.z - 1.) < 0.001)
         {
-            vec4 color = texture2D(s_texDensityPages, pageCoord + localCoord, 0) * 0.5 + 0.5;
+            vec4 color = texture2D(s_texPages, pageCoord + localCoord, 0) * 0.5 + 0.5;
             color.a = 1.;
             gl_FragColor = color;
         }
@@ -346,9 +350,9 @@ void main()
     } 
     else
     {
-        gl_FragColor = vec4(0.,1.,0.,1.);
+        gl_FragColor = vec4(0.,1. * debugDisplay.y,0.,1.);
     }
 
-    float mx = step(localCoord.x, 1./255.) + step(localCoord.y, 1./255.);
+    float mx = (step(localCoord.x, 1./255.) + step(localCoord.y, 1./255.)) * debugDisplay.x;
     gl_FragColor = mix(gl_FragColor, vec4(1.,1.,1.,1.), mx);
 }

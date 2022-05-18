@@ -13,6 +13,9 @@ public:
     void Init(TextureProvider& textureProvider);
     void Tick(TextureProvider& textureProvider);
 
+    void UI();
+    bgfx::TextureHandle GetDisplayPages() const;
+
     bgfx::ProgramHandle m_downscaleCSProgram;
     bgfx::ProgramHandle m_upscaleCSProgram;
     bgfx::ProgramHandle m_residualCSProgram;
@@ -86,5 +89,12 @@ public:
     bgfx::ProgramHandle mVelocityGenPagedCSProgram;
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mTexOutUniform; // s_texOut
+    
+    bgfx::UniformHandle mDebugDisplayUniform;
+
+
+    int mDebugDisplay{};
+    bool mDebugGrid{true};
+    bool mDebugPageAllocation{true};
 
 };

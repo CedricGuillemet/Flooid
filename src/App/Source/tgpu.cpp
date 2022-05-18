@@ -22,7 +22,7 @@ void TGPU::DensityGen(TextureProvider& textureProvider)
 void TGPU::VelocityGen(TextureProvider& textureProvider)
 {
     Imm::vec3 m_position{0.5f, 0.1f, 0.f};
-    float m_radius = 0.07;
+    float m_radius = 0.07f;
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -127,7 +127,7 @@ void TGPU::coarsen(TextureProvider& textureProvider, const Texture* uf, Texture*
     }*/
     bgfx::setTexture(0, m_texUUniform, uf->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(1, uc->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_downscaleCSProgram, uf->m_size / 16, uf->m_size / 16);
+    bgfx::dispatch(textureProvider.GetViewId(), m_downscaleCSProgram, uint32_t(uf->m_size / 16), uint32_t(uf->m_size / 16));
 
 }
 
@@ -191,7 +191,7 @@ void TGPU::compute_residual(TextureProvider& textureProvider, const Texture* u, 
     bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texRHSUniform, rhs->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(2, res->GetTexture(), 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_residualCSProgram, res->m_size / 16, res->m_size / 16);
+    bgfx::dispatch(textureProvider.GetViewId(), m_residualCSProgram, uint32_t(res->m_size / 16), uint32_t(res->m_size / 16));
 
 }
 
@@ -208,7 +208,7 @@ void TGPU::compute_and_coarsen_residual(TextureProvider& textureProvider, const 
 void TGPU::vcycle(TextureProvider& textureProvider, const Texture* rhs, Texture* u, int fineSize, int level, int max)
 {
     int ssteps = 4;
-    float hsq = level + 1;//sqrtf((level+1)*2);
+    float hsq = float(level + 1);//sqrtf((level+1)*2);
 
     if (level == max)
     {
@@ -216,7 +216,7 @@ void TGPU::vcycle(TextureProvider& textureProvider, const Texture* rhs, Texture*
         return;
     }
 
-    int sizeNext = fineSize / powf(2.f, level + 1);
+    int sizeNext = int(fineSize / powf(2.f, hsq));
 
     //Buf rhsNext(sizeNext, 1);
     //Buf uNext(sizeNext, 1);
@@ -295,9 +295,11 @@ void TGPU::Init(TextureProvider& textureProvider)
     mBufferPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
     mBufferAddressPages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
     mGroupMinUniform = bgfx::createUniform("groupMin", bgfx::UniformType::Vec4);
+    
+    
     mTexOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler); //
 
-
+    mDebugDisplayUniform = bgfx::createUniform("debugDisplay", bgfx::UniformType::Vec4); //
     mFreePages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
 }
 
@@ -309,18 +311,18 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     Imm::vec3 wmin = {0.1f, 0.1f, 0.0f};
     Imm::vec3 wmax = {0.4f, 0.4f, 0.0f};
     
-    int groupMinx = wmin.x * 256;
+    int groupMinx = int(wmin.x * 256.f);
     groupMinx -= groupMinx % 16;
 
-    int groupMiny = wmin.y * 256;
+    int groupMiny = int(wmin.y * 256.f);
     groupMiny -= groupMiny % 16;
 
-    int groupMaxx = wmax.x * 256;
+    int groupMaxx = int(wmax.x * 256.f);
     int modmx = groupMaxx % 16;
     groupMaxx -= modmx;
     groupMaxx += modmx ? 16 : 0;
 
-    int groupMaxy = wmax.y * 256;
+    int groupMaxy = int(wmax.y * 256.f);
     int modmy = groupMaxy % 16;
     groupMaxy -= modmy;
     groupMaxy += modmy ? 16 : 0;
@@ -335,9 +337,11 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     int invocationx = groupMaxx - groupMinx;
     int invocationy = groupMaxy - groupMiny;
 
+    // debug display
+    float debugDisplay[4] = {mDebugGrid ? 1.f : 0.f, mDebugPageAllocation ? 1.f : 0.f, float(mDebugDisplay), 0.f };
+    bgfx::setUniform(mDebugDisplayUniform, debugDisplay);
     
     // init pages
-    
     
     bgfx::setBuffer(0, mFreePages, bgfx::Access::Write);
     bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
@@ -359,14 +363,15 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);
 
     
-    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
-    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
+
 
 
     // density
     float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
     bgfx::setUniform(m_positionUniform, position);
 
+    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
     bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, invocationx * invocationy);
 
@@ -375,6 +380,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     float direction[4] = { 0.f, 1.f, 0.f, 0.f };
     bgfx::setUniform(m_directionUniform, direction);
 
+    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
     bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
     
@@ -422,4 +429,22 @@ void TGPU::Tick(TextureProvider& textureProvider)
     m_velocityTexture = newVelocity;
      */
     TestPages(textureProvider);
+}
+
+
+void TGPU::UI()
+{
+    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0");
+    ImGui::Checkbox("Grid", &mDebugGrid);
+    ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
+}
+
+bgfx::TextureHandle TGPU::GetDisplayPages() const
+{
+    switch (mDebugDisplay)
+    {
+    case 0: return mDensityPages;
+    case 1: return mVelocityPages;
+    }
+    return { bgfx::kInvalidHandle };
 }

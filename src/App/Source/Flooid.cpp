@@ -157,7 +157,7 @@ void Flooid::Tick(const Parameters& parameters)
 
     m_textureProvider.TickFrame(6);
     //m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mDensityPages, nullptr);
-    m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mVelocityPages, nullptr);
+    m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.GetDisplayPages(), nullptr);
     mGPU.Tick(m_textureProvider);
     
     
@@ -166,4 +166,11 @@ void Flooid::Tick(const Parameters& parameters)
 void Flooid::UI()
 {
     //m_ui.UI(m_renderer.GetCamera());
+
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 300.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 400), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("Parameters", NULL, 0);
+    mGPU.UI();
+    ImGui::End();
 }
