@@ -6,6 +6,7 @@ $input v_texcoord0, v_positionWorld
 
 SAMPLER2D(s_texPages,  0);
 SAMPLER2D(s_texWorldToPage,  1);
+SAMPLER2D(s_worldToPageTags, 5);
 
 uniform vec4 eyePosition;
 uniform vec4 debugDisplay; // grid, page allocation, texture type
@@ -328,20 +329,19 @@ void main()
     */
 
     vec4 page = texture2D(s_texWorldToPage, v_texcoord0.xy, 0);
+    vec4 tag = texture2D(s_worldToPageTags, v_texcoord0.xy, 0);
     vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
     vec2 pageCoord = (page.xy * 255.) * 1./16.;
 
     if (abs(debugDisplay.z - 2.) < 0.001)
     {
-        vec4 color = texture2D(s_texPages, v_texcoord0.xy, 0);
-        if (color.x == 0.)
-            gl_FragColor = color;
-        else if (color.x == 1. / 255.)
+        if (tag.x == 0.)
+            gl_FragColor = vec4(0.,0.,0.,1.);
+        else if (tag.x == 1. / 255.)
             gl_FragColor = vec4(0.,1.,0.,1.);
     }
-    else if (length(page.xyz) > 0.)
+    else if (tag.x > 0.)
     {
-        
         // density
         if (abs(debugDisplay.z - 0.) < 0.001)
         {
@@ -355,7 +355,6 @@ void main()
             color.a = 1.;
             gl_FragColor = color;
         }
-
     } 
     else
     {

@@ -130,6 +130,7 @@ void Renderer::Init()
 
     mTexDensityPages = bgfx::createUniform("s_texDensityPages", bgfx::UniformType::Sampler); //
     mTexWorldToPage = bgfx::createUniform("s_texWorldToPage", bgfx::UniformType::Sampler); //
+    mTexWorldToPageTag = bgfx::createUniform("s_worldToPageTags", bgfx::UniformType::Sampler); //
     mTexPagesUniform = bgfx::createUniform("s_texPages", bgfx::UniformType::Sampler);
 }
 
@@ -184,7 +185,7 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 }
 
 
-void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle pages, Display* displayNode)
+void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle pages, bgfx::TextureHandle textureWorldToPageTags, Display* displayNode)
 {
 
     RenderBackground(textureProvider);
@@ -207,6 +208,9 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 
     bgfx::setTexture(1, mTexWorldToPage, textureWorldToPages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(0, mTexPagesUniform, pages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(5, mTexWorldToPageTag, textureWorldToPageTags, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+
+    
     //bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);

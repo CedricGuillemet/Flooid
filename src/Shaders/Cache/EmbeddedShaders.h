@@ -102,6 +102,16 @@
 #include "DensityGenPaged_cs_spv.h"
 #include "DensityGenPaged_cs_essl.h"
 #ifdef WIN32
+#include "DilatePages_cs_dx9.h"
+#include "DilatePages_cs_dx11.h"
+#endif
+#include "DilatePages_cs_glsl.h"
+#ifdef __APPLE__
+#include "DilatePages_cs_mtl.h"
+#endif
+#include "DilatePages_cs_spv.h"
+#include "DilatePages_cs_essl.h"
+#ifdef WIN32
 #include "Divergence_cs_dx9.h"
 #include "Divergence_cs_dx11.h"
 #endif
@@ -111,6 +121,16 @@
 #endif
 #include "Divergence_cs_spv.h"
 #include "Divergence_cs_essl.h"
+#ifdef WIN32
+#include "DivergencePages_cs_dx9.h"
+#include "DivergencePages_cs_dx11.h"
+#endif
+#include "DivergencePages_cs_glsl.h"
+#ifdef __APPLE__
+#include "DivergencePages_cs_mtl.h"
+#endif
+#include "DivergencePages_cs_spv.h"
+#include "DivergencePages_cs_essl.h"
 #ifdef WIN32
 #include "Downscale_cs_dx9.h"
 #include "Downscale_cs_dx11.h"

@@ -36,7 +36,7 @@ public:
     };
 
     void RenderBackground(TextureProvider& textureProvider);
-    void Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle pages, Display* displayNode);
+    void Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle pages, bgfx::TextureHandle textureWorldToPageTags, Display* displayNode);
 private:
     Camera m_camera;
     
@@ -61,4 +61,5 @@ private:
     bgfx::UniformHandle mTexDensityPages; // s_texDensityPages
     bgfx::UniformHandle mTexWorldToPage; // s_texWorldToPage
     bgfx::UniformHandle mTexPagesUniform;
+    bgfx::UniformHandle mTexWorldToPageTag;
 };

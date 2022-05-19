@@ -447,7 +447,7 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     {
     case 0: return mDensityPages;
     case 1: return mVelocityPages;
-    case 2: return mWorldToPageTags;
+    case 2: return mDensityPages;
     }
     return { bgfx::kInvalidHandle };
 }
