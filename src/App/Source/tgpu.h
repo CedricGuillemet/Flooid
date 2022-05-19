@@ -90,6 +90,9 @@ public:
     bgfx::ProgramHandle mInitPagesCSProgram;
     bgfx::ProgramHandle mDensityGenPagedCSProgram;
     bgfx::ProgramHandle mVelocityGenPagedCSProgram;
+
+    bgfx::ProgramHandle mDilatePagesCSProgram;
+    bgfx::ProgramHandle mDivergencePagedCSProgram;
     
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mTexOutUniform; // s_texOut

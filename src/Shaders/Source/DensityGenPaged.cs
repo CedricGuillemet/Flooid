@@ -1,8 +1,8 @@
 #include "bgfx_compute.sh"
 #include "Paging.sh"
 
-BUFFER_WR(bufferAddressPages, uint, 1);
-BUFFER_WR(bufferPages, uint, 3);
+BUFFER_RO(bufferAddressPages, uint, 1);
+BUFFER_RO(bufferPages, uint, 3);
 
 IMAGE2D_RW(s_texOut, rgba16f, 0);
 

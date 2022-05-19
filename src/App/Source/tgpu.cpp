@@ -289,7 +289,10 @@ void TGPU::Init(TextureProvider& textureProvider)
     mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
     mDensityGenPagedCSProgram = App::LoadProgram("DensityGenPaged_cs", nullptr);
     mVelocityGenPagedCSProgram = App::LoadProgram("VelocityGenPaged_cs", nullptr);
-    
+    mDilatePagesCSProgram = App::LoadProgram("DilatePages_cs", nullptr);
+    mDivergencePagedCSProgram = App::LoadProgram("DivergencePaged_cs", nullptr);
+
+
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
     mBufferCounter = bgfx::createDynamicIndexBuffer(3, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
@@ -364,9 +367,6 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);
 
-    
-
-
 
     // density
     float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
@@ -386,6 +386,16 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
     bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
+    
+
+    // Dilate pages
+    bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
+    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
+    bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
+    bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), mDilatePagesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
     
 }
 

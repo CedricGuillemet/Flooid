@@ -3,9 +3,8 @@ $input v_texcoord0, v_positionWorld
 #include "bgfx_shader.sh"
 #include "CommonFS.shader"
 #include "Common.shader"
+#include "SamplingPaged.sh"
 
-SAMPLER2D(s_texPages,  0);
-SAMPLER2D(s_texWorldToPage,  1);
 SAMPLER2D(s_worldToPageTags, 5);
 
 uniform vec4 eyePosition;
@@ -328,30 +327,33 @@ void main()
     gl_FragColor = vec4(accum, 0., 1.);
     */
 
-    vec4 page = texture2D(s_texWorldToPage, v_texcoord0.xy, 0);
+    //vec4 page = texture2D(s_texWorldToPage, v_texcoord0.xy, 0);
     vec4 tag = texture2D(s_worldToPageTags, v_texcoord0.xy, 0);
     vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
-    vec2 pageCoord = (page.xy * 255.) * 1./16.;
+    //vec2 pageCoord = (page.xy * 255.) * 1./16.;
 
     if (abs(debugDisplay.z - 2.) < 0.001)
     {
-        if (tag.x == 0.)
+        /*if (tag.x == 0.)
             gl_FragColor = vec4(0.,0.,0.,1.);
         else if (tag.x == 1. / 255.)
             gl_FragColor = vec4(0.,1.,0.,1.);
+        else if (tag.x == 2. / 255.)*/
+            gl_FragColor = vec4(tag.x * 127.5,0.,0.,1.);
     }
     else if (tag.x > 0.)
     {
         // density
         if (abs(debugDisplay.z - 0.) < 0.001)
         {
-            vec4 color = texture2D(s_texPages, pageCoord + localCoord, 0);
+            vec4 color = SamplePage(v_texcoord0.xy);
+            color.a = 1.;
             gl_FragColor = color;
         }
         // velocity
         else if (abs(debugDisplay.z - 1.) < 0.001)
         {
-            vec4 color = texture2D(s_texPages, pageCoord + localCoord, 0) * 0.5 + 0.5;
+            vec4 color = SamplePage(v_texcoord0.xy) * 0.5 + 0.5;
             color.a = 1.;
             gl_FragColor = color;
         }

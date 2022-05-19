@@ -15,6 +15,6 @@ void main()
     ivec4 tag = imageLoad(s_worldToPageTags, addr);
     if (tag.x == 0)
     {
-        AllocatePage(addr, 1);
+        AllocatePage(addr, 1.);
     }
 }
