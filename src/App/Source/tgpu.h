@@ -83,6 +83,7 @@ public:
     bgfx::TextureHandle mWorldToPageTags;
     bgfx::TextureHandle mDensityPages;
     bgfx::TextureHandle mVelocityPages;
+    bgfx::TextureHandle mDivergencePages;
 
     bgfx::DynamicIndexBufferHandle mBufferCounter, mFreePages, mBufferPages, mBufferAddressPages;
     

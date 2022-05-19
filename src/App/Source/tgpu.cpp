@@ -284,6 +284,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mWorldToPageTags = bgfx::createTexture2D(masterSize / pageSize, masterSize / pageSize, false, 0, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
     mDensityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mDivergencePages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
 
     mAllocatePagesCSProgram = App::LoadProgram("AllocatePages_cs", nullptr);
     mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
@@ -396,7 +397,15 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDilatePagesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
-    
+ 
+    // Divergence
+    bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setImage(3, mDivergencePages, 0, bgfx::Access::Write);
+    bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, 1, (invocationx+2) * (invocationy+2));
+
+
 }
 
 void TGPU::Tick(TextureProvider& textureProvider)
@@ -446,7 +455,7 @@ void TGPU::Tick(TextureProvider& textureProvider)
 
 void TGPU::UI()
 {
-    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0");
+    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0");
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -458,6 +467,7 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 0: return mDensityPages;
     case 1: return mVelocityPages;
     case 2: return mDensityPages;
+    case 3: return mDivergencePages;
     }
     return { bgfx::kInvalidHandle };
 }
