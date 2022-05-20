@@ -1,9 +1,19 @@
 # include "bgfx_compute.sh"
 # include "Paging.sh"
-# include "SamplingPaged.sh"
+//# include "SamplingPaged.sh"
 
+IMAGE2D_RO(s_texPages, rgba32f,  0);
+IMAGE2D_RO(s_texWorldToPage, rgba32f,  1);
 BUFFER_RO(bufferAddressPages, uint, 2);
 IMAGE2D_WR(s_divergenceOut, rgba32f, 3);
+
+vec4 FetchInPage(ivec3 coord)
+{
+    vec4 page = imageLoad(s_texWorldToPage, coord.xy / 16);
+    ivec2 localCoord = ivec2(coord.x & 0xF, coord.y & 0xF);
+    ivec2 pageCoord = ivec2(page.xy * 16.);
+    return imageLoad(s_texPages, pageCoord + localCoord);
+}
 
 NUM_THREADS(16, 16, 1)
 void main()

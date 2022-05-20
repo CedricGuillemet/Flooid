@@ -357,6 +357,12 @@ void main()
             color.a = 1.;
             gl_FragColor = color;
         }
+        // divergence
+        else if (abs(debugDisplay.z - 3.) < 0.001)
+        {
+            float pressure = SamplePage(v_texcoord0.xy).x * 10. + 0.5;
+            gl_FragColor = vec4(pressure, pressure, pressure, 1);
+        }
     } 
     else
     {

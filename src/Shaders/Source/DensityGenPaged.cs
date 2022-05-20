@@ -2,7 +2,7 @@
 #include "Paging.sh"
 
 BUFFER_RO(bufferAddressPages, uint, 1);
-BUFFER_RO(bufferPages, uint, 3);
+BUFFER_RO(bufferPages, uint, 2);
 
 IMAGE2D_RW(s_texOut, rgba16f, 0);
 

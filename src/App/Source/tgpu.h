@@ -99,6 +99,8 @@ public:
     bgfx::UniformHandle mTexOutUniform; // s_texOut
     
     bgfx::UniformHandle mDebugDisplayUniform;
+    bgfx::UniformHandle mTexWorldToPageUniform;
+    bgfx::UniformHandle mTexPagesUniform;
 
 
     int mDebugDisplay{};
