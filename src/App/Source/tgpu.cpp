@@ -390,7 +390,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
     
-    
+
     // Dilate pages
     bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
@@ -399,14 +399,13 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDilatePagesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
- 
+
     // Divergence
     bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
     bgfx::setImage(3, mDivergencePages, 0, bgfx::Access::Write);
     bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    //bgfx::setTexture(1, mTexWorldToPageUniform, mWorldToPages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
-    //bgfx::setTexture(0, mTexWorldToPageUniform, mVelocityPages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, 1, (invocationx+2) * (invocationy+2));
   
 

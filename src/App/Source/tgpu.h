@@ -103,7 +103,7 @@ public:
     bgfx::UniformHandle mTexPagesUniform;
 
 
-    int mDebugDisplay{};
+    int mDebugDisplay{3};
     bool mDebugGrid{true};
     bool mDebugPageAllocation{true};
 

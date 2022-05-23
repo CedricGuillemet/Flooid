@@ -7,7 +7,7 @@ ivec3 WorldCoordFromPage(uint pageAddress, ivec3 localCoord)
 {
     ivec3 pagePos = PageAddress(pageAddress);
 
-    return pagePos + localCoord;
+    return pagePos * 16 + localCoord;
 }
 
 void WorldPosFromPage(uint page, uint pageAddress, ivec2 coord, out ivec3 outBase, out vec3 voxelWorldPos)
