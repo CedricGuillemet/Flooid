@@ -285,6 +285,9 @@ void TGPU::Init(TextureProvider& textureProvider)
     mDensityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mDivergencePages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    
+    mJacobiPages[0] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mJacobiPages[1] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
 
     mAllocatePagesCSProgram = App::LoadProgram("AllocatePages_cs", nullptr);
     mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
@@ -292,7 +295,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mVelocityGenPagedCSProgram = App::LoadProgram("VelocityGenPaged_cs", nullptr);
     mDilatePagesCSProgram = App::LoadProgram("DilatePages_cs", nullptr);
     mDivergencePagedCSProgram = App::LoadProgram("DivergencePaged_cs", nullptr);
-
+    mJacobiPagedCSProgram = App::LoadProgram("JacobiPaged_cs", nullptr);
 
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
@@ -408,7 +411,33 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, 1, (invocationx+2) * (invocationy+2));
   
+    // Jacobi
+    float hsq = 1.f;
+    float jacobiParameters[4] = { hsq, 0.f, 0.f, 0.f };
+    bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
 
+    //Texture* jacobiBuf = textureProvider.Acquire(PlugType::Any, u->m_size);
+    bgfx::TextureHandle rhs = mDivergencePages;
+    bgfx::TextureHandle jacobis[2] = { mJacobiPages[0], mJacobiPages[1] };
+    
+    bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
+
+    int iterationCount = 50;
+    for (int i = 0; i < iterationCount; i++)
+    {
+        const int indexSource = i & 1;
+        const int indexDestination = (i + 1) & 1;
+        
+        bgfx::setImage(0, jacobis[indexSource], 0, bgfx::Access::Read);
+        bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
+        bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
+        bgfx::setImage(3, rhs, 0, bgfx::Access::Read);
+        bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
+        bgfx::setImage(5, jacobis[indexDestination], 0, bgfx::Access::Write);
+        
+        bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, 1, (invocationx+2) * (invocationy+2));
+    }
 }
 
 void TGPU::Tick(TextureProvider& textureProvider)
@@ -458,7 +487,7 @@ void TGPU::Tick(TextureProvider& textureProvider)
 
 void TGPU::UI()
 {
-    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0");
+    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0");
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -471,6 +500,7 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 1: return mVelocityPages;
     case 2: return mDensityPages;
     case 3: return mDivergencePages;
+    case 4: return mJacobiPages[0];
     }
     return { bgfx::kInvalidHandle };
 }

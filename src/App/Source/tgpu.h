@@ -84,6 +84,7 @@ public:
     bgfx::TextureHandle mDensityPages;
     bgfx::TextureHandle mVelocityPages;
     bgfx::TextureHandle mDivergencePages;
+    bgfx::TextureHandle mJacobiPages[2];
 
     bgfx::DynamicIndexBufferHandle mBufferCounter, mFreePages, mBufferPages, mBufferAddressPages;
     
@@ -91,6 +92,7 @@ public:
     bgfx::ProgramHandle mInitPagesCSProgram;
     bgfx::ProgramHandle mDensityGenPagedCSProgram;
     bgfx::ProgramHandle mVelocityGenPagedCSProgram;
+    bgfx::ProgramHandle mJacobiPagedCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;

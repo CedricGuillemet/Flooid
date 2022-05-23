@@ -7,7 +7,7 @@ NUM_THREADS(1, 1, 1)
 void main()
 {
     bufferCounter[0] = 0;
-    for (uint i = 0; i < 256; i++)
+    for (uint i = 0; i < 255; i++)
     {
         bufferFreePages[i] = i + 1;
     }

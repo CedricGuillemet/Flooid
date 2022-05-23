@@ -363,6 +363,12 @@ void main()
             float pressure = SamplePage(v_texcoord0.xy).x * 10. + 0.5;
             gl_FragColor = vec4(pressure, pressure, pressure, 1);
         }
+        // jacobi
+        else if (abs(debugDisplay.z - 4.) < 0.001)
+        {
+            float jacobi = SamplePage(v_texcoord0.xy).x + 0.5;
+            gl_FragColor = vec4(jacobi, jacobi, jacobi, 1);
+        }
     } 
     else
     {

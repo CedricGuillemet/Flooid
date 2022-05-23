@@ -142,6 +142,16 @@
 #include "Downscale_cs_spv.h"
 #include "Downscale_cs_essl.h"
 #ifdef WIN32
+#include "FreePages_cs_dx9.h"
+#include "FreePages_cs_dx11.h"
+#endif
+#include "FreePages_cs_glsl.h"
+#ifdef __APPLE__
+#include "FreePages_cs_mtl.h"
+#endif
+#include "FreePages_cs_spv.h"
+#include "FreePages_cs_essl.h"
+#ifdef WIN32
 #include "Gradient_cs_dx9.h"
 #include "Gradient_cs_dx11.h"
 #endif
@@ -151,6 +161,16 @@
 #endif
 #include "Gradient_cs_spv.h"
 #include "Gradient_cs_essl.h"
+#ifdef WIN32
+#include "GradientPaged_cs_dx9.h"
+#include "GradientPaged_cs_dx11.h"
+#endif
+#include "GradientPaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "GradientPaged_cs_mtl.h"
+#endif
+#include "GradientPaged_cs_spv.h"
+#include "GradientPaged_cs_essl.h"
 #ifdef WIN32
 #include "InitPages_cs_dx9.h"
 #include "InitPages_cs_dx11.h"
@@ -171,6 +191,16 @@
 #endif
 #include "Jacobi_cs_spv.h"
 #include "Jacobi_cs_essl.h"
+#ifdef WIN32
+#include "JacobiPaged_cs_dx9.h"
+#include "JacobiPaged_cs_dx11.h"
+#endif
+#include "JacobiPaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "JacobiPaged_cs_mtl.h"
+#endif
+#include "JacobiPaged_cs_spv.h"
+#include "JacobiPaged_cs_essl.h"
 #ifdef WIN32
 #include "Residual_cs_dx9.h"
 #include "Residual_cs_dx11.h"
