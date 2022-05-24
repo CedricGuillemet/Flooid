@@ -166,8 +166,8 @@ void Flooid::UI()
 {
     //m_ui.UI(m_renderer.GetCamera());
 
-    ImGui::SetNextWindowPos(ImVec2(0.0f, 300.0f), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(200, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 100.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 600), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Parameters", NULL, 0);
     mGPU.UI();

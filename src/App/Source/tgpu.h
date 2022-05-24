@@ -58,6 +58,9 @@ public:
     bgfx::UniformHandle m_texVelocityUniform;
     
     
+    Texture* tempRHS;
+    Texture* jacobi[2];
+    Texture* tempGradient;
     
     //
     void DensityGen(TextureProvider& textureProvider);

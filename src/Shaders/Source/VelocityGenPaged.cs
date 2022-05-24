@@ -22,11 +22,18 @@ void main()
     WorldPosFromPage(page, pageAddress, coord, outBase, voxelWorldPos);
 
 
-    float linDistance = length(position.xy - voxelWorldPos.xy);
-    float value = step(0., position.w - linDistance);
-    if (value > 0)
+    //float dist = -(length(position.xy - p) - position.w);
+    float linDistance = position.w - length(position.xy - voxelWorldPos.xy);
+    
+
+    
+    
+    //float linDistance = length(position.xy - voxelWorldPos.xy);
+    //float value = step(0., position.w - linDistance);
+    if (linDistance > 0.)
     {
-        vec4 velocity = vec4(direction.xy * value, 0., 1.);
+        //vec4 velocity = vec4(direction.xy * value, 0., 1.);
+        vec4 velocity = vec4(0.,30.3,0.,0.) * max(linDistance, 0.);
 
         imageStore(s_texOut, outBase, velocity);
     }

@@ -280,6 +280,12 @@ void TGPU::Init(TextureProvider& textureProvider)
     m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
     m_fineTexSizeUniform = bgfx::createUniform("fineTexSize", bgfx::UniformType::Vec4);
     
+    
+    /*Texture* */tempRHS = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
+    /*Texture* */jacobi[0] = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
+    jacobi[1] = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
+    tempGradient = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
+
     ///
     ///
     const int pageSize = 16;
@@ -504,11 +510,11 @@ void TGPU::TestVCycle(TextureProvider& textureProvider)
     Advect(textureProvider, m_velocityTexture, m_velocityTexture, advectedVelocity);
 
 
-    Texture* tempRHS = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
+    //Texture* tempRHS = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     Divergence(textureProvider, advectedVelocity, tempRHS);
 
 
-    Texture* jacobi[2] = { textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE) };
+    //Texture* jacobi[2] = { textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE) };
     bgfx::setImage(0, jacobi[0]->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
@@ -520,6 +526,7 @@ void TGPU::TestVCycle(TextureProvider& textureProvider)
 
     Texture* newVelocity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     Gradient(textureProvider, jacobi[0], advectedVelocity, newVelocity);
+    Gradient(textureProvider, jacobi[0], advectedVelocity, tempGradient);
 
     textureProvider.Release(jacobi[0]);
 
@@ -557,7 +564,19 @@ void TGPU::UI()
     {
         mDesiredFrame++;
     }
-    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0VCycle Density\0VCycle Velocity\0");
+    //ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0VCycle Density\0VCycle Velocity\0VCycle Divergence\0VCycle Jacobi\0");
+    if (ImGui::RadioButton("Density", mDebugDisplay == 0)) mDebugDisplay = 0;
+    if (ImGui::RadioButton("Velocity", mDebugDisplay == 1)) mDebugDisplay = 1;
+    if (ImGui::RadioButton("Page Tag", mDebugDisplay == 2)) mDebugDisplay = 2;
+    if (ImGui::RadioButton("Divergence", mDebugDisplay == 3)) mDebugDisplay = 3;
+    if (ImGui::RadioButton("Jacobi", mDebugDisplay == 4)) mDebugDisplay = 4;
+    if (ImGui::RadioButton("Gradient", mDebugDisplay == 5)) mDebugDisplay = 5;
+    if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 6)) mDebugDisplay = 6;
+    if (ImGui::RadioButton("VCycle Velocity", mDebugDisplay == 7)) mDebugDisplay = 7;
+    if (ImGui::RadioButton("VCycle Divergence", mDebugDisplay == 8)) mDebugDisplay = 8;
+    if (ImGui::RadioButton("VCycle Jacobi", mDebugDisplay == 9)) mDebugDisplay = 9;
+    if (ImGui::RadioButton("VCycle Gradient", mDebugDisplay == 10)) mDebugDisplay = 10;
+    
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -575,6 +594,10 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
 
     case 6: return m_densityTexture->GetTexture();
     case 7: return m_velocityTexture->GetTexture();
+    case 8: return tempRHS->GetTexture();
+    case 9: return jacobi[0]->GetTexture();
+    case 10: return tempGradient->GetTexture();
+
     }
     return { bgfx::kInvalidHandle };
 }

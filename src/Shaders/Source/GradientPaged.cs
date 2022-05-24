@@ -28,7 +28,7 @@ vec4 FetchInPageVelocity(ivec3 coord)
     vec4 page = imageLoad(s_texWorldToPage, coord.xy / 16);
     ivec2 localCoord = ivec2(coord.x & 0xF, coord.y & 0xF);
     ivec2 pageCoord = ivec2(page.xy * 255.);
-    return imageLoad(s_texPressure, pageCoord * 16 + localCoord);
+    return imageLoad(s_texVelocity, pageCoord * 16 + localCoord);
 }
 
 NUM_THREADS(16, 16, 1)

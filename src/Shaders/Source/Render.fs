@@ -354,8 +354,7 @@ void main()
         else if (abs(debugDisplay.z - 1.) < 0.001)
         {
             vec4 color = SamplePage(v_texcoord0.xy) * 0.5 + 0.5;
-            color.a = 1.;
-            gl_FragColor = color;
+            gl_FragColor = vec4(color.xy, 0., 1.);
         }
         // divergence
         else if (abs(debugDisplay.z - 3.) < 0.001)
@@ -375,18 +374,35 @@ void main()
             vec2 gradient = SamplePage(v_texcoord0.xy).xy + 0.5;
             gl_FragColor = vec4(gradient, 0., 1.);
         }
-
-        // old density
+        // vcycle density
         else if (abs(debugDisplay.z - 6.) < 0.001)
         {
             float density = texture2D(s_texPages, v_texcoord0.xy, 0).x;
             gl_FragColor = vec4(density, density, density, 1.);
         }
-        // gradient
+        // vcycle velocity
         else if (abs(debugDisplay.z - 7.) < 0.001)
         {
             vec2 velocity = texture2D(s_texPages, v_texcoord0.xy, 0).xy * 0.5 + 0.5;
             gl_FragColor = vec4(velocity, 0., 1.);
+        }
+        // vcycle divergence
+        else if (abs(debugDisplay.z - 8.) < 0.001)
+        {
+            float pressure = texture2D(s_texPages, v_texcoord0.xy, 0).x * 10. + 0.5;
+            gl_FragColor = vec4(pressure, pressure, pressure, 1.);
+        }
+        // vcycle jacobi
+        else if (abs(debugDisplay.z - 9.) < 0.001)
+        {
+            float jacobi = texture2D(s_texPages, v_texcoord0.xy, 0).x + 0.5;
+            gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
+        }
+        // vcycle gradient
+        else if (abs(debugDisplay.z - 10.) < 0.001)
+        {
+            vec2 gradient = texture2D(s_texPages, v_texcoord0.xy, 0).xy + 0.5;
+            gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 
     else
