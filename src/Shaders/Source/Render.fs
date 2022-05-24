@@ -375,6 +375,19 @@ void main()
             vec2 gradient = SamplePage(v_texcoord0.xy).xy + 0.5;
             gl_FragColor = vec4(gradient, 0., 1.);
         }
+
+        // old density
+        else if (abs(debugDisplay.z - 6.) < 0.001)
+        {
+            float density = texture2D(s_texPages, v_texcoord0.xy, 0).x;
+            gl_FragColor = vec4(density, density, density, 1.);
+        }
+        // gradient
+        else if (abs(debugDisplay.z - 7.) < 0.001)
+        {
+            vec2 velocity = texture2D(s_texPages, v_texcoord0.xy, 0).xy * 0.5 + 0.5;
+            gl_FragColor = vec4(velocity, 0., 1.);
+        }
     } 
     else
     {

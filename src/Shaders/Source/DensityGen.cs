@@ -58,7 +58,7 @@ void main()
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 p = coord / 256.;
     
-    vec4 position = vec4(0.5, 0.1, 0., 0.1);
+    vec4 position = vec4(0.5, 0.1, 0., 0.05);
     
     float linDistance = length(position.xy - p);
     float dist = -(length(position.xy - p) - position.w);

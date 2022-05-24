@@ -1,6 +1,10 @@
 #include "tgpu.h"
 
 static const int TEX_SIZE = 256;
+
+Imm::vec3 densityCenter{ 0.5f, 0.1f, 0.f };
+Imm::vec3 densityExtend{ 0.05f, 0.15f, 0.f };
+
 TGPU::TGPU()
 {
 
@@ -9,7 +13,7 @@ TGPU::TGPU()
 void TGPU::DensityGen(TextureProvider& textureProvider)
 {
     Imm::matrix m_matrix;
-    m_matrix.translation(0.5f, 0.1f, 0.f);
+    m_matrix.translation(densityCenter.x, densityCenter.y, densityCenter.z);
     
     Imm::matrix invWorld;
     invWorld.inverse(m_matrix);
@@ -21,8 +25,8 @@ void TGPU::DensityGen(TextureProvider& textureProvider)
 
 void TGPU::VelocityGen(TextureProvider& textureProvider)
 {
-    Imm::vec3 m_position{0.5f, 0.1f, 0.f};
-    float m_radius = 0.07f;
+    Imm::vec3 m_position = densityCenter;// {0.5f, 0.1f, 0.f};
+    float m_radius = densityExtend.x;
     float position[4] = { m_position.x, m_position.y, m_position.z, m_radius };
     bgfx::setUniform(m_positionUniform, position);
 
@@ -322,8 +326,7 @@ void TGPU::Init(TextureProvider& textureProvider)
 void TGPU::TestPages(TextureProvider& textureProvider)
 {
     // t allocate
-    Imm::vec3 densityCenter{0.5f, 0.1f, 0.f};
-    Imm::vec3 densityExtend{0.05f, 0.15f, 0.f};
+
     /*Imm::vec3 wmin = {0.1f, 0.1f, 0.0f};
     Imm::vec3 wmax = {0.4f, 0.4f, 0.0f};*/
 
@@ -355,6 +358,10 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     //bgfx::setUniform(m_invhsqUniform, invhsq);
     int invocationx = groupMaxx - groupMinx;
     int invocationy = groupMaxy - groupMiny;
+
+    //
+    std::swap(mGradientPages, mVelocityPages);
+    std::swap(mDensityPages, mDensityAdvectedPages);
 
     static bool initialized = false;
     // init pages
@@ -455,7 +462,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
 
-    int iterationCount = 300;
+    int iterationCount = 50;
     for (int i = 0; i < iterationCount; i++)
     {
         const int indexSource = i & 1;
@@ -480,14 +487,11 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mGradientPagedCSProgram, 1, invocationx * invocationy); //(invocationx + 2) * (invocationy + 2));
 
-    //
-    std::swap(mGradientPages, mVelocityPages);
-    std::swap(mDensityPages, mDensityAdvectedPages);
-}
 
-void TGPU::Tick(TextureProvider& textureProvider)
+}
+void TGPU::TestVCycle(TextureProvider& textureProvider)
 {
-    /*VelocityGen(textureProvider);
+    VelocityGen(textureProvider);
     DensityGen(textureProvider);
 
     // advection
@@ -496,36 +500,40 @@ void TGPU::Tick(TextureProvider& textureProvider)
     Texture* newDensity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     Advect(textureProvider, m_densityTexture, m_velocityTexture, newDensity);
     textureProvider.Release(m_densityTexture);
-    
+
     Advect(textureProvider, m_velocityTexture, m_velocityTexture, advectedVelocity);
-    
-    
+
+
     Texture* tempRHS = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     Divergence(textureProvider, advectedVelocity, tempRHS);
-    
-    
-    Texture* jacobi[2] = {textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE)};
+
+
+    Texture* jacobi[2] = { textureProvider.Acquire(PlugType::Any, TEX_SIZE), textureProvider.Acquire(PlugType::Any, TEX_SIZE) };
     bgfx::setImage(0, jacobi[0]->GetTexture(), 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
 
     //Jacobi(textureProvider, jacobi, tempRHS, 100);
-    vcycle(textureProvider, tempRHS, jacobi[0], 256, 0, 4);
-    
+    vcycle(textureProvider, tempRHS, jacobi[0], 256, 0, 0);
+
     textureProvider.Release(tempRHS);
     textureProvider.Release(jacobi[1]);
-    
+
     Texture* newVelocity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     Gradient(textureProvider, jacobi[0], advectedVelocity, newVelocity);
-    
+
     textureProvider.Release(jacobi[0]);
-    
+
     textureProvider.Release(advectedVelocity);
-    
+
     textureProvider.Release(m_velocityTexture);
-    
+
     m_densityTexture = newDensity;
     m_velocityTexture = newVelocity;
-     */
+}
+
+void TGPU::Tick(TextureProvider& textureProvider)
+{
+    
 
      // debug display
     float debugDisplay[4] = { mDebugGrid ? 1.f : 0.f, mDebugPageAllocation ? 1.f : 0.f, float(mDebugDisplay), 0.f };
@@ -536,6 +544,8 @@ void TGPU::Tick(TextureProvider& textureProvider)
     {
         mCurrentFrame++;
         TestPages(textureProvider);
+
+        TestVCycle(textureProvider);
     }
     
 }
@@ -547,7 +557,7 @@ void TGPU::UI()
     {
         mDesiredFrame++;
     }
-    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0");
+    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0VCycle Density\0VCycle Velocity\0");
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -562,6 +572,9 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 3: return mDivergencePages;
     case 4: return mJacobiPages[0];
     case 5: return mGradientPages;
+
+    case 6: return m_densityTexture->GetTexture();
+    case 7: return m_velocityTexture->GetTexture();
     }
     return { bgfx::kInvalidHandle };
 }

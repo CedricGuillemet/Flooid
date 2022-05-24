@@ -77,7 +77,7 @@ public:
     void vcycle(TextureProvider& textureProvider, const Texture* rhs, Texture* u, int fineSize, int level, int max);
     void Jacobi(TextureProvider& textureProvider, Texture* u, const Texture* rhs, int iterationCount, float hsq);
     
-    
+    void TestVCycle(TextureProvider& textureProvider);
     void TestPages(TextureProvider& textureProvider);
     bgfx::TextureHandle mWorldToPages;
     bgfx::TextureHandle mWorldToPageTags;
