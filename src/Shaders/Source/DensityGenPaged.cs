@@ -25,6 +25,8 @@ void main()
     float value = step(0., position.w - linDistance);
 
     vec4 color = vec4(value, value, value, 1.);
-    
-    imageStore(s_texOut, outBase, color);
+    if (value > 0.)
+    {
+        imageStore(s_texOut, outBase, color);
+    }
 }

@@ -24,8 +24,10 @@ void main()
 
     float linDistance = length(position.xy - voxelWorldPos.xy);
     float value = step(0., position.w - linDistance);
+    if (value > 0)
+    {
+        vec4 velocity = vec4(direction.xy * value, 0., 1.);
 
-    vec4 velocity = vec4(direction.xy * value, 0., 1.);
-    
-    imageStore(s_texOut, outBase, velocity);
+        imageStore(s_texOut, outBase, velocity);
+    }
 }

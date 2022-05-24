@@ -83,8 +83,12 @@ public:
     bgfx::TextureHandle mWorldToPageTags;
     bgfx::TextureHandle mDensityPages;
     bgfx::TextureHandle mVelocityPages;
+    bgfx::TextureHandle mDensityAdvectedPages;
+    bgfx::TextureHandle mVelocityAdvectedPages;
+
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mJacobiPages[2];
+    bgfx::TextureHandle mGradientPages;
 
     bgfx::DynamicIndexBufferHandle mBufferCounter, mFreePages, mBufferPages, mBufferAddressPages;
     
@@ -93,6 +97,8 @@ public:
     bgfx::ProgramHandle mDensityGenPagedCSProgram;
     bgfx::ProgramHandle mVelocityGenPagedCSProgram;
     bgfx::ProgramHandle mJacobiPagedCSProgram;
+    bgfx::ProgramHandle mGradientPagedCSProgram;
+    bgfx::ProgramHandle mAdvectPagedCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
@@ -105,8 +111,11 @@ public:
     bgfx::UniformHandle mTexPagesUniform;
 
 
-    int mDebugDisplay{3};
+    int mDebugDisplay{0};
     bool mDebugGrid{true};
     bool mDebugPageAllocation{true};
 
+
+    int mCurrentFrame{};
+    int mDesiredFrame{};
 };

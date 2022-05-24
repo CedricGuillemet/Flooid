@@ -361,13 +361,19 @@ void main()
         else if (abs(debugDisplay.z - 3.) < 0.001)
         {
             float pressure = SamplePage(v_texcoord0.xy).x * 10. + 0.5;
-            gl_FragColor = vec4(pressure, pressure, pressure, 1);
+            gl_FragColor = vec4(pressure, pressure, pressure, 1.);
         }
         // jacobi
         else if (abs(debugDisplay.z - 4.) < 0.001)
         {
             float jacobi = SamplePage(v_texcoord0.xy).x + 0.5;
-            gl_FragColor = vec4(jacobi, jacobi, jacobi, 1);
+            gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
+        }
+        // gradient
+        else if (abs(debugDisplay.z - 5.) < 0.001)
+        {
+            vec2 gradient = SamplePage(v_texcoord0.xy).xy + 0.5;
+            gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 
     else

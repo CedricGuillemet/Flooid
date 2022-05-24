@@ -62,6 +62,16 @@
 #include "Advect_cs_spv.h"
 #include "Advect_cs_essl.h"
 #ifdef WIN32
+#include "AdvectPaged_cs_dx9.h"
+#include "AdvectPaged_cs_dx11.h"
+#endif
+#include "AdvectPaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "AdvectPaged_cs_mtl.h"
+#endif
+#include "AdvectPaged_cs_spv.h"
+#include "AdvectPaged_cs_essl.h"
+#ifdef WIN32
 #include "AllocatePages_cs_dx9.h"
 #include "AllocatePages_cs_dx11.h"
 #endif

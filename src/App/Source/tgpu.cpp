@@ -285,9 +285,13 @@ void TGPU::Init(TextureProvider& textureProvider)
     mDensityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mDivergencePages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mGradientPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     
     mJacobiPages[0] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mJacobiPages[1] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mDensityAdvectedPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mVelocityAdvectedPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+
 
     mAllocatePagesCSProgram = App::LoadProgram("AllocatePages_cs", nullptr);
     mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
@@ -296,6 +300,8 @@ void TGPU::Init(TextureProvider& textureProvider)
     mDilatePagesCSProgram = App::LoadProgram("DilatePages_cs", nullptr);
     mDivergencePagedCSProgram = App::LoadProgram("DivergencePaged_cs", nullptr);
     mJacobiPagedCSProgram = App::LoadProgram("JacobiPaged_cs", nullptr);
+    mGradientPagedCSProgram = App::LoadProgram("GradientPaged_cs", nullptr);
+    mAdvectPagedCSProgram = App::LoadProgram("AdvectPaged_cs", nullptr);
 
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
@@ -316,10 +322,13 @@ void TGPU::Init(TextureProvider& textureProvider)
 void TGPU::TestPages(TextureProvider& textureProvider)
 {
     // t allocate
-    Imm::vec3 densityCenter{0.25f, 0.25f, 0.f};
-    Imm::vec3 densityExtend{0.15f, 0.15f, 0.f};
-    Imm::vec3 wmin = {0.1f, 0.1f, 0.0f};
-    Imm::vec3 wmax = {0.4f, 0.4f, 0.0f};
+    Imm::vec3 densityCenter{0.5f, 0.1f, 0.f};
+    Imm::vec3 densityExtend{0.05f, 0.15f, 0.f};
+    /*Imm::vec3 wmin = {0.1f, 0.1f, 0.0f};
+    Imm::vec3 wmax = {0.4f, 0.4f, 0.0f};*/
+
+    Imm::vec3 wmin = { 0.0f, 0.0f, 0.0f };
+    Imm::vec3 wmax = { 1.f, 1.f, 0.0f };
     
     int groupMinx = int(wmin.x * 256.f);
     groupMinx -= groupMinx % 16;
@@ -347,53 +356,76 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     int invocationx = groupMaxx - groupMinx;
     int invocationy = groupMaxy - groupMiny;
 
-    // debug display
-    float debugDisplay[4] = {mDebugGrid ? 1.f : 0.f, mDebugPageAllocation ? 1.f : 0.f, float(mDebugDisplay), 0.f };
-    bgfx::setUniform(mDebugDisplayUniform, debugDisplay);
-    
+    static bool initialized = false;
     // init pages
-    
-    bgfx::setBuffer(0, mFreePages, bgfx::Access::Write);
-    bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), mInitPagesCSProgram, 1, 1);
-    
-    
-    // allocate pages
-    float groupMin[4] = { float(groupMinx), float(groupMiny), 0.f, 0.f };
-    bgfx::setUniform(mGroupMinUniform, groupMin);
+    if (!initialized)
+    {
+        initialized = true;
 
-    
-    //bgfx::setTexture(0, m_texUUniform, u->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    //bgfx::setTexture(1, m_texRHSUniform, rhs->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
-    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
-    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Write);
-    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
-    bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
-    bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);
+        bgfx::setBuffer(0, mFreePages, bgfx::Access::Write);
+        bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
+        bgfx::dispatch(textureProvider.GetViewId(), mInitPagesCSProgram, 1, 1);
 
-    
-    // density
-    float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
-    bgfx::setUniform(m_positionUniform, position);
+        // allocate pages
+        float groupMin[4] = { float(groupMinx), float(groupMiny), 0.f, 0.f };
+        bgfx::setUniform(mGroupMinUniform, groupMin);
 
-    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Read);
-    bgfx::setBuffer(2, mBufferPages, bgfx::Access::Read);
-    bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, invocationx * invocationy);
+        bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
+        bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
+        bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Write);
+        bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
+        bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
+        bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), mAllocatePagesCSProgram, invocationx, invocationy);
 
-    
-    // velocity
-    float direction[4] = { 0.f, 1.f, 0.f, 0.f };
-    bgfx::setUniform(m_directionUniform, direction);
+        // clear density and velocity
 
-    bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Read);
-    bgfx::setBuffer(2, mBufferPages, bgfx::Access::Read);
-    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
-    
+        bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
+        bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
 
+
+
+        // density
+        float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
+        bgfx::setUniform(m_positionUniform, position);
+
+        bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Read);
+        bgfx::setBuffer(2, mBufferPages, bgfx::Access::Read);
+        bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), mDensityGenPagedCSProgram, 1, invocationx * invocationy);
+
+
+        // velocity
+        float direction[4] = { 0.f, 1.f, 0.f, 0.f };
+        bgfx::setUniform(m_directionUniform, direction);
+
+        bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Read);
+        bgfx::setBuffer(2, mBufferPages, bgfx::Access::Read);
+        bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
+    }
+
+    // advect density
+    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(1, mDensityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setImage(4, mDensityAdvectedPages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mAdvectPagedCSProgram, 1, invocationx * invocationy); //(invocationx + 2) * (invocationy + 2));
+
+
+    // advect velocity
+    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(1, mVelocityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setImage(4, mVelocityAdvectedPages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mAdvectPagedCSProgram, 1, invocationx * invocationy); //(invocationx + 2) * (invocationy + 2));
+    /*
     // Dilate pages
     bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
@@ -402,28 +434,28 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::setImage(5, mWorldToPageTags, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDilatePagesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
+    */
 
     // Divergence
     bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
     bgfx::setImage(3, mDivergencePages, 0, bgfx::Access::Write);
     bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(0, mVelocityAdvectedPages/*mVelocityPages*/, 0, bgfx::Access::Read);
     bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
-    bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, 1, (invocationx+2) * (invocationy+2));
+    bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, 1, invocationx * invocationy); //(invocationx+2) * (invocationy+2));
   
     // Jacobi
     float hsq = 1.f;
     float jacobiParameters[4] = { hsq, 0.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
 
-    //Texture* jacobiBuf = textureProvider.Acquire(PlugType::Any, u->m_size);
     bgfx::TextureHandle rhs = mDivergencePages;
     bgfx::TextureHandle jacobis[2] = { mJacobiPages[0], mJacobiPages[1] };
     
     bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
 
-    int iterationCount = 50;
+    int iterationCount = 300;
     for (int i = 0; i < iterationCount; i++)
     {
         const int indexSource = i & 1;
@@ -436,8 +468,21 @@ void TGPU::TestPages(TextureProvider& textureProvider)
         bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
         bgfx::setImage(5, jacobis[indexDestination], 0, bgfx::Access::Write);
         
-        bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, 1, (invocationx+2) * (invocationy+2));
+        bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, 1, invocationx * invocationy); //(invocationx+2) * (invocationy+2));
     }
+
+    // gradient
+    bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Read);
+    bgfx::setImage(1, mVelocityAdvectedPages/*mVelocityPages*/, 0, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setImage(4, mGradientPages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mGradientPagedCSProgram, 1, invocationx * invocationy); //(invocationx + 2) * (invocationy + 2));
+
+    //
+    std::swap(mGradientPages, mVelocityPages);
+    std::swap(mDensityPages, mDensityAdvectedPages);
 }
 
 void TGPU::Tick(TextureProvider& textureProvider)
@@ -481,13 +526,28 @@ void TGPU::Tick(TextureProvider& textureProvider)
     m_densityTexture = newDensity;
     m_velocityTexture = newVelocity;
      */
-    TestPages(textureProvider);
+
+     // debug display
+    float debugDisplay[4] = { mDebugGrid ? 1.f : 0.f, mDebugPageAllocation ? 1.f : 0.f, float(mDebugDisplay), 0.f };
+    bgfx::setUniform(mDebugDisplayUniform, debugDisplay);
+    bgfx::touch(textureProvider.GetViewId());
+
+    if (mCurrentFrame < mDesiredFrame)
+    {
+        mCurrentFrame++;
+        TestPages(textureProvider);
+    }
+    
 }
 
 
 void TGPU::UI()
 {
-    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0");
+    if (ImGui::Button("Next"))
+    {
+        mDesiredFrame++;
+    }
+    ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0");
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -501,6 +561,7 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 2: return mDensityPages;
     case 3: return mDivergencePages;
     case 4: return mJacobiPages[0];
+    case 5: return mGradientPages;
     }
     return { bgfx::kInvalidHandle };
 }
