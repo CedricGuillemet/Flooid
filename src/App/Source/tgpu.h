@@ -102,6 +102,7 @@ public:
     bgfx::ProgramHandle mJacobiPagedCSProgram;
     bgfx::ProgramHandle mGradientPagedCSProgram;
     bgfx::ProgramHandle mAdvectPagedCSProgram;
+    bgfx::ProgramHandle mFreePagesCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
@@ -120,5 +121,5 @@ public:
 
 
     int mCurrentFrame{};
-    int mDesiredFrame{};
+    int mDesiredFrame{1};
 };

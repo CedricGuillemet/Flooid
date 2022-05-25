@@ -312,6 +312,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mJacobiPagedCSProgram = App::LoadProgram("JacobiPaged_cs", nullptr);
     mGradientPagedCSProgram = App::LoadProgram("GradientPaged_cs", nullptr);
     mAdvectPagedCSProgram = App::LoadProgram("AdvectPaged_cs", nullptr);
+    mFreePagesCSProgram = App::LoadProgram("FreePages_cs", nullptr);
 
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
@@ -381,7 +382,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
         float groupMin[4] = { float(groupMinx), float(groupMiny), 0.f, 0.f };
         bgfx::setUniform(mGroupMinUniform, groupMin);
 
-        bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
+        bgfx::setBuffer(0, mFreePages, bgfx::Access::ReadWrite);
         bgfx::setBuffer(1, mBufferAddressPages, bgfx::Access::Write);
         bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Write);
         bgfx::setBuffer(3, mBufferPages, bgfx::Access::Write);
@@ -493,6 +494,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
 
     std::swap(mGradientPages, mVelocityPages);
     std::swap(mDensityPages, mDensityAdvectedPages);
+
+    // free pages
 }
 void TGPU::TestVCycle(TextureProvider& textureProvider)
 {
