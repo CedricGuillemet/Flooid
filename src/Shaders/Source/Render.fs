@@ -331,7 +331,7 @@ void main()
     vec4 tag = texture2D(s_worldToPageTags, v_texcoord0.xy, 0);
     vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
     //vec2 pageCoord = (page.xy * 255.) * 1./16.;
-
+    vec4 tagColor = vec4(tag.x * 127.5,0.,0.,1.);
     if (abs(debugDisplay.z - 2.) < 0.001)
     {
         /*if (tag.x == 0.)
@@ -339,9 +339,12 @@ void main()
         else if (tag.x == 1. / 255.)
             gl_FragColor = vec4(0.,1.,0.,1.);
         else if (tag.x == 2. / 255.)*/
+        {
             gl_FragColor = vec4(tag.x * 127.5,0.,0.,1.);
+            tagColor = vec4(1.,1.,1.,1.);
+        }
     }
-    else if (tag.x > 0.)
+    if (tag.x > 0.)
     {
         // density
         if (abs(debugDisplay.z - 0.) < 0.001)
@@ -405,11 +408,12 @@ void main()
             gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 
-    else
+    /*else
     {
         gl_FragColor = vec4(0.,1. * debugDisplay.y,0.,1.);
-    }
+    }*/
+    //gl_FragColor *= tagColor;
 
     float mx = (step(localCoord.x, 1./255.) + step(localCoord.y, 1./255.)) * debugDisplay.x;
-    gl_FragColor = mix(gl_FragColor, vec4(1.,1.,1.,1.), mx);
+    gl_FragColor = mix(gl_FragColor, vec4(1.,1.,1.,1.) * tagColor, mx);
 }

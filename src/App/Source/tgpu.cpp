@@ -366,8 +366,6 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     int invocationy = groupMaxy - groupMiny;
 
     //
-    std::swap(mGradientPages, mVelocityPages);
-    std::swap(mDensityPages, mDensityAdvectedPages);
 
     static bool initialized = false;
     // init pages
@@ -398,7 +396,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
         bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
         bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
 
-
+    }
 
         // density
         float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
@@ -418,7 +416,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
         bgfx::setBuffer(2, mBufferPages, bgfx::Access::Read);
         bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Write);
         bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, 1, invocationx * invocationy);
-    }
+    
 
     // advect density
     bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
@@ -493,7 +491,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mGradientPagedCSProgram, 1, invocationx * invocationy); //(invocationx + 2) * (invocationy + 2));
 
-
+    std::swap(mGradientPages, mVelocityPages);
+    std::swap(mDensityPages, mDensityAdvectedPages);
 }
 void TGPU::TestVCycle(TextureProvider& textureProvider)
 {
@@ -521,14 +520,14 @@ void TGPU::TestVCycle(TextureProvider& textureProvider)
     //Jacobi(textureProvider, jacobi, tempRHS, 100);
     vcycle(textureProvider, tempRHS, jacobi[0], 256, 0, 0);
 
-    textureProvider.Release(tempRHS);
-    textureProvider.Release(jacobi[1]);
+    //textureProvider.Release(tempRHS);
+    //textureProvider.Release(jacobi[1]);
 
     Texture* newVelocity = textureProvider.Acquire(PlugType::Any, TEX_SIZE);
     Gradient(textureProvider, jacobi[0], advectedVelocity, newVelocity);
     Gradient(textureProvider, jacobi[0], advectedVelocity, tempGradient);
 
-    textureProvider.Release(jacobi[0]);
+    //textureProvider.Release(jacobi[0]);
 
     textureProvider.Release(advectedVelocity);
 
@@ -540,9 +539,7 @@ void TGPU::TestVCycle(TextureProvider& textureProvider)
 
 void TGPU::Tick(TextureProvider& textureProvider)
 {
-    
-
-     // debug display
+    // debug display
     float debugDisplay[4] = { mDebugGrid ? 1.f : 0.f, mDebugPageAllocation ? 1.f : 0.f, float(mDebugDisplay), 0.f };
     bgfx::setUniform(mDebugDisplayUniform, debugDisplay);
     bgfx::touch(textureProvider.GetViewId());
@@ -554,7 +551,6 @@ void TGPU::Tick(TextureProvider& textureProvider)
 
         TestVCycle(textureProvider);
     }
-    
 }
 
 
@@ -563,6 +559,16 @@ void TGPU::UI()
     if (ImGui::Button("Next"))
     {
         mDesiredFrame++;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Play"))
+    {
+        mDesiredFrame+=9999999;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Stop"))
+    {
+        mCurrentFrame = mDesiredFrame;
     }
     //ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0VCycle Density\0VCycle Velocity\0VCycle Divergence\0VCycle Jacobi\0");
     if (ImGui::RadioButton("Density", mDebugDisplay == 0)) mDebugDisplay = 0;
