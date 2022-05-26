@@ -88,6 +88,8 @@ public:
     bgfx::TextureHandle mVelocityPages;
     bgfx::TextureHandle mDensityAdvectedPages;
     bgfx::TextureHandle mVelocityAdvectedPages;
+    bgfx::TextureHandle mReadBackCS;
+    bgfx::TextureHandle mReadBackCPU;
 
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mJacobiPages[2];

@@ -408,10 +408,10 @@ void main()
             gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 
-    /*else
+    else
     {
-        gl_FragColor = vec4(0.,1. * debugDisplay.y,0.,1.);
-    }*/
+        gl_FragColor = vec4(0.,0.,0.,1.);
+    }
     //gl_FragColor *= tagColor;
 
     float mx = (step(localCoord.x, 1./255.) + step(localCoord.y, 1./255.)) * debugDisplay.x;
