@@ -95,7 +95,7 @@ public:
     bgfx::TextureHandle mJacobiPages[2];
     bgfx::TextureHandle mGradientPages;
 
-    bgfx::DynamicIndexBufferHandle mBufferCounter, mFreePages, mBufferPages, mBufferAddressPages;
+    bgfx::DynamicIndexBufferHandle mBufferCounter, /*mFreePages,*/ mBufferPages, mBufferAddressPages;
     
     bgfx::ProgramHandle mAllocatePagesCSProgram;
     bgfx::ProgramHandle mInitPagesCSProgram;
@@ -105,6 +105,7 @@ public:
     bgfx::ProgramHandle mGradientPagedCSProgram;
     bgfx::ProgramHandle mAdvectPagedCSProgram;
     bgfx::ProgramHandle mFreePagesCSProgram;
+    bgfx::ProgramHandle mDispatchIndirectCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
@@ -117,6 +118,8 @@ public:
     bgfx::UniformHandle mTexPagesUniform;
 
 
+    bgfx::IndirectBufferHandle mDispatchIndirect;
+    
     int mDebugDisplay{0};
     bool mDebugGrid{true};
     bool mDebugPageAllocation{true};

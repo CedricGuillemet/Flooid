@@ -122,6 +122,16 @@
 #include "DilatePages_cs_spv.h"
 #include "DilatePages_cs_essl.h"
 #ifdef WIN32
+#include "DispatchIndirect_cs_dx9.h"
+#include "DispatchIndirect_cs_dx11.h"
+#endif
+#include "DispatchIndirect_cs_glsl.h"
+#ifdef __APPLE__
+#include "DispatchIndirect_cs_mtl.h"
+#endif
+#include "DispatchIndirect_cs_spv.h"
+#include "DispatchIndirect_cs_essl.h"
+#ifdef WIN32
 #include "Divergence_cs_dx9.h"
 #include "Divergence_cs_dx11.h"
 #endif
