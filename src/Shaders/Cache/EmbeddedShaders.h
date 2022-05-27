@@ -92,6 +92,16 @@
 #include "Clear_cs_spv.h"
 #include "Clear_cs_essl.h"
 #ifdef WIN32
+#include "CommitFreePages_cs_dx9.h"
+#include "CommitFreePages_cs_dx11.h"
+#endif
+#include "CommitFreePages_cs_glsl.h"
+#ifdef __APPLE__
+#include "CommitFreePages_cs_mtl.h"
+#endif
+#include "CommitFreePages_cs_spv.h"
+#include "CommitFreePages_cs_essl.h"
+#ifdef WIN32
 #include "DensityGen_cs_dx9.h"
 #include "DensityGen_cs_dx11.h"
 #endif
@@ -161,6 +171,16 @@
 #endif
 #include "Downscale_cs_spv.h"
 #include "Downscale_cs_essl.h"
+#ifdef WIN32
+#include "FrameInit_cs_dx9.h"
+#include "FrameInit_cs_dx11.h"
+#endif
+#include "FrameInit_cs_glsl.h"
+#ifdef __APPLE__
+#include "FrameInit_cs_mtl.h"
+#endif
+#include "FrameInit_cs_spv.h"
+#include "FrameInit_cs_essl.h"
 #ifdef WIN32
 #include "FreePages_cs_dx9.h"
 #include "FreePages_cs_dx11.h"

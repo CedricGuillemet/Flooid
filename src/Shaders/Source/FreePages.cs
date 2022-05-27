@@ -7,7 +7,11 @@ BUFFER_RO(bufferAddressPages, uint, 0);
 BUFFER_RO(bufferPages, uint, 1);
 IMAGE2D_WR(s_worldToPageTags, r8, 2);
 IMAGE2D_RO(s_texPages, rgba32f, 3);
+BUFFER_RW(bufferCounter, uint, 4);
 
+BUFFER_RW(bufferActivePages, uint, 5);
+BUFFER_RW(bufferFreedPages, uint, 6);
+BUFFER_RW(bufferActivePageAdresses, uint, 7);
 
 NUM_THREADS(1, 1, 1)
 void main()
@@ -28,10 +32,19 @@ void main()
             vec4 value = imageLoad(s_texPages, addr.xy);
             if (value.x > threshold)
             {
+                uint counter;
+                atomicFetchAndAdd(bufferCounter[1], 1, counter);
+                bufferActivePages[counter] = page;
+                bufferActivePageAdresses[counter] = pageAddress;
                 return;
             }
         }
     }
+    
+    uint counter;
+    atomicFetchAndAdd(bufferCounter[2], 1, counter);
+    bufferFreedPages[counter] = page;
+
     ivec3 tagPosition = PageAddress(pageAddress);
     imageStore(s_worldToPageTags, tagPosition.xy, vec4(0, 0, 0, 0));
 }
