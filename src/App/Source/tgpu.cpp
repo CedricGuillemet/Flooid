@@ -411,7 +411,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     }
     // Frame Init
     bgfx::setBuffer(0, mBufferCounter, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1);
+    bgfx::dispatch(textureProvider.GetViewId(), mFrameInitCSProgram, 1, 1);
 
     // dispatch indirect
     bgfx::setBuffer(0, mDispatchIndirect, bgfx::Access::ReadWrite);
