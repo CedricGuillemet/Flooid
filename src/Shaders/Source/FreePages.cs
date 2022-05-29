@@ -23,6 +23,8 @@ void main()
 
     ivec3 base = ivec3(page&0xF, page>>4, 0) * 16;// + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
 
+    ivec3 tagPosition = PageAddress(pageAddress);
+    
     float threshold = 0.01;
     for (int y = 0; y < 16; y++)
     {
@@ -36,6 +38,7 @@ void main()
                 atomicFetchAndAdd(bufferCounter[1], 1, counter);
                 bufferActivePages[counter] = page;
                 bufferActivePageAdresses[counter] = pageAddress;
+                imageStore(s_worldToPageTags, tagPosition.xy, vec4(2, 0, 0, 0)/ 255.);
                 return;
             }
         }
@@ -45,6 +48,6 @@ void main()
     atomicFetchAndAdd(bufferCounter[2], 1, counter);
     bufferFreedPages[counter] = page;
 
-    ivec3 tagPosition = PageAddress(pageAddress);
+    
     imageStore(s_worldToPageTags, tagPosition.xy, vec4(0, 0, 0, 0));
 }

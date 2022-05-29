@@ -454,6 +454,26 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAdvectPagedCSProgram, mDispatchIndirect);
     
+    // free pages
+    bgfx::setBuffer(0, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setBuffer(1, mBufferPages, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToPageTags, 0, bgfx::Access::Write);
+    bgfx::setImage(3, mDensityAdvectedPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(5, mBufferActivePages, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(6, mBufferFreedPages, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(7, mBufferActivePageAddresses, bgfx::Access::ReadWrite);
+    bgfx::dispatch(textureProvider.GetViewId(), mFreePagesCSProgram, mDispatchIndirect);
+    
+    // commit pages
+    bgfx::setBuffer(0, mBufferPages, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(3, mBufferActivePages, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(4, mBufferFreedPages, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(5, mBufferActivePageAddresses, bgfx::Access::ReadWrite);
+    bgfx::dispatch(textureProvider.GetViewId(), mCommitFreePagesCSProgram, 1, 1);
+    
     // Dilate pages
     //bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
     bgfx::setBuffer(0, mBufferAddressPages, bgfx::Access::Write);
@@ -514,25 +534,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     std::swap(mGradientPages, mVelocityPages);
     std::swap(mDensityPages, mDensityAdvectedPages);
 
-    // free pages
-    bgfx::setBuffer(0, mBufferAddressPages, bgfx::Access::Read);
-    bgfx::setBuffer(1, mBufferPages, bgfx::Access::Read);
-    bgfx::setImage(2, mWorldToPageTags, 0, bgfx::Access::Write);
-    bgfx::setImage(3, mDensityPages, 0, bgfx::Access::Read);
-    bgfx::setBuffer(4, mBufferCounter, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(5, mBufferActivePages, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(6, mBufferFreedPages, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(7, mBufferActivePageAddresses, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), mFreePagesCSProgram, mDispatchIndirect);
     
-    // commit pages
-    bgfx::setBuffer(0, mBufferPages, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(1, mBufferCounter, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(3, mBufferActivePages, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(4, mBufferFreedPages, bgfx::Access::ReadWrite);
-    bgfx::setBuffer(5, mBufferActivePageAddresses, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), mCommitFreePagesCSProgram, 1, 1);
 }
 
 void TGPU::TestVCycle(TextureProvider& textureProvider)

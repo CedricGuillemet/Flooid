@@ -333,7 +333,11 @@ void main()
     vec4 tag = texture2D(s_worldToPageTags, v_texcoord0.xy, 0);
     vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
     //vec2 pageCoord = (page.xy * 255.) * 1./16.;
-    vec4 tagColor = vec4(tag.x * 127.5,0.,0.,1.);
+    vec4 tagColor = vec4(0., 0., 0., 1.);
+    if (tag.x == 1./255.)
+        tagColor = vec4(1.,0.5,0.1,10.) * 0.4;
+    else if (tag.x != 0.)
+        tagColor = vec4(1., 1., 1., 10.) * 0.5;
     if (abs(debugDisplay.z - 2.) < 0.001)
     {
         /*if (tag.x == 0.)
@@ -359,8 +363,9 @@ void main()
         else if (abs(debugDisplay.z - 1.) < 0.001)
         {
             vec4 direction = SamplePage(v_texcoord0.xy);
+            vec4 directionArrow = SamplePage(v_texcoord0.xy - mod(v_texcoord0.xy, 1./16.));
             vec4 color = direction * 0.5 + 0.5;
-            float arrow = arrows(v_texcoord0.xy * 256., direction.xy, vec2(2., 2.));
+            float arrow = arrows(v_texcoord0.xy * 256., directionArrow.xy, vec2(2., 2.));
             gl_FragColor = mix(vec4(color.xy, 0., 1.), vec4(0., 0., 0., 1.), arrow);
             //gl_FragColor = vec4(arrow, arrow, arrow, 1.);
         }
@@ -424,6 +429,8 @@ void main()
     }
     //gl_FragColor *= tagColor;
 
-    float mx = (step(localCoord.x, 1./255.) + step(localCoord.y, 1./255.)) * debugDisplay.x;
-    gl_FragColor = mix(gl_FragColor, vec4(1.,1.,1.,1.) * tagColor, mx);
+    float mx = max(step(localCoord.x, 1./255.), step(localCoord.y, 1./255.));
+    mx = max(mx, 1. - step(localCoord.x, 15./255.));
+    mx = max(mx, 1. - step(localCoord.y, 15./255.));
+    gl_FragColor = mix(gl_FragColor, vec4(1.,1.,1.,1.) * tagColor, mx * debugDisplay.x);
 }

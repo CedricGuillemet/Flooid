@@ -16,9 +16,9 @@ void main()
         {
             for (int x = -1; x < 2; x++)
             {
-                if (imageLoad(s_worldToPageTags, coord.xy + ivec2(x,y)).x == 1./255.)
+                if (imageLoad(s_worldToPageTags, coord.xy + ivec2(x,y)).x == 2./255.)
                 {
-                    AllocatePage(coord, 2.);
+                    AllocatePage(coord, 1.);
                     return;
                 }
             }
