@@ -20,7 +20,7 @@ Binary output directory is `bin/`
 
 ### Clone repo
 ```
-git clone https://github.com/CedricGuillemet/bam.git --recurse-submodules
+git clone https://github.com/CedricGuillemet/Flooid.git --recurse-submodules
 ```
 
 ### Windows
