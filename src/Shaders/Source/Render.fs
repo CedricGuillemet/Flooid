@@ -5,7 +5,7 @@ $input v_texcoord0, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 #include "SamplingPaged.sh"
-#include "Arrows.glsl"
+//#include "Arrows.glsl"
 
 SAMPLER2D(s_worldToPageTags, 5);
 
@@ -363,10 +363,8 @@ void main()
         else if (abs(debugDisplay.z - 1.) < 0.001)
         {
             vec4 direction = SamplePage(v_texcoord0.xy);
-            vec4 directionArrow = SamplePage(v_texcoord0.xy - mod(v_texcoord0.xy, 1./16.));
             vec4 color = direction * 0.5 + 0.5;
-            float arrow = arrows(v_texcoord0.xy * 256., directionArrow.xy, vec2(2., 2.));
-            gl_FragColor = mix(vec4(color.xy, 0., 1.), vec4(0., 0., 0., 1.), arrow);
+            gl_FragColor = vec4(color.xy, 0., 1.);
             //gl_FragColor = vec4(arrow, arrow, arrow, 1.);
         }
         // divergence
@@ -398,8 +396,8 @@ void main()
         {
             vec4 direction = texture2D(s_texPages, v_texcoord0.xy, 0);
             vec4 color = direction * 0.5 + 0.5;
-            float arrow = arrows(v_texcoord0.xy * 256., direction.xy*10., vec2(2., 2.));
-            gl_FragColor = mix(vec4(color.xy, 0., 1.), vec4(0., 0., 0., 1.), arrow);
+            //float arrow = arrows(v_texcoord0.xy * 256., direction.xy*10., vec2(2., 2.));
+            gl_FragColor = vec4(color.xy, 0., 1.);
 
             //vec2 velocity = texture2D(s_texPages, v_texcoord0.xy, 0).xy * 0.5 + 0.5;
             //gl_FragColor = vec4(velocity, 0., 1.);
