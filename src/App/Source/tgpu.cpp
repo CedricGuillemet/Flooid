@@ -301,6 +301,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mJacobiPages[1] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mDensityAdvectedPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityAdvectedPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mResidualPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     /*mReadBackCS = bgfx::createTexture2D(1, 1, false, 0, bgfx::TextureFormat::R32U, BGFX_TEXTURE_COMPUTE_WRITE);
     mReadBackCPU = bgfx::createTexture2D(1, 1, false, 0, bgfx::TextureFormat::R32U, BGFX_TEXTURE_BLIT_DST|BGFX_TEXTURE_READ_BACK);
     */
@@ -317,6 +318,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mDispatchIndirectCSProgram = App::LoadProgram("DispatchIndirect_cs", nullptr);
     mCommitFreePagesCSProgram = App::LoadProgram("CommitFreePages_cs", nullptr);
     mFrameInitCSProgram = App::LoadProgram("FrameInit_cs", nullptr);
+    mResidualPagedCSProgram = App::LoadProgram("ResidualPaged_cs", nullptr);
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
     mBufferCounter = bgfx::createDynamicIndexBuffer(3, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
@@ -337,6 +339,49 @@ void TGPU::Init(TextureProvider& textureProvider)
 
     mDebugDisplayUniform = bgfx::createUniform("debugDisplay", bgfx::UniformType::Vec4); //
     //mFreePages = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+}
+
+void TGPU::ComputeResidual(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage, bgfx::TextureHandle texResidual, 
+    bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq)
+{
+    float invhsq[4] = { 1.f / hsq, 0.f, 0.f, 0.f };
+    bgfx::setUniform(m_invhsqUniform, invhsq);
+
+    bgfx::setImage(0, texU, 0, bgfx::Access::Read);
+    bgfx::setImage(1, texRHS, 0, bgfx::Access::Read);
+    bgfx::setImage(2, texWorldToPage, 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, bufferPages, bgfx::Access::Read);
+    bgfx::setBuffer(4, bufferAddressPages, bgfx::Access::Read);
+    bgfx::setImage(5, texResidual, 0, bgfx::Access::Write);
+
+    bgfx::dispatch(textureProvider.GetViewId(), mResidualPagedCSProgram, dispatchIndirect);
+}
+
+void TGPU::Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage,
+    bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount)
+{
+    float jacobiParameters[4] = { hsq, 0.f, 0.f, 0.f };
+    bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
+
+    bgfx::TextureHandle jacobis[2] = { texU, mJacobiPages[1] };
+
+    bgfx::setImage(0, texU, 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
+
+    //int iterationCount = ssteps;
+    for (int i = 0; i < iterationCount; i++)
+    {
+        const int indexSource = i & 1;
+        const int indexDestination = (i + 1) & 1;
+
+        bgfx::setImage(0, jacobis[indexSource], 0, bgfx::Access::Read);
+        bgfx::setImage(1, texWorldToPage, 0, bgfx::Access::Read);
+        bgfx::setBuffer(2, bufferAddressPages, bgfx::Access::Read);
+        bgfx::setImage(3, texRHS, 0, bgfx::Access::Read);
+        bgfx::setBuffer(4, bufferPages, bgfx::Access::Read);
+        bgfx::setImage(5, jacobis[indexDestination], 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, mDispatchIndirect);
+    }
 }
 
 void TGPU::TestPages(TextureProvider& textureProvider)
@@ -497,7 +542,11 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, mDispatchIndirect);
   
     // Jacobi
-    float hsq = 1.f;
+    int level = 0;
+
+    int ssteps = 4;
+    float hsq = float(level + 1);//sqrtf((level+1)*2);
+    /*
     float jacobiParameters[4] = { hsq, 0.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
 
@@ -507,7 +556,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
 
-    int iterationCount = 50;
+    int iterationCount = ssteps;
     for (int i = 0; i < iterationCount; i++)
     {
         const int indexSource = i & 1;
@@ -521,6 +570,13 @@ void TGPU::TestPages(TextureProvider& textureProvider)
         bgfx::setImage(5, jacobis[indexDestination], 0, bgfx::Access::Write);
         bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, mDispatchIndirect);
     }
+    */
+    bgfx::TextureHandle rhs = mDivergencePages;
+
+    Jacobi(textureProvider, mJacobiPages[0], rhs, mWorldToPages, mBufferPages, mBufferAddressPages, mDispatchIndirect, hsq, 50);
+
+    // Residual
+    ComputeResidual(textureProvider, mJacobiPages[0], rhs, mWorldToPages, mResidualPages, mBufferPages, mBufferAddressPages, mDispatchIndirect, hsq);
 
     // gradient
     bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Read);
@@ -613,18 +669,19 @@ void TGPU::UI()
     {
         mCurrentFrame = mDesiredFrame;
     }
-    //ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0VCycle Density\0VCycle Velocity\0VCycle Divergence\0VCycle Jacobi\0");
+    //ImGui::Combo("Display", &mDebugDisplay, "Density\0Velocity\0Page Tag\0Divergence\0Jacobi\0Gradient\0Residual Mip0\0VCycle Density\0VCycle Velocity\0VCycle Divergence\0VCycle Jacobi\0");
     if (ImGui::RadioButton("Density", mDebugDisplay == 0)) mDebugDisplay = 0;
     if (ImGui::RadioButton("Velocity", mDebugDisplay == 1)) mDebugDisplay = 1;
     if (ImGui::RadioButton("Page Tag", mDebugDisplay == 2)) mDebugDisplay = 2;
     if (ImGui::RadioButton("Divergence", mDebugDisplay == 3)) mDebugDisplay = 3;
     if (ImGui::RadioButton("Jacobi", mDebugDisplay == 4)) mDebugDisplay = 4;
     if (ImGui::RadioButton("Gradient", mDebugDisplay == 5)) mDebugDisplay = 5;
-    if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 6)) mDebugDisplay = 6;
-    if (ImGui::RadioButton("VCycle Velocity", mDebugDisplay == 7)) mDebugDisplay = 7;
-    if (ImGui::RadioButton("VCycle Divergence", mDebugDisplay == 8)) mDebugDisplay = 8;
-    if (ImGui::RadioButton("VCycle Jacobi", mDebugDisplay == 9)) mDebugDisplay = 9;
-    if (ImGui::RadioButton("VCycle Gradient", mDebugDisplay == 10)) mDebugDisplay = 10;
+    if (ImGui::RadioButton("Residual Mip0", mDebugDisplay == 6)) mDebugDisplay = 6;
+    if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 7)) mDebugDisplay = 7;
+    if (ImGui::RadioButton("VCycle Velocity", mDebugDisplay == 8)) mDebugDisplay = 8;
+    if (ImGui::RadioButton("VCycle Divergence", mDebugDisplay == 9)) mDebugDisplay = 9;
+    if (ImGui::RadioButton("VCycle Jacobi", mDebugDisplay == 10)) mDebugDisplay = 10;
+    if (ImGui::RadioButton("VCycle Gradient", mDebugDisplay == 11)) mDebugDisplay = 11;
     
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
@@ -640,12 +697,14 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 3: return mDivergencePages;
     case 4: return mJacobiPages[0];
     case 5: return mGradientPages;
+    case 6: return mResidualPages;
 
-    case 6: return m_densityTexture->GetTexture();
-    case 7: return m_velocityTexture->GetTexture();
-    case 8: return tempRHS->GetTexture();
-    case 9: return jacobi[0]->GetTexture();
-    case 10: return tempGradient->GetTexture();
+    case 7: return m_densityTexture->GetTexture();
+    case 8: return m_velocityTexture->GetTexture();
+    case 9: return tempRHS->GetTexture();
+    case 10: return jacobi[0]->GetTexture();
+    case 11: return tempGradient->GetTexture();
+    
 
     }
     return { bgfx::kInvalidHandle };

@@ -252,6 +252,16 @@
 #include "Residual_cs_spv.h"
 #include "Residual_cs_essl.h"
 #ifdef WIN32
+#include "ResidualPaged_cs_dx9.h"
+#include "ResidualPaged_cs_dx11.h"
+#endif
+#include "ResidualPaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "ResidualPaged_cs_mtl.h"
+#endif
+#include "ResidualPaged_cs_spv.h"
+#include "ResidualPaged_cs_essl.h"
+#ifdef WIN32
 #include "Upscale_cs_dx9.h"
 #include "Upscale_cs_dx11.h"
 #endif

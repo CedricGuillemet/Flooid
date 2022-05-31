@@ -94,6 +94,7 @@ public:
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mJacobiPages[2];
     bgfx::TextureHandle mGradientPages;
+    bgfx::TextureHandle mResidualPages;
 
     bgfx::DynamicIndexBufferHandle mBufferCounter, mBufferPages, mBufferAddressPages;
     bgfx::DynamicIndexBufferHandle mBufferActivePages, mBufferFreedPages, mBufferActivePageAddresses;
@@ -109,6 +110,7 @@ public:
     bgfx::ProgramHandle mDispatchIndirectCSProgram;
     bgfx::ProgramHandle mCommitFreePagesCSProgram;
     bgfx::ProgramHandle mFrameInitCSProgram;
+    bgfx::ProgramHandle mResidualPagedCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
@@ -130,4 +132,11 @@ public:
 
     int mCurrentFrame{};
     int mDesiredFrame{1};
+
+
+    void ComputeResidual(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage, bgfx::TextureHandle texResidual,
+        bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq);
+
+    void Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage,
+        bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount);
 };
