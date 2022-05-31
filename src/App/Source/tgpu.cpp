@@ -304,7 +304,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mResidualPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     
     mWorldToPagesLevel1 = bgfx::createTexture2D(masterSize / pageSize, masterSize / pageSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
-
+    mResidualDownscaledPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
 
     mAllocatePagesCSProgram = App::LoadProgram("AllocatePages_cs", nullptr);
     mInitPagesCSProgram = App::LoadProgram("InitPages_cs", nullptr);
@@ -321,6 +321,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mFrameInitCSProgram = App::LoadProgram("FrameInit_cs", nullptr);
     mResidualPagedCSProgram = App::LoadProgram("ResidualPaged_cs", nullptr);
     mAllocateSubPagesCSProgram = App::LoadProgram("AllocateSubPages_cs", nullptr);
+    mDownscalePagedCSProgram = App::LoadProgram("DownscalePaged_cs", nullptr);
 
     uint32_t pageCount = (256/pageSize) * (256/pageSize);
     
@@ -590,7 +591,21 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1);
 
     // downscale filter
+    // l0
+    bgfx::setImage(0, mResidualPages, 0, bgfx::Access::Read);
+    bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Read);
+    // l1
+    bgfx::setImage(4, mResidualDownscaledPages, 0, bgfx::Access::Write);
+    //bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(5, mBufferAddressPagesLevel1, bgfx::Access::Read);
+    bgfx::setBuffer(6, mBufferPagesLevel1, bgfx::Access::Read);
 
+    
+
+    bgfx::dispatch(textureProvider.GetViewId(), mDownscalePagedCSProgram, mDispatchIndirectLevel1);
+    
     // -------------------------------------------
     // 
     // gradient
