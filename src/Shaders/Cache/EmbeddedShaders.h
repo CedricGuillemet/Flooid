@@ -82,6 +82,16 @@
 #include "AllocatePages_cs_spv.h"
 #include "AllocatePages_cs_essl.h"
 #ifdef WIN32
+#include "AllocateSubPages_cs_dx9.h"
+#include "AllocateSubPages_cs_dx11.h"
+#endif
+#include "AllocateSubPages_cs_glsl.h"
+#ifdef __APPLE__
+#include "AllocateSubPages_cs_mtl.h"
+#endif
+#include "AllocateSubPages_cs_spv.h"
+#include "AllocateSubPages_cs_essl.h"
+#ifdef WIN32
 #include "Clear_cs_dx9.h"
 #include "Clear_cs_dx11.h"
 #endif
@@ -171,6 +181,16 @@
 #endif
 #include "Downscale_cs_spv.h"
 #include "Downscale_cs_essl.h"
+#ifdef WIN32
+#include "DownscalePaged_cs_dx9.h"
+#include "DownscalePaged_cs_dx11.h"
+#endif
+#include "DownscalePaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "DownscalePaged_cs_mtl.h"
+#endif
+#include "DownscalePaged_cs_spv.h"
+#include "DownscalePaged_cs_essl.h"
 #ifdef WIN32
 #include "FrameInit_cs_dx9.h"
 #include "FrameInit_cs_dx11.h"

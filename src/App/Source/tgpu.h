@@ -91,12 +91,19 @@ public:
     bgfx::TextureHandle mReadBackCS;
     bgfx::TextureHandle mReadBackCPU;
 
+    // vcycle
+    bgfx::TextureHandle mWorldToPagesLevel1;
+
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mJacobiPages[2];
     bgfx::TextureHandle mGradientPages;
     bgfx::TextureHandle mResidualPages;
 
     bgfx::DynamicIndexBufferHandle mBufferCounter, mBufferPages, mBufferAddressPages;
+
+    bgfx::DynamicIndexBufferHandle mBufferCounterLevel1, mBufferPagesLevel1, mBufferAddressPagesLevel1;
+
+
     bgfx::DynamicIndexBufferHandle mBufferActivePages, mBufferFreedPages, mBufferActivePageAddresses;
     
     bgfx::ProgramHandle mAllocatePagesCSProgram;
@@ -111,6 +118,7 @@ public:
     bgfx::ProgramHandle mCommitFreePagesCSProgram;
     bgfx::ProgramHandle mFrameInitCSProgram;
     bgfx::ProgramHandle mResidualPagedCSProgram;
+    bgfx::ProgramHandle mAllocateSubPagesCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
@@ -121,6 +129,7 @@ public:
     bgfx::UniformHandle mDebugDisplayUniform;
     bgfx::UniformHandle mTexWorldToPageUniform;
     bgfx::UniformHandle mTexPagesUniform;
+    bgfx::UniformHandle mInitPageCountUniform;
 
 
     bgfx::IndirectBufferHandle mDispatchIndirect;
