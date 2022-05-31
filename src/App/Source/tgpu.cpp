@@ -342,6 +342,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mGroupMinUniform = bgfx::createUniform("groupMin", bgfx::UniformType::Vec4);
     mInitPageCountUniform = bgfx::createUniform("initPageCount", bgfx::UniformType::Vec4);
     mDispatchIndirect = bgfx::createIndirectBuffer(1);
+    mDispatchIndirectLevel1 = bgfx::createIndirectBuffer(1);
     
     mTexOutUniform = bgfx::createUniform("s_texOut", bgfx::UniformType::Sampler); //
     mTexWorldToPageUniform = bgfx::createUniform("s_texWorldToPage", bgfx::UniformType::Sampler); //
@@ -390,7 +391,7 @@ void TGPU::Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bg
         bgfx::setImage(3, texRHS, 0, bgfx::Access::Read);
         bgfx::setBuffer(4, bufferPages, bgfx::Access::Read);
         bgfx::setImage(5, jacobis[indexDestination], 0, bgfx::Access::Write);
-        bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, mDispatchIndirect);
+        bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, dispatchIndirect);
     }
 }
 
@@ -583,6 +584,12 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setImage(4, mWorldToPageTags, 0, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAllocateSubPagesCSProgram, 1, 1);
 
+    // dispatch indirect
+    bgfx::setBuffer(0, mDispatchIndirectLevel1, bgfx::Access::ReadWrite);
+    bgfx::setBuffer(1, mBufferCounterLevel1, bgfx::Access::ReadWrite);
+    bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1);
+
+    // downscale filter
 
     // -------------------------------------------
     // 

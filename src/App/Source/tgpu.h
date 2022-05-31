@@ -133,6 +133,7 @@ public:
 
 
     bgfx::IndirectBufferHandle mDispatchIndirect;
+    bgfx::IndirectBufferHandle mDispatchIndirectLevel1;
     
     int mDebugDisplay{0};
     bool mDebugGrid{true};
