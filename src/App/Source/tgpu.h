@@ -15,6 +15,7 @@ public:
 
     void UI();
     bgfx::TextureHandle GetDisplayPages() const;
+    bgfx::TextureHandle GetDisplayPageIndirection() const;
 
     bgfx::ProgramHandle m_downscaleCSProgram;
     bgfx::ProgramHandle m_upscaleCSProgram;

@@ -705,11 +705,12 @@ void TGPU::UI()
     if (ImGui::RadioButton("Jacobi", mDebugDisplay == 4)) mDebugDisplay = 4;
     if (ImGui::RadioButton("Gradient", mDebugDisplay == 5)) mDebugDisplay = 5;
     if (ImGui::RadioButton("Residual Mip0", mDebugDisplay == 6)) mDebugDisplay = 6;
-    if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 7)) mDebugDisplay = 7;
-    if (ImGui::RadioButton("VCycle Velocity", mDebugDisplay == 8)) mDebugDisplay = 8;
-    if (ImGui::RadioButton("VCycle Divergence", mDebugDisplay == 9)) mDebugDisplay = 9;
-    if (ImGui::RadioButton("VCycle Jacobi", mDebugDisplay == 10)) mDebugDisplay = 10;
-    if (ImGui::RadioButton("VCycle Gradient", mDebugDisplay == 11)) mDebugDisplay = 11;
+    if (ImGui::RadioButton("Residual Mip1", mDebugDisplay == 7)) mDebugDisplay = 7;
+    if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 8)) mDebugDisplay = 8;
+    if (ImGui::RadioButton("VCycle Velocity", mDebugDisplay == 9)) mDebugDisplay = 9;
+    if (ImGui::RadioButton("VCycle Divergence", mDebugDisplay == 10)) mDebugDisplay = 10;
+    if (ImGui::RadioButton("VCycle Jacobi", mDebugDisplay == 11)) mDebugDisplay = 11;
+    if (ImGui::RadioButton("VCycle Gradient", mDebugDisplay == 12)) mDebugDisplay = 12;
     
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
@@ -726,14 +727,25 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 4: return mJacobiPages[0];
     case 5: return mGradientPages;
     case 6: return mResidualPages;
+    case 7: return mResidualDownscaledPages;
 
-    case 7: return m_densityTexture->GetTexture();
-    case 8: return m_velocityTexture->GetTexture();
-    case 9: return tempRHS->GetTexture();
-    case 10: return jacobi[0]->GetTexture();
-    case 11: return tempGradient->GetTexture();
+    case 8: return m_densityTexture->GetTexture();
+    case 9: return m_velocityTexture->GetTexture();
+    case 10: return tempRHS->GetTexture();
+    case 11: return jacobi[0]->GetTexture();
+    case 12: return tempGradient->GetTexture();
     
 
+    }
+    return { bgfx::kInvalidHandle };
+}
+
+bgfx::TextureHandle TGPU::GetDisplayPageIndirection() const
+{
+    switch (mDebugDisplay)
+    {
+        case 7: return mWorldToPagesLevel1;
+        default: return mWorldToPages;
     }
     return { bgfx::kInvalidHandle };
 }

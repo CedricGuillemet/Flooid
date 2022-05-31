@@ -30,7 +30,7 @@ NUM_THREADS(16, 16, 1)
 void main()
 {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-    uint page = bufferPages[uint(coord.y) / 16];
+    uint pageOut = bufferPagesNextLevel[uint(coord.y) / 16];
     uint pageAddress = bufferAddressPages[uint(coord.y) / 16];
 
     ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
@@ -58,7 +58,7 @@ void main()
 
     imageStore(s_texOut, coord, uc);*/
 
-    ivec3 destOut = ivec3(page & 0xF, page >> 4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
+    ivec3 destOut = ivec3(pageOut & 0xF, pageOut >> 4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
 
     imageStore(s_residualDownscaledPagesOut, destOut, uc);
 }
