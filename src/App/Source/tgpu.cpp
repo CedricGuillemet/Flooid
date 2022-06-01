@@ -534,13 +534,11 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mCommitFreePagesCSProgram, 1, 1);
     
     // Dilate pages
-    //bgfx::setBuffer(0, mFreePages, bgfx::Access::Read);
     bgfx::setBuffer(0, mBufferAddressPages, bgfx::Access::Write);
     bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Write);
     bgfx::setBuffer(2, mBufferPages, bgfx::Access::Write);
     bgfx::setBuffer(3, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::setImage(4, mWorldToPageTags, 0, bgfx::Access::Write);
-
     bgfx::setImage(5, mVelocityAdvectedPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDilatePagesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
     
@@ -553,7 +551,7 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
     bgfx::setImage(3, mDivergencePages, 0, bgfx::Access::Write);
     bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    bgfx::setImage(0, mVelocityAdvectedPages/*mVelocityPages*/, 0, bgfx::Access::Read);
+    bgfx::setImage(0, mVelocityAdvectedPages, 0, bgfx::Access::Read);
     bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, mDispatchIndirect);
   
@@ -579,7 +577,6 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mInitPagesCSProgram, 1, 1);
 
     // new indirection map
-
     bgfx::setBuffer(0, mBufferAddressPagesLevel1, bgfx::Access::Write);
     bgfx::setImage(1, mWorldToPagesLevel1, 0, bgfx::Access::Write);
     bgfx::setBuffer(2, mBufferPagesLevel1, bgfx::Access::ReadWrite);
@@ -593,23 +590,18 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1);
 
     // downscale filter
-    // l0
     bgfx::setImage(0, mResidualPages, 0, bgfx::Access::Read);
     bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    // l1
     bgfx::setImage(2, mResidualDownscaledPages, 0, bgfx::Access::Write);
     bgfx::setBuffer(3, mBufferAddressPagesLevel1, bgfx::Access::Read);
     bgfx::setBuffer(4, mBufferPagesLevel1, bgfx::Access::Read);
-
-    
-
     bgfx::dispatch(textureProvider.GetViewId(), mDownscalePagedCSProgram, mDispatchIndirectLevel1);
     
     // -------------------------------------------
     // 
     // gradient
     bgfx::setImage(0, mJacobiPages[0], 0, bgfx::Access::Read);
-    bgfx::setImage(1, mVelocityAdvectedPages/*mVelocityPages*/, 0, bgfx::Access::Read);
+    bgfx::setImage(1, mVelocityAdvectedPages, 0, bgfx::Access::Read);
     bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
     bgfx::setBuffer(3, mBufferAddressPages, bgfx::Access::Read);
     bgfx::setImage(4, mGradientPages, 0, bgfx::Access::Write);
