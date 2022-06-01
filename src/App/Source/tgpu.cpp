@@ -540,6 +540,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(2, mBufferPages, bgfx::Access::Write);
     bgfx::setBuffer(3, mBufferCounter, bgfx::Access::ReadWrite);
     bgfx::setImage(4, mWorldToPageTags, 0, bgfx::Access::Write);
+
+    bgfx::setImage(5, mVelocityAdvectedPages, 0, bgfx::Access::Write);
     bgfx::dispatch(textureProvider.GetViewId(), mDilatePagesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
     
     // dispatch indirect
