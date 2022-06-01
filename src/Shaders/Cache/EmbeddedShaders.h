@@ -292,6 +292,16 @@
 #include "Upscale_cs_spv.h"
 #include "Upscale_cs_essl.h"
 #ifdef WIN32
+#include "UpscalePaged_cs_dx9.h"
+#include "UpscalePaged_cs_dx11.h"
+#endif
+#include "UpscalePaged_cs_glsl.h"
+#ifdef __APPLE__
+#include "UpscalePaged_cs_mtl.h"
+#endif
+#include "UpscalePaged_cs_spv.h"
+#include "UpscalePaged_cs_essl.h"
+#ifdef WIN32
 #include "VelocityGen_cs_dx9.h"
 #include "VelocityGen_cs_dx11.h"
 #endif

@@ -303,6 +303,11 @@ void TGPU::Init(TextureProvider& textureProvider)
     mVelocityAdvectedPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mResidualPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     
+    
+    mJacobiPagesLevel1[0] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mJacobiPagesLevel1[1] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+
+    
     mWorldToPagesLevel1 = bgfx::createTexture2D(masterSize / pageSize, masterSize / pageSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
     mResidualDownscaledPages = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
 
@@ -597,6 +602,10 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(4, mBufferPagesLevel1, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDownscalePagedCSProgram, mDispatchIndirectLevel1);
     
+    // jacobi level 1
+    level = 1;
+    hsq = float(level + 1);
+    Jacobi(textureProvider, mJacobiPagesLevel1[0], mResidualDownscaledPages, mWorldToPagesLevel1, mBufferPagesLevel1, mBufferAddressPagesLevel1, mDispatchIndirectLevel1, hsq, 50);
     // -------------------------------------------
     // 
     // gradient
@@ -697,12 +706,13 @@ void TGPU::UI()
     if (ImGui::RadioButton("Gradient", mDebugDisplay == 5)) mDebugDisplay = 5;
     if (ImGui::RadioButton("Residual Mip0", mDebugDisplay == 6)) mDebugDisplay = 6;
     if (ImGui::RadioButton("Residual Mip1", mDebugDisplay == 7)) mDebugDisplay = 7;
-    if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 8)) mDebugDisplay = 8;
+    if (ImGui::RadioButton("Jacobi Mip1", mDebugDisplay == 8)) mDebugDisplay = 8;
+    /*if (ImGui::RadioButton("VCycle Density", mDebugDisplay == 8)) mDebugDisplay = 8;
     if (ImGui::RadioButton("VCycle Velocity", mDebugDisplay == 9)) mDebugDisplay = 9;
     if (ImGui::RadioButton("VCycle Divergence", mDebugDisplay == 10)) mDebugDisplay = 10;
     if (ImGui::RadioButton("VCycle Jacobi", mDebugDisplay == 11)) mDebugDisplay = 11;
     if (ImGui::RadioButton("VCycle Gradient", mDebugDisplay == 12)) mDebugDisplay = 12;
-    
+    */
     ImGui::Checkbox("Grid", &mDebugGrid);
     ImGui::Checkbox("Page Allocation", &mDebugPageAllocation);
 }
@@ -719,13 +729,15 @@ bgfx::TextureHandle TGPU::GetDisplayPages() const
     case 5: return mGradientPages;
     case 6: return mResidualPages;
     case 7: return mResidualDownscaledPages;
-
+    case 8: return mJacobiPagesLevel1[0];
+            
+/*
     case 8: return m_densityTexture->GetTexture();
     case 9: return m_velocityTexture->GetTexture();
     case 10: return tempRHS->GetTexture();
     case 11: return jacobi[0]->GetTexture();
     case 12: return tempGradient->GetTexture();
-    
+  */
 
     }
     return { bgfx::kInvalidHandle };
@@ -735,6 +747,7 @@ bgfx::TextureHandle TGPU::GetDisplayPageIndirection() const
 {
     switch (mDebugDisplay)
     {
+        case 8:
         case 7: return mWorldToPagesLevel1;
         default: return mWorldToPages;
     }
