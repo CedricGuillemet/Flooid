@@ -594,13 +594,10 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     // l0
     bgfx::setImage(0, mResidualPages, 0, bgfx::Access::Read);
     bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
-    bgfx::setBuffer(3, mBufferPages, bgfx::Access::Read);
     // l1
-    bgfx::setImage(4, mResidualDownscaledPages, 0, bgfx::Access::Write);
-    //bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    bgfx::setBuffer(5, mBufferAddressPagesLevel1, bgfx::Access::Read);
-    bgfx::setBuffer(6, mBufferPagesLevel1, bgfx::Access::Read);
+    bgfx::setImage(2, mResidualDownscaledPages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(3, mBufferAddressPagesLevel1, bgfx::Access::Read);
+    bgfx::setBuffer(4, mBufferPagesLevel1, bgfx::Access::Read);
 
     
 
