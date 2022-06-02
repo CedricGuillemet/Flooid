@@ -98,6 +98,7 @@ public:
     bgfx::TextureHandle mJacobiPagesLevel1[2];
     bgfx::TextureHandle mGradientPages;
     bgfx::TextureHandle mResidualPages;
+    bgfx::TextureHandle mJacobiPagesNext[2];
 
     bgfx::TextureHandle mResidualDownscaledPages;
 
@@ -122,6 +123,7 @@ public:
     bgfx::ProgramHandle mResidualPagedCSProgram;
     bgfx::ProgramHandle mAllocateSubPagesCSProgram;
     bgfx::ProgramHandle mDownscalePagedCSProgram;
+    bgfx::ProgramHandle mUpscalePagedCSProgram;
 
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
