@@ -95,6 +95,7 @@ public:
 
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mJacobiPages[2];
+    bgfx::TextureHandle mJacobiPagesLevel1[2];
     bgfx::TextureHandle mGradientPages;
     bgfx::TextureHandle mResidualPages;
 
