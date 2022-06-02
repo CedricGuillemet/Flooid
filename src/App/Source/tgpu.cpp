@@ -612,13 +612,17 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     hsq = float(level + 1);
     Jacobi(textureProvider, mJacobiPagesLevel1[0], mResidualDownscaledPages, mWorldToPagesLevel1, mBufferPagesLevel1, mBufferAddressPagesLevel1, mDispatchIndirectLevel1, hsq, 50);
 
+    // clear upscale dest
+    bgfx::setImage(0, mJacobiPagesLevel1[0], 0, bgfx::Access::Write);
+    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
+
+    
     // upscale level1 -> level0
-     
-    bgfx::setImage(0, mJacobiPagesLevel1[0], 0, bgfx::Access::Read);
-    bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    bgfx::setImage(2, mJacobiPagesNext[0], 0, bgfx::Access::Write);
-    bgfx::setBuffer(3, mBufferAddressPagesLevel1, bgfx::Access::Read);
-    bgfx::setBuffer(4, mBufferPagesLevel1, bgfx::Access::Read);
+    bgfx::setImage(0, mWorldToPagesLevel1, 0, bgfx::Access::Read);
+    bgfx::setImage(1, mJacobiPagesLevel1[0], 0, bgfx::Access::Read);
+    bgfx::setBuffer(2,mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setBuffer(3,mBufferPages, bgfx::Access::Read);
+    bgfx::setImage(4, mJacobiPagesNext[0], 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mUpscalePagedCSProgram, mDispatchIndirect);
     
     // -------------------------------------------
