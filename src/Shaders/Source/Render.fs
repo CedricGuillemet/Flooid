@@ -360,6 +360,11 @@ void main()
         float jacobi = SamplePage(v_texcoord0.xy * 0.5).x + 0.5;
         gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
         localCoord = mod(v_texcoord0.xy * 0.5, 1./16.);
+    } else if (abs(debugDisplay.z - 9.) < 0.001)
+    {
+        float jacobi = SamplePage(v_texcoord0.xy * 0.5).x + 0.5;
+        gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
+        localCoord = mod(v_texcoord0.xy * 0.5, 1./16.);
     }
 else
     if (tag.x > 0.)
