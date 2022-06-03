@@ -18,7 +18,7 @@ public:
     bgfx::TextureHandle GetDisplayPageIndirection() const;
 
     bgfx::UniformHandle m_jacobiParametersUniform;
-    bgfx::ProgramHandle m_clearCSProgram;
+    
     bgfx::UniformHandle m_invhsqUniform;
     bgfx::UniformHandle m_positionUniform;
     bgfx::UniformHandle m_directionUniform;
@@ -50,6 +50,8 @@ public:
 
     bgfx::DynamicIndexBufferHandle mBufferActivePages, mBufferFreedPages, mBufferActivePageAddresses;
     
+    bgfx::ProgramHandle mClearCSProgram;
+    bgfx::ProgramHandle mClearPagesCSProgram;
     bgfx::ProgramHandle mAllocatePagesCSProgram;
     bgfx::ProgramHandle mInitPagesCSProgram;
     bgfx::ProgramHandle mDensityGenPagedCSProgram;
@@ -65,16 +67,12 @@ public:
     bgfx::ProgramHandle mAllocateSubPagesCSProgram;
     bgfx::ProgramHandle mDownscalePagedCSProgram;
     bgfx::ProgramHandle mUpscalePagedCSProgram;
-
     bgfx::ProgramHandle mDilatePagesCSProgram;
     bgfx::ProgramHandle mDivergencePagedCSProgram;
     
     bgfx::UniformHandle mGroupMinUniform;
-    bgfx::UniformHandle mTexOutUniform; // s_texOut
-    
     bgfx::UniformHandle mDebugDisplayUniform;
     bgfx::UniformHandle mTexWorldToPageUniform;
-    bgfx::UniformHandle mTexPagesUniform;
     bgfx::UniformHandle mInitPageCountUniform;
 
 
@@ -94,5 +92,9 @@ public:
         bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq);
 
     void Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage,
-        bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount, bool doclear = true);
+        bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount);
+    
+    
+    void ClearTexture(TextureProvider& textureProvider, bgfx::TextureHandle texture);
+    void ClearPages(TextureProvider& textureProvider, bgfx::TextureHandle pages, bgfx::DynamicIndexBufferHandle bufferPages, bgfx::IndirectBufferHandle dispatchIndirect);
 };

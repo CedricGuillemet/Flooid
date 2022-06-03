@@ -102,6 +102,16 @@
 #include "Clear_cs_spv.h"
 #include "Clear_cs_essl.h"
 #ifdef WIN32
+#include "ClearPages_cs_dx9.h"
+#include "ClearPages_cs_dx11.h"
+#endif
+#include "ClearPages_cs_glsl.h"
+#ifdef __APPLE__
+#include "ClearPages_cs_mtl.h"
+#endif
+#include "ClearPages_cs_spv.h"
+#include "ClearPages_cs_essl.h"
+#ifdef WIN32
 #include "CommitFreePages_cs_dx9.h"
 #include "CommitFreePages_cs_dx11.h"
 #endif
