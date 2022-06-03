@@ -380,15 +380,18 @@ void TGPU::ComputeResidual(TextureProvider& textureProvider, bgfx::TextureHandle
 }
 
 void TGPU::Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage,
-    bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount)
+    bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount, bool doclear)
 {
     float jacobiParameters[4] = { hsq, 0.f, 0.f, 0.f };
     bgfx::setUniform(m_jacobiParametersUniform, jacobiParameters);
 
     bgfx::TextureHandle jacobis[2] = { texU, mJacobiPages[1] };
 
-    bgfx::setImage(0, texU, 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
+    if (doclear)
+    {
+        bgfx::setImage(0, texU, 0, bgfx::Access::Write);
+        bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, 256 / 16, 256 / 16);
+    }
 
     //int iterationCount = ssteps;
     for (int i = 0; i < iterationCount; i++)
@@ -606,25 +609,25 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::setBuffer(3, mBufferAddressPagesLevel1, bgfx::Access::Read);
     bgfx::setBuffer(4, mBufferPagesLevel1, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDownscalePagedCSProgram, mDispatchIndirectLevel1);
-    
+
     // jacobi level 1
     level = 1;
     hsq = float(level + 1);
     Jacobi(textureProvider, mJacobiPagesLevel1[0], mResidualDownscaledPages, mWorldToPagesLevel1, mBufferPagesLevel1, mBufferAddressPagesLevel1, mDispatchIndirectLevel1, hsq, 50);
-
-    // clear upscale dest
-    bgfx::setImage(0, mJacobiPagesLevel1[0], 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), m_clearCSProgram, TEX_SIZE / 16, TEX_SIZE / 16);
-
     
     // upscale level1 -> level0
     bgfx::setImage(0, mWorldToPagesLevel1, 0, bgfx::Access::Read);
-    bgfx::setImage(1, mJacobiPagesLevel1[0], 0, bgfx::Access::Read);
+    bgfx::setImage(1, mJacobiPagesLevel1[0], 0, bgfx::Access::Read); //unext
     bgfx::setBuffer(2,mBufferAddressPages, bgfx::Access::Read);
     bgfx::setBuffer(3,mBufferPages, bgfx::Access::Read);
-    bgfx::setImage(4, mJacobiPagesNext[0], 0, bgfx::Access::ReadWrite);
+    bgfx::setImage(4, mJacobiPages[0], 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mUpscalePagedCSProgram, mDispatchIndirect);
     
+    level = 0;
+    hsq = float(level + 1);
+    Jacobi(textureProvider, mJacobiPages[0], rhs, mWorldToPages, mBufferPages, mBufferAddressPages, mDispatchIndirect, hsq, ssteps, false);
+
+
     // -------------------------------------------
     // 
     // gradient
