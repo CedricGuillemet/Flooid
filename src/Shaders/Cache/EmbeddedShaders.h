@@ -182,16 +182,6 @@
 #include "FreePages_cs_spv.h"
 #include "FreePages_cs_essl.h"
 #ifdef WIN32
-#include "Gradient_cs_dx9.h"
-#include "Gradient_cs_dx11.h"
-#endif
-#include "Gradient_cs_glsl.h"
-#ifdef __APPLE__
-#include "Gradient_cs_mtl.h"
-#endif
-#include "Gradient_cs_spv.h"
-#include "Gradient_cs_essl.h"
-#ifdef WIN32
 #include "GradientPaged_cs_dx9.h"
 #include "GradientPaged_cs_dx11.h"
 #endif
