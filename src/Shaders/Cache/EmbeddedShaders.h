@@ -52,16 +52,6 @@
 #include "RenderVolume_vs_spv.h"
 #include "RenderVolume_vs_essl.h"
 #ifdef WIN32
-#include "Advect_cs_dx9.h"
-#include "Advect_cs_dx11.h"
-#endif
-#include "Advect_cs_glsl.h"
-#ifdef __APPLE__
-#include "Advect_cs_mtl.h"
-#endif
-#include "Advect_cs_spv.h"
-#include "Advect_cs_essl.h"
-#ifdef WIN32
 #include "AdvectPaged_cs_dx9.h"
 #include "AdvectPaged_cs_dx11.h"
 #endif
@@ -122,16 +112,6 @@
 #include "CommitFreePages_cs_spv.h"
 #include "CommitFreePages_cs_essl.h"
 #ifdef WIN32
-#include "DensityGen_cs_dx9.h"
-#include "DensityGen_cs_dx11.h"
-#endif
-#include "DensityGen_cs_glsl.h"
-#ifdef __APPLE__
-#include "DensityGen_cs_mtl.h"
-#endif
-#include "DensityGen_cs_spv.h"
-#include "DensityGen_cs_essl.h"
-#ifdef WIN32
 #include "DensityGenPaged_cs_dx9.h"
 #include "DensityGenPaged_cs_dx11.h"
 #endif
@@ -162,16 +142,6 @@
 #include "DispatchIndirect_cs_spv.h"
 #include "DispatchIndirect_cs_essl.h"
 #ifdef WIN32
-#include "Divergence_cs_dx9.h"
-#include "Divergence_cs_dx11.h"
-#endif
-#include "Divergence_cs_glsl.h"
-#ifdef __APPLE__
-#include "Divergence_cs_mtl.h"
-#endif
-#include "Divergence_cs_spv.h"
-#include "Divergence_cs_essl.h"
-#ifdef WIN32
 #include "DivergencePaged_cs_dx9.h"
 #include "DivergencePaged_cs_dx11.h"
 #endif
@@ -181,16 +151,6 @@
 #endif
 #include "DivergencePaged_cs_spv.h"
 #include "DivergencePaged_cs_essl.h"
-#ifdef WIN32
-#include "Downscale_cs_dx9.h"
-#include "Downscale_cs_dx11.h"
-#endif
-#include "Downscale_cs_glsl.h"
-#ifdef __APPLE__
-#include "Downscale_cs_mtl.h"
-#endif
-#include "Downscale_cs_spv.h"
-#include "Downscale_cs_essl.h"
 #ifdef WIN32
 #include "DownscalePaged_cs_dx9.h"
 #include "DownscalePaged_cs_dx11.h"
@@ -252,16 +212,6 @@
 #include "InitPages_cs_spv.h"
 #include "InitPages_cs_essl.h"
 #ifdef WIN32
-#include "Jacobi_cs_dx9.h"
-#include "Jacobi_cs_dx11.h"
-#endif
-#include "Jacobi_cs_glsl.h"
-#ifdef __APPLE__
-#include "Jacobi_cs_mtl.h"
-#endif
-#include "Jacobi_cs_spv.h"
-#include "Jacobi_cs_essl.h"
-#ifdef WIN32
 #include "JacobiPaged_cs_dx9.h"
 #include "JacobiPaged_cs_dx11.h"
 #endif
@@ -271,16 +221,6 @@
 #endif
 #include "JacobiPaged_cs_spv.h"
 #include "JacobiPaged_cs_essl.h"
-#ifdef WIN32
-#include "Residual_cs_dx9.h"
-#include "Residual_cs_dx11.h"
-#endif
-#include "Residual_cs_glsl.h"
-#ifdef __APPLE__
-#include "Residual_cs_mtl.h"
-#endif
-#include "Residual_cs_spv.h"
-#include "Residual_cs_essl.h"
 #ifdef WIN32
 #include "ResidualPaged_cs_dx9.h"
 #include "ResidualPaged_cs_dx11.h"
@@ -292,16 +232,6 @@
 #include "ResidualPaged_cs_spv.h"
 #include "ResidualPaged_cs_essl.h"
 #ifdef WIN32
-#include "Upscale_cs_dx9.h"
-#include "Upscale_cs_dx11.h"
-#endif
-#include "Upscale_cs_glsl.h"
-#ifdef __APPLE__
-#include "Upscale_cs_mtl.h"
-#endif
-#include "Upscale_cs_spv.h"
-#include "Upscale_cs_essl.h"
-#ifdef WIN32
 #include "UpscalePaged_cs_dx9.h"
 #include "UpscalePaged_cs_dx11.h"
 #endif
@@ -311,16 +241,6 @@
 #endif
 #include "UpscalePaged_cs_spv.h"
 #include "UpscalePaged_cs_essl.h"
-#ifdef WIN32
-#include "VelocityGen_cs_dx9.h"
-#include "VelocityGen_cs_dx11.h"
-#endif
-#include "VelocityGen_cs_glsl.h"
-#ifdef __APPLE__
-#include "VelocityGen_cs_mtl.h"
-#endif
-#include "VelocityGen_cs_spv.h"
-#include "VelocityGen_cs_essl.h"
 #ifdef WIN32
 #include "VelocityGenPaged_cs_dx9.h"
 #include "VelocityGenPaged_cs_dx11.h"

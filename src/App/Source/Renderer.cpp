@@ -125,9 +125,6 @@ void Renderer::Init()
     m_eyePositionUniform = bgfx::createUniform("eyePosition", bgfx::UniformType::Vec4);
     m_directionalUniform = bgfx::createUniform("directional", bgfx::UniformType::Vec4);
 
-    mCPU.Init();
-
-
     mTexDensityPages = bgfx::createUniform("s_texDensityPages", bgfx::UniformType::Sampler); //
     mTexWorldToPage = bgfx::createUniform("s_texWorldToPage", bgfx::UniformType::Sampler); //
     mTexWorldToPageTag = bgfx::createUniform("s_worldToPageTags", bgfx::UniformType::Sampler); //
