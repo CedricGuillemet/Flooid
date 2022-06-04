@@ -273,7 +273,29 @@ float perlin(vec2 p, float dim) {
     return perlin(p, dim, 0.0);
 }
 */
+// 4 bands per hue gives a decent look
+#define LOGSPACE_QUANTIZATION_PER_HUE 4.0
 
+vec3 logspace_color_map(float v, float scale/* = 1.0*/) {
+    // A unique hue is mapped to each order of magnitude base 10,
+    // i.e. when moving from one hue to the next the value reduces by 10
+    float logv = log(scale * abs(v)) / log(10.0);
+    
+    // Bias by 7.0 to make 1.0e-7 map to 0.0, for simplicity
+    float f = floor(logv + 7.0);
+    float i = floor(LOGSPACE_QUANTIZATION_PER_HUE * ((logv + 7.0) - f));
+
+    // Mixes with white to give it a bit more punch
+    if (f < 0.0) return vec3(0.0, 0.0, 0.0);                                                              // Black:  |v| <  1.0e-7
+    if (f < 1.0) return mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Red:    |v| <  1.0e-6
+    if (f < 2.0) return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Green:  |v| <  1.0e-5
+    if (f < 3.0) return mix(vec3(0.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Blue:   |v| <  1.0e-4
+    if (f < 4.0) return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Yellow: |v| <  1.0e-3
+    if (f < 5.0) return mix(vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Purple: |v| <  1.0e-2
+    if (f < 6.0) return mix(vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Cyan:   |v| <  1.0e-1
+    if (f < 7.0) return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 1.0, 1.0), i / LOGSPACE_QUANTIZATION_PER_HUE); // Orange: |v| <  1.0e-0
+    return vec3(1.0, 1.0, 1.0);                                                                           // White:  |v| >= 1.0e+0
+}
  
 void main()
 {
@@ -340,15 +362,8 @@ void main()
         tagColor = vec4(1., 1., 1., 10.) * 0.5;
     if (abs(debugDisplay.z - 2.) < 0.001)
     {
-        /*if (tag.x == 0.)
-            gl_FragColor = vec4(0.,0.,0.,1.);
-        else if (tag.x == 1. / 255.)
-            gl_FragColor = vec4(0.,1.,0.,1.);
-        else if (tag.x == 2. / 255.)*/
-        {
-            gl_FragColor = vec4(tag.x * 127.5,0.,0.,1.);
-            tagColor = vec4(1.,1.,1.,1.);
-        }
+        gl_FragColor = vec4(tag.x * 127.5,0.,0.,1.);
+        tagColor = vec4(1.,1.,1.,1.);
     }
     if (abs(debugDisplay.z - 7.) < 0.001)
     {
@@ -407,41 +422,6 @@ else
         {
             float residual = SamplePage(v_texcoord0.xy).x;
             gl_FragColor = vec4(-residual, residual, 0., 1.);
-        }
-        // vcycle density
-        else if (abs(debugDisplay.z - 8.) < 0.001)
-        {
-            float density = texture2D(s_texPages, v_texcoord0.xy, 0).x;
-            gl_FragColor = vec4(density, density, density, 1.);
-        }
-        // vcycle velocity
-        else if (abs(debugDisplay.z - 9.) < 0.001)
-        {
-            vec4 direction = texture2D(s_texPages, v_texcoord0.xy, 0);
-            vec4 color = direction * 0.5 + 0.5;
-            //float arrow = arrows(v_texcoord0.xy * 256., direction.xy*10., vec2(2., 2.));
-            gl_FragColor = vec4(color.xy, 0., 1.);
-
-            //vec2 velocity = texture2D(s_texPages, v_texcoord0.xy, 0).xy * 0.5 + 0.5;
-            //gl_FragColor = vec4(velocity, 0., 1.);
-        }
-        // vcycle divergence
-        else if (abs(debugDisplay.z - 10.) < 0.001)
-        {
-            float pressure = texture2D(s_texPages, v_texcoord0.xy, 0).x * 10. + 0.5;
-            gl_FragColor = vec4(pressure, pressure, pressure, 1.);
-        }
-        // vcycle jacobi
-        else if (abs(debugDisplay.z - 11.) < 0.001)
-        {
-            float jacobi = texture2D(s_texPages, v_texcoord0.xy, 0).x + 0.5;
-            gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
-        }
-        // vcycle gradient
-        else if (abs(debugDisplay.z - 12.) < 0.001)
-        {
-            vec2 gradient = texture2D(s_texPages, v_texcoord0.xy, 0).xy + 0.5;
-            gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 
     else
