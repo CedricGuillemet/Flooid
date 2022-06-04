@@ -352,8 +352,8 @@ void main()
     }
     if (abs(debugDisplay.z - 7.) < 0.001)
     {
-        float residual = SamplePage(v_texcoord0.xy * 0.5).x + 0.5;
-        gl_FragColor = vec4(residual, residual, residual, 1.);
+        float residual = SamplePage(v_texcoord0.xy * 0.5).x;
+        gl_FragColor = vec4(-residual, residual, 0., 1.);
         localCoord = mod(v_texcoord0.xy * 0.5, 1./16.);
     } else if (abs(debugDisplay.z - 8.) < 0.001)
     {
@@ -405,8 +405,8 @@ else
         // residual mip 0
         else if (abs(debugDisplay.z - 6.) < 0.001)
         {
-            float residual = SamplePage(v_texcoord0.xy).x + 0.5;
-            gl_FragColor = vec4(residual, residual, residual, 1.);
+            float residual = SamplePage(v_texcoord0.xy).x;
+            gl_FragColor = vec4(-residual, residual, 0., 1.);
         }
         // vcycle density
         else if (abs(debugDisplay.z - 8.) < 0.001)
