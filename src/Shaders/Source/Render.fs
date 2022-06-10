@@ -368,17 +368,22 @@ void main()
     if (abs(debugDisplay.z - 7.) < 0.001)
     {
         float residual = SamplePage(v_texcoord0.xy * 0.5).x;
-        gl_FragColor = vec4(-residual, residual, 0., 1.);
+        vec3 logColor = logspace_color_map(residual, 1.);
+        gl_FragColor = vec4(logColor.xyz, 1.);
+        
         localCoord = mod(v_texcoord0.xy * 0.5, 1./16.);
     } else if (abs(debugDisplay.z - 8.) < 0.001)
     {
-        float jacobi = SamplePage(v_texcoord0.xy * 0.5).x + 0.5;
-        gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
+        float jacobi = SamplePage(v_texcoord0.xy * 0.5).x;// + 0.5;
+        vec3 logColor = logspace_color_map(jacobi, 1.);
+        gl_FragColor = vec4(logColor.xyz, 1.);
         localCoord = mod(v_texcoord0.xy * 0.5, 1./16.);
     } else if (abs(debugDisplay.z - 9.) < 0.001)
     {
-        float jacobi = SamplePage(v_texcoord0.xy * 0.5).x + 0.5;
-        gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
+        float jacobi = SamplePage(v_texcoord0.xy * 0.5).x;// + 0.5;
+        vec3 logColor = logspace_color_map(jacobi, 1.);
+        gl_FragColor = vec4(logColor.xyz, 1.);
+
         localCoord = mod(v_texcoord0.xy * 0.5, 1./16.);
     }
 else
@@ -402,14 +407,16 @@ else
         // divergence
         else if (abs(debugDisplay.z - 3.) < 0.001)
         {
-            float pressure = SamplePage(v_texcoord0.xy).x * 10. + 0.5;
-            gl_FragColor = vec4(pressure, pressure, pressure, 1.);
+            float pressure = SamplePage(v_texcoord0.xy).x;// * 10. + 0.5;
+            vec3 logColor = logspace_color_map(pressure, 1.);
+            gl_FragColor = vec4(logColor.xyz, 1.);
         }
         // jacobi
         else if (abs(debugDisplay.z - 4.) < 0.001)
         {
-            float jacobi = SamplePage(v_texcoord0.xy).x + 0.5;
-            gl_FragColor = vec4(jacobi, jacobi, jacobi, 1.);
+            float jacobi = SamplePage(v_texcoord0.xy).x;// + 0.5;
+            vec3 logColor = logspace_color_map(jacobi, 1.);
+            gl_FragColor = vec4(logColor.xyz, 1.);
         }
         // gradient
         else if (abs(debugDisplay.z - 5.) < 0.001)
@@ -421,7 +428,8 @@ else
         else if (abs(debugDisplay.z - 6.) < 0.001)
         {
             float residual = SamplePage(v_texcoord0.xy).x;
-            gl_FragColor = vec4(-residual, residual, 0., 1.);
+            vec3 logColor = logspace_color_map(residual, 1.);
+            gl_FragColor = vec4(logColor.xyz, 1.);
         }
     } 
     else

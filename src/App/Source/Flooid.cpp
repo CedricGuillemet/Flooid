@@ -6,8 +6,6 @@
 #include "GraphNode.h"
 
 /*
- - clear allocated pages
- - debug display with log scale/colors
  - commonfluid.sh include
  - debug UI with more mips
  - factor code downsample/residual
