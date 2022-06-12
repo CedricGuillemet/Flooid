@@ -112,9 +112,9 @@ void TGPU::Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bg
         const int indexDestination = (i + 1) & 1;
 
         bgfx::setImage(0, jacobis[indexSource], 0, bgfx::Access::Read);
-        bgfx::setImage(1, texWorldToPage, 0, bgfx::Access::Read);
-        bgfx::setBuffer(2, bufferAddressPages, bgfx::Access::Read);
-        bgfx::setImage(3, texRHS, 0, bgfx::Access::Read);
+        bgfx::setImage(1, texRHS, 0, bgfx::Access::Read);
+        bgfx::setImage(2, texWorldToPage, 0, bgfx::Access::Read);
+        bgfx::setBuffer(3, bufferAddressPages, bgfx::Access::Read);
         bgfx::setBuffer(4, bufferPages, bgfx::Access::Read);
         bgfx::setImage(5, jacobis[indexDestination], 0, bgfx::Access::Write);
         bgfx::dispatch(textureProvider.GetViewId(), mJacobiPagedCSProgram, dispatchIndirect);
@@ -232,8 +232,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenPagedCSProgram, mDispatchIndirect);
     
     // advect density
-    bgfx::setImage(0, mVelocityPages, 0, bgfx::Access::Read);
-    bgfx::setImage(1, mDensityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(1, mVelocityPages, 0, bgfx::Access::Read);
+    bgfx::setImage(0, mDensityPages, 0, bgfx::Access::Read);
     bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
     bgfx::setBuffer(3, mBufferAddressPages, bgfx::Access::Read);
     bgfx::setImage(4, mDensityAdvectedPages, 0, bgfx::Access::Write);
@@ -284,11 +284,11 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1);
     
     // Divergence
-    bgfx::setBuffer(2, mBufferAddressPages, bgfx::Access::Read);
-    bgfx::setImage(3, mDivergencePages, 0, bgfx::Access::Write);
-    bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
     bgfx::setImage(0, mVelocityAdvectedPages, 0, bgfx::Access::Read);
-    bgfx::setBuffer(4, mBufferPages, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setImage(4, mDivergencePages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferPages, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDivergencePagedCSProgram, mDispatchIndirect);
   
     // Jacobi
@@ -328,10 +328,10 @@ void TGPU::TestPages(TextureProvider& textureProvider)
 
     // downscale filter
     bgfx::setImage(0, mResidualPages, 0, bgfx::Access::Read);
-    bgfx::setImage(1, mWorldToPages, 0, bgfx::Access::Read);
-    bgfx::setImage(2, mResidualDownscaledPages, 0, bgfx::Access::Write);
-    bgfx::setBuffer(3, mBufferAddressPagesLevel1, bgfx::Access::Read);
-    bgfx::setBuffer(4, mBufferPagesLevel1, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToPages, 0, bgfx::Access::Read);
+    bgfx::setImage(3, mResidualDownscaledPages, 0, bgfx::Access::Write);
+    bgfx::setBuffer(4, mBufferAddressPagesLevel1, bgfx::Access::Read);
+    bgfx::setBuffer(5, mBufferPagesLevel1, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDownscalePagedCSProgram, mDispatchIndirectLevel1);
 
     // jacobi level 1
@@ -341,11 +341,11 @@ void TGPU::TestPages(TextureProvider& textureProvider)
     Jacobi(textureProvider, mJacobiPagesLevel1, mResidualDownscaledPages, mWorldToPagesLevel1, mBufferPagesLevel1, mBufferAddressPagesLevel1, mDispatchIndirectLevel1, hsq, 50);
     
     // upscale level1 -> level0
-    bgfx::setImage(0, mWorldToPagesLevel1, 0, bgfx::Access::Read);
-    bgfx::setImage(1, mJacobiPagesLevel1, 0, bgfx::Access::Read); //unext
-    bgfx::setBuffer(2,mBufferAddressPages, bgfx::Access::Read);
-    bgfx::setBuffer(3,mBufferPages, bgfx::Access::Read);
-    bgfx::setImage(4, mJacobiPages[0], 0, bgfx::Access::ReadWrite);
+    bgfx::setImage(2, mWorldToPagesLevel1, 0, bgfx::Access::Read);
+    bgfx::setImage(0, mJacobiPagesLevel1, 0, bgfx::Access::Read); //unext
+    bgfx::setBuffer(3,mBufferAddressPages, bgfx::Access::Read);
+    bgfx::setBuffer(4,mBufferPages, bgfx::Access::Read);
+    bgfx::setImage(5, mJacobiPages[0], 0, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mUpscalePagedCSProgram, mDispatchIndirect);
     
     level = 0;

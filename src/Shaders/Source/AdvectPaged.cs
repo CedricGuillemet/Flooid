@@ -1,29 +1,14 @@
 # include "bgfx_compute.sh"
 # include "Paging.sh"
-//# include "SamplingPaged.sh"
 
-IMAGE2D_RO(s_texVelocity, rgba32f,  0);
-IMAGE2D_RO(s_texPages, rgba32f, 1);
-IMAGE2D_RO(s_texWorldToPage, rgba32f,  2);
+#include "CommonFluid.sh"
+
 BUFFER_RO(bufferAddressPages, uint, 3);
 IMAGE2D_WR(s_advectedOut, rgba32f, 4);
 BUFFER_RO(bufferPages, uint, 5);
 
-vec4 FetchInPageVelocity(ivec3 coord)
-{
-    vec4 page = imageLoad(s_texWorldToPage, coord.xy / 16);
-    ivec2 localCoord = ivec2(coord.x & 0xF, coord.y & 0xF);
-    ivec2 pageCoord = ivec2(page.xy * 255.);
-    return imageLoad(s_texVelocity, pageCoord * 16 + localCoord);
-}
-
-vec4 FetchInPage(ivec3 coord)
-{
-	vec4 page = imageLoad(s_texWorldToPage, coord.xy / 16);
-	ivec2 localCoord = ivec2(coord.x & 0xF, coord.y & 0xF);
-	ivec2 pageCoord = ivec2(page.xy * 255.);
-	return imageLoad(s_texPages, pageCoord * 16 + localCoord);
-}
+#define FetchInPage FetchInPage1
+#define FetchInVelocity FetchInPage2
 
 vec4 SampleBilerpPage(vec2 coord)
 {
@@ -49,11 +34,10 @@ void main()
 
 	ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
 
-	vec4 velocity = FetchInPageVelocity(invocationCoord);
-	vec2 uvAdvected = vec2(invocationCoord.xy) - velocity.xy * 0.1; //coord / 256. - velocity.xy / 256. + 0.5 / 256.;
-	vec4 value = SampleBilerpPage(uvAdvected);// * advection.y;
+	vec4 velocity = FetchInVelocity(invocationCoord);
+	vec2 uvAdvected = vec2(invocationCoord.xy) - velocity.xy * 0.1;
+	vec4 value = SampleBilerpPage(uvAdvected);
 
-	//vec4 value = FetchInPage(invocationCoord);
 
 	ivec3 destOut = ivec3(page&0xF, page>>4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
 
