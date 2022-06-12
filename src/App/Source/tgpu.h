@@ -25,7 +25,7 @@ public:
     //
     
     void TestPages(TextureProvider& textureProvider);
-    bgfx::TextureHandle mWorldToPages;
+    //bgfx::TextureHandle mWorldToPages;
     bgfx::TextureHandle mWorldToPageTags;
     bgfx::TextureHandle mDensityPages;
     bgfx::TextureHandle mVelocityPages;
@@ -33,19 +33,20 @@ public:
     bgfx::TextureHandle mVelocityAdvectedPages;
 
     // vcycle
-    bgfx::TextureHandle mWorldToPagesLevel1;
+    static const int MaxLevel = 4;
+    bgfx::TextureHandle mWorldToPages[MaxLevel];
 
     bgfx::TextureHandle mDivergencePages;
-    bgfx::TextureHandle mJacobiPages[2];
-    bgfx::TextureHandle mJacobiPagesLevel1;
+    bgfx::TextureHandle mTempPages;
+    bgfx::TextureHandle mJacobiPages[MaxLevel];
     bgfx::TextureHandle mGradientPages;
     bgfx::TextureHandle mResidualPages;
 
     bgfx::TextureHandle mResidualDownscaledPages;
 
-    bgfx::DynamicIndexBufferHandle mBufferCounter, mBufferPages, mBufferAddressPages;
+    //bgfx::DynamicIndexBufferHandle mBufferCounter, mBufferPages, mBufferAddressPages;
 
-    bgfx::DynamicIndexBufferHandle mBufferCounterLevel1, mBufferPagesLevel1, mBufferAddressPagesLevel1;
+    bgfx::DynamicIndexBufferHandle mBufferCounter[MaxLevel], mBufferPages[MaxLevel], mBufferAddressPages[MaxLevel];
 
 
     bgfx::DynamicIndexBufferHandle mBufferActivePages, mBufferFreedPages, mBufferActivePageAddresses;
@@ -76,8 +77,8 @@ public:
     bgfx::UniformHandle mInitPageCountUniform;
 
 
-    bgfx::IndirectBufferHandle mDispatchIndirect;
-    bgfx::IndirectBufferHandle mDispatchIndirectLevel1;
+    bgfx::IndirectBufferHandle mDispatchIndirect[MaxLevel];
+    //bgfx::IndirectBufferHandle mDispatchIndirectLevel1;
     
     int mDebugDisplay{0};
     bool mDebugGrid{true};
@@ -97,4 +98,6 @@ public:
     
     void ClearTexture(TextureProvider& textureProvider, bgfx::TextureHandle texture);
     void ClearPages(TextureProvider& textureProvider, bgfx::TextureHandle pages, bgfx::DynamicIndexBufferHandle bufferPages, bgfx::IndirectBufferHandle dispatchIndirect);
+    
+    void VCycle(TextureProvider& textureProvider, int level, int maxLevel);
 };
