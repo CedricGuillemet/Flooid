@@ -25,7 +25,7 @@ public:
     //
     
     void TestPages(TextureProvider& textureProvider);
-    //bgfx::TextureHandle mWorldToPages;
+    
     bgfx::TextureHandle mWorldToPageTags;
     bgfx::TextureHandle mDensityPages;
     bgfx::TextureHandle mVelocityPages;
@@ -33,18 +33,18 @@ public:
     bgfx::TextureHandle mVelocityAdvectedPages;
 
     // vcycle
-    static const int MaxLevel = 4;
+    
+    static const int MaxLevel = 2;
     bgfx::TextureHandle mWorldToPages[MaxLevel];
 
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mTempPages;
     bgfx::TextureHandle mJacobiPages[MaxLevel];
     bgfx::TextureHandle mGradientPages;
-    bgfx::TextureHandle mResidualPages;
+    bgfx::TextureHandle mResidualPages[MaxLevel];
 
-    bgfx::TextureHandle mResidualDownscaledPages;
+    //bgfx::TextureHandle mResidualDownscaledPages;
 
-    //bgfx::DynamicIndexBufferHandle mBufferCounter, mBufferPages, mBufferAddressPages;
 
     bgfx::DynamicIndexBufferHandle mBufferCounter[MaxLevel], mBufferPages[MaxLevel], mBufferAddressPages[MaxLevel];
 
@@ -78,12 +78,11 @@ public:
 
 
     bgfx::IndirectBufferHandle mDispatchIndirect[MaxLevel];
-    //bgfx::IndirectBufferHandle mDispatchIndirectLevel1;
     
     int mDebugDisplay{0};
     bool mDebugGrid{true};
     bool mDebugPageAllocation{true};
-
+    int mDebugLevel = 0;
 
     int mCurrentFrame{};
     int mDesiredFrame{1};
