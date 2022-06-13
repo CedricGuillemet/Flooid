@@ -16,7 +16,9 @@ public:
     void UI();
     bgfx::TextureHandle GetDisplayPages() const;
     bgfx::TextureHandle GetDisplayPageIndirection() const;
-
+    bgfx::TextureHandle GetTags() const;
+    int GetLevel() const;
+    
     bgfx::UniformHandle m_jacobiParametersUniform;
     
     bgfx::UniformHandle m_invhsqUniform;
@@ -26,7 +28,7 @@ public:
     
     void TestPages(TextureProvider& textureProvider);
     
-    bgfx::TextureHandle mWorldToPageTags;
+    
     bgfx::TextureHandle mDensityPages;
     bgfx::TextureHandle mVelocityPages;
     bgfx::TextureHandle mDensityAdvectedPages;
@@ -34,7 +36,7 @@ public:
 
     // vcycle
     
-    static const int MaxLevel = 2;
+    static const int MaxLevel = 5;
     bgfx::TextureHandle mWorldToPages[MaxLevel];
 
     bgfx::TextureHandle mDivergencePages;
@@ -42,9 +44,7 @@ public:
     bgfx::TextureHandle mJacobiPages[MaxLevel];
     bgfx::TextureHandle mGradientPages;
     bgfx::TextureHandle mResidualPages[MaxLevel];
-
-    //bgfx::TextureHandle mResidualDownscaledPages;
-
+    bgfx::TextureHandle mWorldToPageTags[MaxLevel];
 
     bgfx::DynamicIndexBufferHandle mBufferCounter[MaxLevel], mBufferPages[MaxLevel], mBufferAddressPages[MaxLevel];
 
@@ -98,5 +98,5 @@ public:
     void ClearTexture(TextureProvider& textureProvider, bgfx::TextureHandle texture);
     void ClearPages(TextureProvider& textureProvider, bgfx::TextureHandle pages, bgfx::DynamicIndexBufferHandle bufferPages, bgfx::IndirectBufferHandle dispatchIndirect);
     
-    void VCycle(TextureProvider& textureProvider, int level, int maxLevel);
+    void VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int level, int maxLevel);
 };

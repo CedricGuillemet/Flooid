@@ -6,10 +6,6 @@
 #include "GraphNode.h"
 
 /*
- - commonfluid.sh include
- - debug UI with more mips
- - factor code downsample/residual
- - more levels
  - fix bugs
  - modularity : resolution virtual size, page count
  
@@ -152,7 +148,7 @@ void Flooid::Tick(const Parameters& parameters)
 
     m_textureProvider.TickFrame(6);
     //m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mDensityPages, nullptr);
-    m_renderer.Render(m_textureProvider, mGPU.GetDisplayPageIndirection(), mGPU.GetDisplayPages(), mGPU.mWorldToPageTags, nullptr);
+    m_renderer.Render(m_textureProvider, mGPU.GetDisplayPageIndirection(), mGPU.GetDisplayPages(), mGPU.GetTags(), nullptr);
     mGPU.Tick(m_textureProvider);
     
     
