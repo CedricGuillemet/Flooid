@@ -26,5 +26,5 @@ void main()
 
 	ivec3 destOut = ivec3(page&0xF, page>>4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
 
-	imageStore(s_divergenceOut, destOut, vec4(divergence+0.001, 0, 0, 1));
+	imageStore(s_divergenceOut, destOut, vec4(divergence, 0, 0, 1));
 }

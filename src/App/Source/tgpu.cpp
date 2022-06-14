@@ -313,7 +313,7 @@ void TGPU::VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int
 {
     const float hsq = float(level + 1);
     int ssteps = 4;
-    int steps = 50;
+    int steps = 40;
     
     if (level == maxLevel)
     {

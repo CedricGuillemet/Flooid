@@ -36,5 +36,7 @@ void main()
                 }
             }
         }
+        // clear world to page or it will be used when sampling
+        imageStore(s_worldToPages, coord.xy, vec4(0., 0., 0., 0.));
     }
 }

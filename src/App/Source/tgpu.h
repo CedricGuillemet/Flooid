@@ -36,7 +36,7 @@ public:
 
     // vcycle
     
-    static const int MaxLevel = 5;
+    static const int MaxLevel = 4;
     bgfx::TextureHandle mWorldToPages[MaxLevel];
 
     bgfx::TextureHandle mDivergencePages;

@@ -40,5 +40,7 @@ void main()
     if (tag00.x > 0. || tag10.x > 0. || tag01.x > 0. || tag11.x > 0.)
     {
         AllocatePage(coord, 1.);
+    } else {
+        imageStore(s_worldToPageTagsNext, coord.xy, vec4(0., 0., 0., 0.));
     }
 }

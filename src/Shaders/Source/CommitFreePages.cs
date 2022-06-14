@@ -24,4 +24,6 @@ void main()
     {
         bufferPages[activePageCount + i] = bufferFreedPages[i];
     }
+    bufferCounter[1] = 0;
+    bufferCounter[2] = 0;
 }
