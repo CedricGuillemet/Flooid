@@ -10,8 +10,8 @@ NUM_THREADS(16, 16, 1)
 void main()
 {
 	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-    uint page = bufferPages[uint(coord.y) / 16];
-    uint pageAddress = bufferAddressPages[uint(coord.y) / 16];
+    uint page = bufferPages[gl_WorkGroupID.y];
+    uint pageAddress = bufferAddressPages[gl_WorkGroupID.y];
 
     ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
 
