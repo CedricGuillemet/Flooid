@@ -69,6 +69,20 @@ void main()
         float value = SamplePage(v_texcoord0.xy / scaling).x;
         vec3 logColor = logspace_color_map(value, 1.);
         gl_FragColor = vec4(logColor.xyz, 1.);
+        //
+        #if 0
+        value = texture2D(s_texPages, v_texcoord0.xy, 0).x;
+        logColor = logspace_color_map(value, 1.);
+        gl_FragColor = vec4(logColor.xyz, 1.);
+
+        vec2 worldTexCoord = v_texcoord0.xy / scaling;
+        vec4 page = texture2D(s_texWorldToPage, worldTexCoord, 0);
+        vec2 pageCoord = (page.xy * 255.) * 1./16.;
+        vec2 localCoord = mod(worldTexCoord.xy, 1./16.);
+        //gl_FragColor = vec4(page.x * 127., 0., 0., /*localCoord * 16.,*/ 1.);
+        //gl_FragColor = vec4(localCoord * 16., 0., 1.);
+        //gl_FragColor = vec4(pageCoord*4., 0., 1.);
+        #endif
     }
 else
     if (tag.x > 0.)

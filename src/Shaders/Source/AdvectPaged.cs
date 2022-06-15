@@ -35,7 +35,7 @@ void main()
 	ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
 
 	vec4 velocity = FetchInVelocity(invocationCoord);
-	vec2 uvAdvected = vec2(invocationCoord.xy) - velocity.xy * 0.1;
+	vec2 uvAdvected = vec2(invocationCoord.xy);// - velocity.xy * 0.1;
 	vec4 value = SampleBilerpPage(uvAdvected);
 
 
