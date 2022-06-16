@@ -20,7 +20,7 @@ void main()
     float pB = FetchInPage1(invocationCoord - DY).x;
     float pT = FetchInPage1(invocationCoord + DY).x;
 
-    float scale = 0.5 / 1.; // 0.5 / gridscale
+    float scale = 1.1;//0.5 / 1.; // 0.5 / gridscale
     vec2 gradient = scale * vec2(pR - pL, pT - pB);
 
     vec2 wc = FetchInPage2(invocationCoord).xy;

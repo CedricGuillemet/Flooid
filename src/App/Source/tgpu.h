@@ -38,7 +38,6 @@ public:
     
     static const int MaxLevel = 5;
     bgfx::TextureHandle mWorldToPages[MaxLevel];
-
     bgfx::TextureHandle mDivergencePages;
     bgfx::TextureHandle mTempPages;
     bgfx::TextureHandle mJacobiPages[MaxLevel];

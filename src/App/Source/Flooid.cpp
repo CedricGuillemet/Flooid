@@ -9,15 +9,15 @@
  - fix bugs
  - modularity : resolution virtual size, page count
  
+ - merge allocation, paging-> commonfluid
+ - replace 'nextLevel', 'sublevel', 'next' with coarser/finer
+ - allocation/free pages
+ - frameinit usefull ? nop
+ - worldtopages/tags sized per mip instead of full size
+ - rename ****Pages with Tile
+ - move all computation to vec3 instead of 2D
  
- - The sign of the Residual seems incorrect and inconsistent with the Jacobi pass
- - The downscaled residual doesn't seem to be scaled correctly
- - It's not handling the alignment correctly on the downscale. Upscale seems fine, but not quite sure.
- - The boundary is not consistent between the fine and coarse grids, because the coarse tiles are the same size (16x16) as the fine tiles, and the space covered by the coarse grid is a larger than the fine grid.
- - Then there's whatever is the issue with dilated tiles, not sure what's going on there.
-
- Based on that I expect it to actually only really have much of an effect on the fine grid iterations (there's 8 in total)
- shd:
+shd:
  
  - light color, absorbtion
  - more gen prims + noise params

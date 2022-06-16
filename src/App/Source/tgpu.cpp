@@ -205,8 +205,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
         ClearTexture(textureProvider, mVelocityPages);
     }
     // Frame Init
-    bgfx::setBuffer(0, mBufferCounter[0], bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), mFrameInitCSProgram, 1, 1);
+    //bgfx::setBuffer(0, mBufferCounter[0], bgfx::Access::ReadWrite);
+    //bgfx::dispatch(textureProvider.GetViewId(), mFrameInitCSProgram, 1, 1);
 
     // dispatch indirect
     bgfx::setBuffer(0, mDispatchIndirect[0], bgfx::Access::ReadWrite);
