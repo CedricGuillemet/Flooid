@@ -23,10 +23,10 @@ void main()
 
     vec4 res = FetchInPageRHS(invocationCoord) - (
         4. * FetchInPageU(invocationCoord)
-        - FetchInPageU(invocationCoord - dx)
-        - FetchInPageU(invocationCoord + dx)
-        - FetchInPageU(invocationCoord - dy)
-        - FetchInPageU(invocationCoord + dy)
+        - FetchInPageU(invocationCoord - DX)
+        - FetchInPageU(invocationCoord + DX)
+        - FetchInPageU(invocationCoord - DY)
+        - FetchInPageU(invocationCoord + DY)
         ) * invhsq.x;
 
     ivec3 destOut = ivec3(page & 0xF, page >> 4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);

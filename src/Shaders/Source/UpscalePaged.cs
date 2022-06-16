@@ -21,9 +21,9 @@ void main()
     vec3 invocationLevel1Fraction = vec3(invocationCoord.x & 1, invocationCoord.y & 1, invocationCoord.z & 1) * 0.5;
 
     vec4 t00 = FetchInPage(invocationCoordLevel1);
-    vec4 t10 = FetchInPage(invocationCoordLevel1 + dx);
-    vec4 t01 = FetchInPage(invocationCoordLevel1 + dy);
-    vec4 t11 = FetchInPage(invocationCoordLevel1 + dx + dy);
+    vec4 t10 = FetchInPage(invocationCoordLevel1 + DX);
+    vec4 t01 = FetchInPage(invocationCoordLevel1 + DY);
+    vec4 t11 = FetchInPage(invocationCoordLevel1 + DX + DY);
     
     vec4 v = mix(mix(t00, t10, invocationLevel1Fraction.x), mix(t01, t11, invocationLevel1Fraction.x), invocationLevel1Fraction.y);
 

@@ -312,8 +312,8 @@ void TGPU::TestPages(TextureProvider& textureProvider)
 void TGPU::VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int level, int maxLevel)
 {
     const float hsq = float(level + 1);
-    int ssteps = 2;
-    int steps = 0;
+    int ssteps = 4;
+    int steps = 60;
     
     if (level == maxLevel)
     {

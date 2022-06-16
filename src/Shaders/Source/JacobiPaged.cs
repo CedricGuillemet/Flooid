@@ -24,10 +24,10 @@ void main()
 	
     vec4 u = FetchInPageU(invocationCoord);
 	vec4 value = u + omega * 0.25f * (-jacobiParameters.x * FetchInPageRHS(invocationCoord)
-		+ FetchInPageU(invocationCoord - dx) +
-		+ FetchInPageU(invocationCoord + dx) +
-		+ FetchInPageU(invocationCoord - dy) +
-		+ FetchInPageU(invocationCoord + dy)
+		+ FetchInPageU(invocationCoord - DX) +
+		+ FetchInPageU(invocationCoord + DX) +
+		+ FetchInPageU(invocationCoord - DY) +
+		+ FetchInPageU(invocationCoord + DY)
 		- 4.f * u
 	);
     

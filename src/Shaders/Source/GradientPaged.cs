@@ -15,10 +15,10 @@ void main()
 
     ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
 
-    float pL = FetchInPage1(invocationCoord - dx).x;
-    float pR = FetchInPage1(invocationCoord + dx).x;
-    float pB = FetchInPage1(invocationCoord - dy).x;
-    float pT = FetchInPage1(invocationCoord + dy).x;
+    float pL = FetchInPage1(invocationCoord - DX).x;
+    float pR = FetchInPage1(invocationCoord + DX).x;
+    float pB = FetchInPage1(invocationCoord - DY).x;
+    float pT = FetchInPage1(invocationCoord + DY).x;
 
     float scale = 0.5 / 1.; // 0.5 / gridscale
     vec2 gradient = scale * vec2(pR - pL, pT - pB);

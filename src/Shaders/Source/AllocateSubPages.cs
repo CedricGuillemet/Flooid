@@ -41,6 +41,7 @@ void main()
     {
         AllocatePage(coord, 1.);
     } else {
+        imageStore(s_worldToPagesSubLevel, coord.xy, vec4(0., 0., 0., 0.));
         imageStore(s_worldToPageTagsNext, coord.xy, vec4(0., 0., 0., 0.));
     }
 }

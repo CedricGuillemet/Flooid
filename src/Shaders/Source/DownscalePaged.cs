@@ -20,15 +20,15 @@ void main()
 
     vec4 uc = 0.25 * FetchInPage1(coordr) +
         0.125 * (
-        FetchInPage1(coordr - dx)
-        + FetchInPage1(coordr + dx)
-        + FetchInPage1(coordr - dy)
-        + FetchInPage1(coordr + dy)) +
+        FetchInPage1(coordr - DX)
+        + FetchInPage1(coordr + DX)
+        + FetchInPage1(coordr - DY)
+        + FetchInPage1(coordr + DY)) +
         0.125 * 0.5 * (
-        FetchInPage1(coordr - dx - dy)
-        + FetchInPage1(coordr + dx - dy)
-        + FetchInPage1(coordr - dx + dy)
-        + FetchInPage1(coordr + dx + dy));
+        FetchInPage1(coordr - DX - DY)
+        + FetchInPage1(coordr + DX - DY)
+        + FetchInPage1(coordr - DX + DY)
+        + FetchInPage1(coordr + DX + DY));
 
 
     ivec3 destOut = ivec3(pageOut & 0xF, pageOut >> 4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
