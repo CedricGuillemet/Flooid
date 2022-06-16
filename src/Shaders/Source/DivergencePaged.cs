@@ -6,7 +6,6 @@ BUFFER_RO(bufferAddressPages, uint, 3);
 IMAGE2D_WR(s_divergenceOut, rgba32f, 4);
 BUFFER_RO(bufferPages, uint, 5);
 
-
 NUM_THREADS(16, 16, 1)
 void main()
 {
@@ -15,15 +14,15 @@ void main()
     uint pageAddress = bufferAddressPages[gl_WorkGroupID.y];
 	
 	ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
-	
-	float wL = FetchInPage1(invocationCoord - dx).x;
-	float wR = FetchInPage1(invocationCoord + dx).x;
-	float wB = FetchInPage1(invocationCoord - dy).y;
-	float wT = FetchInPage1(invocationCoord + dy).y;
+
+	float wL = FetchInPage1(invocationCoord - DX).x;
+	float wR = FetchInPage1(invocationCoord + DX).x;
+	float wB = FetchInPage1(invocationCoord - DY).y;
+	float wT = FetchInPage1(invocationCoord + DY).y;
 	
 	float scale = 0.5 / 1.;
-	float divergence = scale * (wR - wL + wT - wB);
-
+	float divergence = scale * (wR - wL + wT - wB); 
+	
 	ivec3 destOut = ivec3(page&0xF, page>>4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
 
 	imageStore(s_divergenceOut, destOut, vec4(divergence, 0, 0, 1));
