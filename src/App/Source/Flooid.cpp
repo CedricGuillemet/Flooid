@@ -7,9 +7,8 @@
 
 /*
  - fix bugs
- - modularity : resolution virtual size, page count
+ - modularity : resolution virtual size, tile count
  
- - worldtopages/tags sized per mip instead of full size
  - move all computation to vec3 instead of 2D
  
 shd:

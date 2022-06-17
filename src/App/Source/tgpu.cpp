@@ -12,7 +12,7 @@ TGPU::TGPU()
 
 void TGPU::Init(TextureProvider& textureProvider)
 {
-    const int pageSize = 16;
+    const int tileSize = 16;
     const int masterSize = 256;
     mDensityTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
@@ -47,11 +47,11 @@ void TGPU::Init(TextureProvider& textureProvider)
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
     m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
 
-    uint32_t pageCount = (256/pageSize) * (256/pageSize);
+    uint32_t tileCount = (256/tileSize) * (256/tileSize);
         
-    mBufferActiveTiles = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
-    mBufferFreedTiles = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
-    mBufferActiveTileAddresses = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+    mBufferActiveTiles = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+    mBufferFreedTiles = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+    mBufferActiveTileAddresses = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
     
     mGroupMinUniform = bgfx::createUniform("groupMin", bgfx::UniformType::Vec4);
     mInitTileCountUniform = bgfx::createUniform("initTileCount", bgfx::UniformType::Vec4);
@@ -61,14 +61,15 @@ void TGPU::Init(TextureProvider& textureProvider)
         mDispatchIndirect[i] = bgfx::createIndirectBuffer(1);
         
         mBufferCounter[i] = bgfx::createDynamicIndexBuffer(3, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
-        mBufferTiles[i] = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
-        mBufferAddressTiles[i] = bgfx::createDynamicIndexBuffer(pageCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+        mBufferTiles[i] = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
+        mBufferAddressTiles[i] = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
 
-        mWorldToTiles[i] = bgfx::createTexture2D(masterSize/pageSize, masterSize/pageSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
+        int worldMapSize = (masterSize / tileSize) >> i;
+        mWorldToTiles[i] = bgfx::createTexture2D(worldMapSize, worldMapSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
+        mWorldToTileTags[i] = bgfx::createTexture2D(worldMapSize, worldMapSize, false, 0, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
+
         mJacobiTiles[i] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
         mResidualTiles[i] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-        mWorldToTileTags[i] = bgfx::createTexture2D(masterSize / pageSize, masterSize / pageSize, false, 0, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
-
     }
     
     mTexWorldToTileUniform = bgfx::createUniform("s_texWorldToTile", bgfx::UniformType::Sampler); //
@@ -121,9 +122,9 @@ void TGPU::ClearTexture(TextureProvider& textureProvider, bgfx::TextureHandle te
     bgfx::dispatch(textureProvider.GetViewId(), mClearCSProgram, 256 / 16, 256 / 16);
 }
 
-void TGPU::ClearTiles(TextureProvider& textureProvider, bgfx::TextureHandle pages, bgfx::DynamicIndexBufferHandle bufferTiles, bgfx::IndirectBufferHandle dispatchIndirect)
+void TGPU::ClearTiles(TextureProvider& textureProvider, bgfx::TextureHandle tiles, bgfx::DynamicIndexBufferHandle bufferTiles, bgfx::IndirectBufferHandle dispatchIndirect)
 {
-    bgfx::setImage(0, pages, 0, bgfx::Access::Write);
+    bgfx::setImage(0, tiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(1, bufferTiles, bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mClearTilesCSProgram, dispatchIndirect);
 }
@@ -169,7 +170,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     //
 
     static bool initialized = false;
-    // init pages
+    // init tiles
     if (!initialized)
     {
         for (int i = 0; i < MaxLevel; i++)
@@ -181,13 +182,13 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
         
         initialized = true;
 
-        float pageCount[4] = { 255.f, 0.f, 0.f, 0.f };
-        bgfx::setUniform(mInitTileCountUniform, pageCount);
+        float tileCount[4] = { 255.f, 0.f, 0.f, 0.f };
+        bgfx::setUniform(mInitTileCountUniform, tileCount);
         bgfx::setBuffer(0, mBufferTiles[0], bgfx::Access::Write);
         bgfx::setBuffer(1, mBufferCounter[0], bgfx::Access::ReadWrite);
         bgfx::dispatch(textureProvider.GetViewId(), mInitTilesCSProgram, 1, 1);
 
-        // allocate pages
+        // allocate tiles
         float groupMin[4] = { float(groupMinx), float(groupMiny), 0.f, 0.f };
         bgfx::setUniform(mGroupMinUniform, groupMin);
 
@@ -248,7 +249,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAdvectTileCSProgram, mDispatchIndirect[0]);
     
-    // free pages
+    // free tiles
     bgfx::setBuffer(0, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferTiles[0], bgfx::Access::Read);
     bgfx::setImage(2, mWorldToTileTags[0], 0, bgfx::Access::Write);
@@ -259,7 +260,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(7, mBufferActiveTileAddresses, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mFreeTilesCSProgram, mDispatchIndirect[0]);
     
-    // commit pages
+    // commit tiles
     bgfx::setBuffer(0, mBufferTiles[0], bgfx::Access::ReadWrite);
     bgfx::setBuffer(1, mBufferCounter[0], bgfx::Access::ReadWrite);
     bgfx::setBuffer(2, mBufferAddressTiles[0], bgfx::Access::ReadWrite);
@@ -268,7 +269,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferActiveTileAddresses, bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mCommitFreeTilesCSProgram, 1, 1);
     
-    // Dilate pages
+    // Dilate tiles
     bgfx::setBuffer(0, mBufferAddressTiles[0], bgfx::Access::Write);
     bgfx::setImage(1, mWorldToTiles[0], 0, bgfx::Access::Write);
     bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Write);
@@ -333,8 +334,8 @@ void TGPU::VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int
     // next level -------------------------------
 
     // init
-    float pageCount[4] = { 63.f, 0.f, 0.f, 0.f };
-    bgfx::setUniform(mInitTileCountUniform, pageCount);
+    float tileCount[4] = { 63.f, 0.f, 0.f, 0.f };
+    bgfx::setUniform(mInitTileCountUniform, tileCount);
     bgfx::setBuffer(0, mBufferTiles[level + 1], bgfx::Access::Write);
     bgfx::setBuffer(1, mBufferCounter[level + 1], bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mInitTilesCSProgram, 1, 1);

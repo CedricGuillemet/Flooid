@@ -5,15 +5,15 @@ $input v_texcoord0, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER2D(s_texPages,  0);
+SAMPLER2D(s_texTiles,  0);
 SAMPLER2D(s_texWorldToTile,  1);
 
-vec4 SamplePage(vec2 worldTexCoord)
+vec4 SamplePage(vec2 worldTexCoord, float scale)
 {
     vec4 page = texture2D(s_texWorldToTile, worldTexCoord.xy, 0);
-    vec2 localCoord = mod(worldTexCoord.xy, 1./16.);
+    vec2 localCoord = mod(worldTexCoord.xy / scale, 1./16.);
     vec2 pageCoord = (page.xy * 255.) * 1./16.;
-    return texture2D(s_texPages, pageCoord + localCoord, 0);
+    return texture2D(s_texTiles, pageCoord + localCoord, 0);
 }
 
 SAMPLER2D(s_worldToTileTags, 5);
@@ -66,12 +66,12 @@ void main()
     // residual/jacobi
     if (debugDisplay.z >= 4. && debugDisplay.z <= 5.)
     {
-        float value = SamplePage(v_texcoord0.xy / scaling).x;
+        float value = SamplePage(v_texcoord0.xy, scaling).x;
         vec3 logColor = logspace_color_map(value, 1.);
         gl_FragColor = vec4(logColor.xyz, 1.);
         //
         #if 0
-        value = texture2D(s_texPages, v_texcoord0.xy, 0).x;
+        value = texture2D(s_texTiles, v_texcoord0.xy, 0).x;
         logColor = logspace_color_map(value, 1.);
         gl_FragColor = vec4(logColor.xyz, 1.);
 
@@ -90,28 +90,28 @@ else
         // density
         if (abs(debugDisplay.z - 0.) < 0.001)
         {
-            vec4 color = SamplePage(v_texcoord0.xy);
+            vec4 color = SamplePage(v_texcoord0.xy, 1.);
             color.a = 1.;
             gl_FragColor = color;
         }
         // velocity
         else if (abs(debugDisplay.z - 1.) < 0.001)
         {
-            vec4 direction = SamplePage(v_texcoord0.xy);
+            vec4 direction = SamplePage(v_texcoord0.xy, 1.);
             vec4 color = direction * 0.5 + 0.5;
             gl_FragColor = vec4(color.xy, 0., 1.);
         }
         // divergence
         else if (abs(debugDisplay.z - 3.) < 0.001)
         {
-            float pressure = SamplePage(v_texcoord0.xy).x;// * 10. + 0.5;
+            float pressure = SamplePage(v_texcoord0.xy, 1.).x;// * 10. + 0.5;
             vec3 logColor = logspace_color_map(pressure, 1.);
             gl_FragColor = vec4(logColor.xyz, 1.);
         }
         // gradient
         else if (abs(debugDisplay.z - 6.) < 0.001)
         {
-            vec2 gradient = SamplePage(v_texcoord0.xy).xy + 0.5;
+            vec2 gradient = SamplePage(v_texcoord0.xy, 1.).xy + 0.5;
             gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 

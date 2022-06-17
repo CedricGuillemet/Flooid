@@ -125,10 +125,10 @@ void Renderer::Init()
     m_eyePositionUniform = bgfx::createUniform("eyePosition", bgfx::UniformType::Vec4);
     m_directionalUniform = bgfx::createUniform("directional", bgfx::UniformType::Vec4);
 
-    mTexDensityPages = bgfx::createUniform("s_texDensityPages", bgfx::UniformType::Sampler); //
-    mTexWorldToPage = bgfx::createUniform("s_texWorldToPage", bgfx::UniformType::Sampler); //
-    mTexWorldToPageTag = bgfx::createUniform("s_worldToTileTags", bgfx::UniformType::Sampler); //
-    mTexPagesUniform = bgfx::createUniform("s_texPages", bgfx::UniformType::Sampler);
+    mTexDensityTiles = bgfx::createUniform("s_texDensityTiles", bgfx::UniformType::Sampler); //
+    mTexWorldToTile = bgfx::createUniform("s_texWorldToTile", bgfx::UniformType::Sampler); //
+    mTexWorldToTileTag = bgfx::createUniform("s_worldToTileTags", bgfx::UniformType::Sampler); //
+    mTexTilesUniform = bgfx::createUniform("s_texTiles", bgfx::UniformType::Sampler);
 }
 
 
@@ -182,7 +182,7 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 }
 
 
-void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToPages, bgfx::TextureHandle pages, bgfx::TextureHandle textureWorldToPageTags, Display* displayNode)
+void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToTiles, bgfx::TextureHandle tiles, bgfx::TextureHandle textureWorldToTileTags, Display* displayNode)
 {
 
     RenderBackground(textureProvider);
@@ -203,9 +203,9 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
    
 
 
-    bgfx::setTexture(1, mTexWorldToPage, textureWorldToPages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setTexture(0, mTexPagesUniform, pages, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-    bgfx::setTexture(5, mTexWorldToPageTag, textureWorldToPageTags, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, mTexWorldToTile, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(0, mTexTilesUniform, tiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(5, mTexWorldToTileTag, textureWorldToTileTags, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
 
     
     //bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
