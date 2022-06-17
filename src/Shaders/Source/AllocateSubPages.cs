@@ -2,11 +2,11 @@
 //#include "Allocation.sh"
 
 BUFFER_WR(bufferAddressPages, uint, 0);
-IMAGE2D_WR(s_worldToPagesSubLevel, rgba8, 1);
+IMAGE2D_WR(s_worldToPagesCoarser, rgba8, 1);
 BUFFER_WR(bufferPages, uint, 2);
 BUFFER_RW(bufferCounter, uint, 3);
 IMAGE2D_RO(s_worldToPageTags, r8, 4);
-IMAGE2D_WR(s_worldToPageTagsNext, r8, 5);
+IMAGE2D_WR(s_worldToPageTagsCoarser, r8, 5);
 
 void AllocatePage(ivec3 addr, float pageTag)
 {
@@ -19,8 +19,8 @@ void AllocatePage(ivec3 addr, float pageTag)
     //bufferPages[counter] = page;
     bufferAddressPages[counter] = pageAddress;
 
-    imageStore(s_worldToPagesSubLevel, addr.xy, ivec4(page & 0xF, (page >> 4) & 0xF, 0, 0) / 255.);
-    imageStore(s_worldToPageTagsNext, addr.xy, vec4(pageTag, 0., 0., 0.)/255.);
+    imageStore(s_worldToPagesCoarser, addr.xy, ivec4(page & 0xF, (page >> 4) & 0xF, 0, 0) / 255.);
+    imageStore(s_worldToPageTagsCoarser, addr.xy, vec4(pageTag, 0., 0., 0.)/255.);
 }
 
 NUM_THREADS(16, 16, 1)
@@ -41,7 +41,7 @@ void main()
     {
         AllocatePage(coord, 1.);
     } else {
-        imageStore(s_worldToPagesSubLevel, coord.xy, vec4(0., 0., 0., 0.));
-        imageStore(s_worldToPageTagsNext, coord.xy, vec4(0., 0., 0., 0.));
+        imageStore(s_worldToPagesCoarser, coord.xy, vec4(0., 0., 0., 0.));
+        imageStore(s_worldToPageTagsCoarser, coord.xy, vec4(0., 0., 0., 0.));
     }
 }

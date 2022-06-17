@@ -3,15 +3,15 @@
 #include "CommonFluid.sh"
 
 IMAGE2D_WR(s_residualDownscaledPagesOut, rgba32f, 3);
-BUFFER_RO(bufferAddressPagesNextLevel, uint, 4);
-BUFFER_RO(bufferPagesNextLevel, uint, 5);
+BUFFER_RO(bufferAddressPagesCoarser, uint, 4);
+BUFFER_RO(bufferPagesCoarser, uint, 5);
 
 NUM_THREADS(16, 16, 1)
 void main()
 {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-    uint pageOut = bufferPagesNextLevel[gl_WorkGroupID.y];
-    uint pageAddress = bufferAddressPagesNextLevel[gl_WorkGroupID.y];
+    uint pageOut = bufferPagesCoarser[gl_WorkGroupID.y];
+    uint pageAddress = bufferAddressPagesCoarser[gl_WorkGroupID.y];
 
     ivec3 invocationCoord = WorldCoordFromPage(pageAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
 
