@@ -1,8 +1,8 @@
 #include "bgfx_compute.sh"
 #include "Paging.sh"
 
-BUFFER_RO(bufferAddressPages, uint, 1);
-BUFFER_RO(bufferPages, uint, 2);
+BUFFER_RO(bufferAddressTiles, uint, 1);
+BUFFER_RO(bufferTiles, uint, 2);
 
 IMAGE2D_RW(s_texOut, rgba16f, 0);
 
@@ -13,12 +13,12 @@ void main()
 {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     
-    uint page = bufferPages[coord.y / 16];
-    uint pageAddress = bufferAddressPages[coord.y / 16];
+    uint tile = bufferTiles[gl_WorkGroupID.y];
+    uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y];
 
     ivec3 outBase;
     vec3 voxelWorldPos;
-    WorldPosFromPage(page, pageAddress, coord, outBase, voxelWorldPos);
+    WorldPosFromTile(tile, tileAddress, coord, outBase, voxelWorldPos);
 
 
     float linDistance = length(position.xy - voxelWorldPos.xy);

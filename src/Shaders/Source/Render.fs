@@ -6,17 +6,17 @@ $input v_texcoord0, v_positionWorld
 #include "Common.shader"
 
 SAMPLER2D(s_texPages,  0);
-SAMPLER2D(s_texWorldToPage,  1);
+SAMPLER2D(s_texWorldToTile,  1);
 
 vec4 SamplePage(vec2 worldTexCoord)
 {
-    vec4 page = texture2D(s_texWorldToPage, worldTexCoord.xy, 0);
+    vec4 page = texture2D(s_texWorldToTile, worldTexCoord.xy, 0);
     vec2 localCoord = mod(worldTexCoord.xy, 1./16.);
     vec2 pageCoord = (page.xy * 255.) * 1./16.;
     return texture2D(s_texPages, pageCoord + localCoord, 0);
 }
 
-SAMPLER2D(s_worldToPageTags, 5);
+SAMPLER2D(s_worldToTileTags, 5);
 
 uniform vec4 eyePosition;
 uniform vec4 debugDisplay; // grid, page allocation, texture type, debug level
@@ -49,7 +49,7 @@ void main()
 {
 
     float scaling = pow(2., debugDisplay.w);
-    vec4 tag = texture2D(s_worldToPageTags, v_texcoord0.xy / scaling, 0);
+    vec4 tag = texture2D(s_worldToTileTags, v_texcoord0.xy / scaling, 0);
     vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
     localCoord = mod(v_texcoord0.xy / scaling, 1./16.);
     //vec2 pageCoord = (page.xy * 255.) * 1./16.;
@@ -76,7 +76,7 @@ void main()
         gl_FragColor = vec4(logColor.xyz, 1.);
 
         vec2 worldTexCoord = v_texcoord0.xy / scaling;
-        vec4 page = texture2D(s_texWorldToPage, worldTexCoord, 0);
+        vec4 page = texture2D(s_texWorldToTile, worldTexCoord, 0);
         vec2 pageCoord = (page.xy * 255.) * 1./16.;
         vec2 localCoord = mod(worldTexCoord.xy, 1./16.);
         //gl_FragColor = vec4(page.x * 127., 0., 0., /*localCoord * 16.,*/ 1.);

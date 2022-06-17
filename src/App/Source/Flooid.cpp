@@ -9,12 +9,7 @@
  - fix bugs
  - modularity : resolution virtual size, page count
  
- - merge allocation, paging-> commonfluid
- - replace 'nextLevel', 'sublevel', 'next' with coarser/finer
- - allocation/free pages
- - frameinit usefull ? nop
  - worldtopages/tags sized per mip instead of full size
- - rename ****Pages with Tile
  - move all computation to vec3 instead of 2D
  
 shd:
@@ -148,7 +143,7 @@ void Flooid::Tick(const Parameters& parameters)
 
     m_textureProvider.TickFrame(6);
     //m_renderer.Render(m_textureProvider, mGPU.mWorldToPages, mGPU.mDensityPages, nullptr);
-    m_renderer.Render(m_textureProvider, mGPU.GetDisplayPageIndirection(), mGPU.GetDisplayPages(), mGPU.GetTags(), nullptr);
+    m_renderer.Render(m_textureProvider, mGPU.GetDisplayTileIndirection(), mGPU.GetDisplayTiles(), mGPU.GetTags(), nullptr);
     mGPU.Tick(m_textureProvider);
     
     

@@ -1,25 +1,25 @@
 #include "bgfx_compute.sh"
 
 
-BUFFER_WR(bufferAddressPages, uint, 0);
-IMAGE2D_WR(s_worldToPages, rgba8, 1);
-BUFFER_WR(bufferPages, uint, 2);
+BUFFER_WR(bufferAddressTiles, uint, 0);
+IMAGE2D_WR(s_worldToTiles, rgba8, 1);
+BUFFER_WR(bufferTiles, uint, 2);
 BUFFER_RW(bufferCounter, uint, 3);
-IMAGE2D_WR(s_worldToPageTags, r8, 4);
+IMAGE2D_WR(s_worldToTileTags, r8, 4);
 
-uint AllocatePage(ivec3 addr, float pageTag)
+uint AllocateTile(ivec3 addr, float tileTag)
 {
     uint counter;
     atomicFetchAndAdd(bufferCounter[0], 1, counter);
 
-    uint pageAddress = addr.x + (addr.y << 10) + (addr.z << 20);
-    uint page = bufferPages[counter];
+    uint tileAddress = addr.x + (addr.y << 10) + (addr.z << 20);
+    uint tile = bufferTiles[counter];
 
-    //bufferPages[counter] = page;
-    bufferAddressPages[counter] = pageAddress;
+    //bufferTiles[counter] = tile;
+    bufferAddressTiles[counter] = tileAddress;
 
-    imageStore(s_worldToPages, addr.xy, ivec4(page & 0xF, (page >> 4) & 0xF, 0, 0) / 255.);
-    imageStore(s_worldToPageTags, addr.xy, vec4(pageTag, 0, 0, 0)/255.);
+    imageStore(s_worldToTiles, addr.xy, ivec4(tile & 0xF, (tile >> 4) & 0xF, 0, 0) / 255.);
+    imageStore(s_worldToTileTags, addr.xy, vec4(tileTag, 0, 0, 0)/255.);
 
-    return page;
+    return tile;
 }

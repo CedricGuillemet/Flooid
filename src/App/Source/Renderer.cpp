@@ -127,7 +127,7 @@ void Renderer::Init()
 
     mTexDensityPages = bgfx::createUniform("s_texDensityPages", bgfx::UniformType::Sampler); //
     mTexWorldToPage = bgfx::createUniform("s_texWorldToPage", bgfx::UniformType::Sampler); //
-    mTexWorldToPageTag = bgfx::createUniform("s_worldToPageTags", bgfx::UniformType::Sampler); //
+    mTexWorldToPageTag = bgfx::createUniform("s_worldToTileTags", bgfx::UniformType::Sampler); //
     mTexPagesUniform = bgfx::createUniform("s_texPages", bgfx::UniformType::Sampler);
 }
 

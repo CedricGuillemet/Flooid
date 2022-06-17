@@ -14,8 +14,8 @@ public:
     void Tick(TextureProvider& textureProvider);
 
     void UI();
-    bgfx::TextureHandle GetDisplayPages() const;
-    bgfx::TextureHandle GetDisplayPageIndirection() const;
+    bgfx::TextureHandle GetDisplayTiles() const;
+    bgfx::TextureHandle GetDisplayTileIndirection() const;
     bgfx::TextureHandle GetTags() const;
     int GetLevel() const;
     
@@ -26,76 +26,75 @@ public:
     bgfx::UniformHandle m_directionUniform;
     //
     
-    void TestPages(TextureProvider& textureProvider);
+    void TestTiles(TextureProvider& textureProvider);
     
     
-    bgfx::TextureHandle mDensityPages;
-    bgfx::TextureHandle mVelocityPages;
-    bgfx::TextureHandle mDensityAdvectedPages;
-    bgfx::TextureHandle mVelocityAdvectedPages;
+    bgfx::TextureHandle mDensityTiles;
+    bgfx::TextureHandle mVelocityTiles;
+    bgfx::TextureHandle mDensityAdvectedTiles;
+    bgfx::TextureHandle mVelocityAdvectedTiles;
 
     // vcycle
     
     static const int MaxLevel = 5;
-    bgfx::TextureHandle mWorldToPages[MaxLevel];
-    bgfx::TextureHandle mDivergencePages;
-    bgfx::TextureHandle mTempPages;
-    bgfx::TextureHandle mJacobiPages[MaxLevel];
-    bgfx::TextureHandle mGradientPages;
-    bgfx::TextureHandle mResidualPages[MaxLevel];
-    bgfx::TextureHandle mWorldToPageTags[MaxLevel];
+    bgfx::TextureHandle mWorldToTiles[MaxLevel];
+    bgfx::TextureHandle mDivergenceTiles;
+    bgfx::TextureHandle mTempTiles;
+    bgfx::TextureHandle mJacobiTiles[MaxLevel];
+    bgfx::TextureHandle mGradientTiles;
+    bgfx::TextureHandle mResidualTiles[MaxLevel];
+    bgfx::TextureHandle mWorldToTileTags[MaxLevel];
 
-    bgfx::DynamicIndexBufferHandle mBufferCounter[MaxLevel], mBufferPages[MaxLevel], mBufferAddressPages[MaxLevel];
+    bgfx::DynamicIndexBufferHandle mBufferCounter[MaxLevel], mBufferTiles[MaxLevel], mBufferAddressTiles[MaxLevel];
 
 
-    bgfx::DynamicIndexBufferHandle mBufferActivePages, mBufferFreedPages, mBufferActivePageAddresses;
+    bgfx::DynamicIndexBufferHandle mBufferActiveTiles, mBufferFreedTiles, mBufferActiveTileAddresses;
     
     bgfx::ProgramHandle mClearCSProgram;
-    bgfx::ProgramHandle mClearPagesCSProgram;
-    bgfx::ProgramHandle mAllocatePagesCSProgram;
-    bgfx::ProgramHandle mInitPagesCSProgram;
-    bgfx::ProgramHandle mDensityGenPagedCSProgram;
-    bgfx::ProgramHandle mVelocityGenPagedCSProgram;
-    bgfx::ProgramHandle mJacobiPagedCSProgram;
-    bgfx::ProgramHandle mGradientPagedCSProgram;
-    bgfx::ProgramHandle mAdvectPagedCSProgram;
-    bgfx::ProgramHandle mFreePagesCSProgram;
+    bgfx::ProgramHandle mClearTilesCSProgram;
+    bgfx::ProgramHandle mAllocateTilesCSProgram;
+    bgfx::ProgramHandle mInitTilesCSProgram;
+    bgfx::ProgramHandle mDensityGenTileCSProgram;
+    bgfx::ProgramHandle mVelocityGenTileCSProgram;
+    bgfx::ProgramHandle mJacobiTileCSProgram;
+    bgfx::ProgramHandle mGradientTileCSProgram;
+    bgfx::ProgramHandle mAdvectTileCSProgram;
+    bgfx::ProgramHandle mFreeTilesCSProgram;
     bgfx::ProgramHandle mDispatchIndirectCSProgram;
-    bgfx::ProgramHandle mCommitFreePagesCSProgram;
-    bgfx::ProgramHandle mFrameInitCSProgram;
-    bgfx::ProgramHandle mResidualPagedCSProgram;
-    bgfx::ProgramHandle mAllocateSubPagesCSProgram;
-    bgfx::ProgramHandle mDownscalePagedCSProgram;
-    bgfx::ProgramHandle mUpscalePagedCSProgram;
-    bgfx::ProgramHandle mDilatePagesCSProgram;
-    bgfx::ProgramHandle mDivergencePagedCSProgram;
+    bgfx::ProgramHandle mCommitFreeTilesCSProgram;
+    bgfx::ProgramHandle mResidualTileCSProgram;
+    bgfx::ProgramHandle mAllocateCoarserTilesCSProgram;
+    bgfx::ProgramHandle mDownscaleTileCSProgram;
+    bgfx::ProgramHandle mUpscaleTileCSProgram;
+    bgfx::ProgramHandle mDilateTilesCSProgram;
+    bgfx::ProgramHandle mDivergenceTileCSProgram;
     
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mDebugDisplayUniform;
-    bgfx::UniformHandle mTexWorldToPageUniform;
-    bgfx::UniformHandle mInitPageCountUniform;
+    bgfx::UniformHandle mTexWorldToTileUniform;
+    bgfx::UniformHandle mInitTileCountUniform;
 
 
     bgfx::IndirectBufferHandle mDispatchIndirect[MaxLevel];
     
     int mDebugDisplay{4};
     bool mDebugGrid{false};
-    bool mDebugPageAllocation{true};
+    bool mDebugTileAllocation{true};
     int mDebugLevel = 3;
 
     int mCurrentFrame{};
     int mDesiredFrame{1};
 
 
-    void ComputeResidual(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage, bgfx::TextureHandle texResidual,
-        bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq);
+    void ComputeResidual(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToTile, bgfx::TextureHandle texResidual,
+        bgfx::DynamicIndexBufferHandle bufferTiles, bgfx::DynamicIndexBufferHandle bufferAddressTiles, bgfx::IndirectBufferHandle dispatchIndirect, float hsq);
 
-    void Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToPage,
-        bgfx::DynamicIndexBufferHandle bufferPages, bgfx::DynamicIndexBufferHandle bufferAddressPages, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount);
+    void Jacobi(TextureProvider& textureProvider, bgfx::TextureHandle texU, bgfx::TextureHandle texRHS, bgfx::TextureHandle texWorldToTile,
+        bgfx::DynamicIndexBufferHandle bufferTiles, bgfx::DynamicIndexBufferHandle bufferAddressTiles, bgfx::IndirectBufferHandle dispatchIndirect, float hsq, int iterationCount);
     
     
     void ClearTexture(TextureProvider& textureProvider, bgfx::TextureHandle texture);
-    void ClearPages(TextureProvider& textureProvider, bgfx::TextureHandle pages, bgfx::DynamicIndexBufferHandle bufferPages, bgfx::IndirectBufferHandle dispatchIndirect);
+    void ClearTiles(TextureProvider& textureProvider, bgfx::TextureHandle tiles, bgfx::DynamicIndexBufferHandle bufferTiles, bgfx::IndirectBufferHandle dispatchIndirect);
     
     void VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int level, int maxLevel);
 };

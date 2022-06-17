@@ -12,9 +12,9 @@ void main()
     
     ivec3 addr = groupMini + coord;
 
-    ivec4 tag = imageLoad(s_worldToPageTags, addr);
+    ivec4 tag = imageLoad(s_worldToTileTags, addr);
     if (tag.x == 0)
     {
-        AllocatePage(addr, 1.);
+        AllocateTile(addr, 1.);
     }
 }
