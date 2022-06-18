@@ -9,11 +9,11 @@ BUFFER_RO(bufferTiles, uint, 5);
 NUM_THREADS(16, 16, 1)
 void main()
 {
-    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 	uint tile = bufferTiles[gl_WorkGroupID.y];
     uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y];
 	
-	ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
+	ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF));
 
 	float wL = FetchInTile1(invocationCoord - DX).x;
 	float wR = FetchInTile1(invocationCoord + DX).x;
@@ -23,7 +23,7 @@ void main()
 	float scale = 0.5 / 1.;
 	float divergence = scale * (wR - wL + wT - wB); 
 	
-	ivec3 destOut = ivec3(tile&0xF, tile>>4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
+    ivec3 destOut = GetOutAddr(tile, coord);
 
 	imageStore(s_divergenceOut, destOut, vec4(divergence, 0, 0, 1));
 }

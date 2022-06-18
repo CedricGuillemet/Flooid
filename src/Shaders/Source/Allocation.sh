@@ -18,8 +18,8 @@ uint AllocateTile(ivec3 addr, float tileTag)
     //bufferTiles[counter] = tile;
     bufferAddressTiles[counter] = tileAddress;
 
-    imageStore(s_worldToTiles, addr.xy, ivec4(tile & 0xF, (tile >> 4) & 0xF, 0, 0) / 255.);
-    imageStore(s_worldToTileTags, addr.xy, vec4(tileTag, 0, 0, 0)/255.);
+    imageStore(s_worldToTiles, addr.xyz, ivec4(tile & 0xF, (tile >> 4) & 0xF, (tile >> 8) & 0xF, 0) / 255.);
+    imageStore(s_worldToTileTags, addr.xyz, vec4(tileTag, 0, 0, 0)/255.);
 
     return tile;
 }

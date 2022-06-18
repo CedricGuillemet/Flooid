@@ -11,7 +11,7 @@ uniform vec4 position;
 NUM_THREADS(16, 16, 1)
 void main()
 {
-    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
     
     uint tile = bufferTiles[gl_WorkGroupID.y];
     uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y];
@@ -21,7 +21,7 @@ void main()
     WorldPosFromTile(tile, tileAddress, coord, outBase, voxelWorldPos);
 
 
-    float linDistance = length(position.xy - voxelWorldPos.xy);
+    float linDistance = length(position.xyz - voxelWorldPos.xyz);
     float value = step(0., position.w - linDistance);
 
 

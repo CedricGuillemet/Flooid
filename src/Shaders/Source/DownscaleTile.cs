@@ -9,11 +9,11 @@ BUFFER_RO(bufferTilesCoarser, uint, 5);
 NUM_THREADS(16, 16, 1)
 void main()
 {
-    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-    uint tileOut = bufferTilesCoarser[gl_WorkGroupID.y];
+    ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
+    uint tile = bufferTilesCoarser[gl_WorkGroupID.y];
     uint tileAddress = bufferAddressTilesCoarser[gl_WorkGroupID.y];
 
-    ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, 0));
+    ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF));
 
 
     ivec3 coordr = invocationCoord * 2;
@@ -31,7 +31,7 @@ void main()
         + FetchInTile1(coordr + DX + DY));
 
 
-    ivec3 destOut = ivec3(tileOut & 0xF, tileOut >> 4, 0) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, 0);
+    ivec3 destOut = GetOutAddr(tile, coord);
 
     imageStore(s_residualDownscaledTilesOut, destOut, uc);
 }
