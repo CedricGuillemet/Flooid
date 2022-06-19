@@ -77,10 +77,10 @@ public:
 
     bgfx::IndirectBufferHandle mDispatchIndirect[MaxLevel];
     
-    int mDebugDisplay{4};
+    int mDebugDisplay{0};
     bool mDebugGrid{false};
     bool mDebugTileAllocation{true};
-    int mDebugLevel = 3;
+    int mDebugLevel = 0;
 
     int mCurrentFrame{};
     int mDesiredFrame{1};

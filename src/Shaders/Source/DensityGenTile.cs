@@ -4,17 +4,17 @@
 BUFFER_RO(bufferAddressTiles, uint, 1);
 BUFFER_RO(bufferTiles, uint, 2);
 
-IMAGE2D_RW(s_texOut, rgba16f, 0);
+IMAGE3D_RW(s_texOut, rgba16f, 0);
 
 uniform vec4 position;
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
     
-    uint tile = bufferTiles[gl_WorkGroupID.y];
-    uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y];
+    uint tile = bufferTiles[gl_WorkGroupID.y/2];
+    uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y/2];
 
     ivec3 outBase;
     vec3 voxelWorldPos;

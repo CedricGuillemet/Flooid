@@ -9,7 +9,7 @@ IMAGE2D_RW(s_texOut, rgba16f, 0);
 uniform vec4 position; // radius in w
 uniform vec4 direction; // xy
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(16, 16, 16)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);

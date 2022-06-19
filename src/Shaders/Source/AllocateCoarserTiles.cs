@@ -2,7 +2,7 @@
 //#include "Allocation.sh"
 
 BUFFER_WR(bufferAddressTiles, uint, 0);
-IMAGE2D_WR(s_worldToTilesCoarser, rgba8, 1);
+IMAGE3D_WR(s_worldToTilesCoarser, rgba8, 1);
 BUFFER_WR(bufferTiles, uint, 2);
 BUFFER_RW(bufferCounter, uint, 3);
 IMAGE2D_RO(s_worldToTileTags, r8, 4);
@@ -19,8 +19,8 @@ void AllocateTile(ivec3 addr, float tileTag)
     //bufferTiles[counter] = tile;
     bufferAddressTiles[counter] = tileAddress;
 
-    imageStore(s_worldToTilesCoarser, addr.xy, ivec4(tile & 0xF, (tile >> 4) & 0xF, 0, 0) / 255.);
-    imageStore(s_worldToTileTagsCoarser, addr.xy, vec4(tileTag, 0., 0., 0.)/255.);
+    imageStore(s_worldToTilesCoarser, addr.xyz, ivec4(tile & 0xF, (tile >> 4) & 0xF, 0, 0) / 255.);
+    imageStore(s_worldToTileTagsCoarser, addr.xyz, vec4(tileTag, 0., 0., 0.)/255.);
 }
 
 NUM_THREADS(16, 16, 1)
@@ -41,7 +41,7 @@ void main()
     {
         AllocateTile(coord, 1.);
     } else {
-        imageStore(s_worldToTilesCoarser, coord.xy, vec4(0., 0., 0., 0.));
-        imageStore(s_worldToTileTagsCoarser, coord.xy, vec4(0., 0., 0., 0.));
+        imageStore(s_worldToTilesCoarser, coord.xyz, vec4(0., 0., 0., 0.));
+        imageStore(s_worldToTileTagsCoarser, coord.xyz, vec4(0., 0., 0., 0.));
     }
 }

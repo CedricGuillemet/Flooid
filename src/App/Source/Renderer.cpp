@@ -187,16 +187,17 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 
     RenderBackground(textureProvider);
 
-    /*
-     3D Cube
+    const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
 
-    bgfx::setTexture(0, m_texDensityUniform, texture->GetTexture(), BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    
+    // 3D Cube
+
+    bgfx::setTexture(0, m_texDensityUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbhCube);
     bgfx::setIndexBuffer(m_ibhCube);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
     bgfx::submit(0, m_renderVolumeProgram);
-     */
-    const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
+     /*
 
     //mCPU.Tick(textureProvider);
 
@@ -212,7 +213,7 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
-    bgfx::submit(0, m_renderProgram);
+    bgfx::submit(0, m_renderProgram);*/
 }
 
 void Renderer::Render(TextureProvider& textureProvider, Texture* texture, Display* displayNode)
