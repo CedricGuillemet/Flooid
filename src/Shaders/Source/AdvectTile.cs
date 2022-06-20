@@ -4,7 +4,7 @@
 #include "CommonFluid.sh"
 
 BUFFER_RO(bufferAddressTiles, uint, 3);
-IMAGE2D_WR(s_advectedOut, rgba32f, 4);
+IMAGE3D_WR(s_advectedOut, rgba32f, 4);
 BUFFER_RO(bufferTiles, uint, 5);
 
 #define FetchInTile FetchInTile1
@@ -43,7 +43,7 @@ vec4 SampleBilerpTile3D(vec3 coord)
 }
 
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);

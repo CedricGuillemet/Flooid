@@ -4,14 +4,14 @@
 
 BUFFER_RO(bufferTiles, uint, 3);
 BUFFER_RO(bufferAddressTiles, uint, 4);
-IMAGE2D_WR(s_residualOut, rgba32f, 5);
+IMAGE3D_WR(s_residualOut, rgba32f, 5);
 
 #define FetchInTileU FetchInTile1
 #define FetchInTileRHS FetchInTile2
 
 uniform vec4 invhsq;
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);

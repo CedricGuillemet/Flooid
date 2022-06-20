@@ -3,7 +3,7 @@
 #include "CommonFluid.sh"
 
 BUFFER_RO(bufferAddressTiles, uint, 3);
-IMAGE2D_WR(s_gradientOut, rgba32f, 4);
+IMAGE3D_WR(s_gradientOut, rgba32f, 4);
 BUFFER_RO(bufferTiles, uint, 5);
 
 NUM_THREADS(16, 16, 1)

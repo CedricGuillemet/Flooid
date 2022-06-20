@@ -5,8 +5,8 @@ BUFFER_WR(bufferAddressTiles, uint, 0);
 IMAGE3D_WR(s_worldToTilesCoarser, rgba8, 1);
 BUFFER_WR(bufferTiles, uint, 2);
 BUFFER_RW(bufferCounter, uint, 3);
-IMAGE2D_RO(s_worldToTileTags, r8, 4);
-IMAGE2D_WR(s_worldToTileTagsCoarser, r8, 5);
+IMAGE3D_RO(s_worldToTileTags, r8, 4);
+IMAGE3D_WR(s_worldToTileTagsCoarser, r8, 5);
 
 void AllocateTile(ivec3 addr, float tileTag)
 {
@@ -23,7 +23,7 @@ void AllocateTile(ivec3 addr, float tileTag)
     imageStore(s_worldToTileTagsCoarser, addr.xyz, vec4(tileTag, 0., 0., 0.)/255.);
 }
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);

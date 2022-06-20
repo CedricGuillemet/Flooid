@@ -1,7 +1,7 @@
 
-IMAGE2D_RO(s_texTile1, rgba32f, 0);
-IMAGE2D_RO(s_texTile2, rgba32f, 1);
-IMAGE2D_RO(s_texWorldToTile, rgba32f,  2);
+IMAGE3D_RO(s_texTile1, rgba32f, 0);
+IMAGE3D_RO(s_texTile2, rgba32f, 1);
+IMAGE3D_RO(s_texWorldToTile, rgba32f,  2);
 
 #define FetchInTile_(tile, _coord) \
 {\

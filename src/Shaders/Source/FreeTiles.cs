@@ -5,8 +5,8 @@
 //uniform vec4 groupMin;//, worldMax;
 BUFFER_RO(bufferAddressTiles, uint, 0);
 BUFFER_RO(bufferTiles, uint, 1);
-IMAGE2D_WR(s_worldToTileTags, r8, 2);
-IMAGE2D_RO(s_texTiles, rgba32f, 3);
+IMAGE3D_WR(s_worldToTileTags, r8, 2);
+IMAGE3D_RO(s_texTiles, rgba32f, 3);
 BUFFER_RW(bufferCounter, uint, 4);
 
 BUFFER_RW(bufferActiveTiles, uint, 5);

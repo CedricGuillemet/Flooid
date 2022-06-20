@@ -1,16 +1,16 @@
 #include "bgfx_compute.sh"
 #include "Allocation.sh"
 #include "CommonFluid.sh"
-# include "Paging.sh"
+#include "Paging.sh"
 
-IMAGE2D_WR(s_texTiles, rgba32f, 5);
+IMAGE3D_WR(s_texTiles, rgba32f, 5);
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 
-    float tag = imageLoad(s_worldToTileTags, coord.xy).x;
+    float tag = imageLoad(s_worldToTileTags, coord.xyz).x;
     if (tag == 0.)
     {
         for (int z = -1; z < 2; z++)
