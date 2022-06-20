@@ -36,7 +36,7 @@ public:
 
     // vcycle
     
-    static const int MaxLevel = 5;
+    static const int MaxLevel = 1;
     bgfx::TextureHandle mWorldToTiles[MaxLevel];
     bgfx::TextureHandle mDivergenceTiles;
     bgfx::TextureHandle mTempTiles;

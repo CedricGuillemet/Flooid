@@ -202,7 +202,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
         for (int i = 0; i < MaxLevel; i++)
         {
             ClearTexture(textureProvider, mWorldToTiles[i]);
-            //ClearTexture(textureProvider, mWorldToTileTags[i]);
+            ClearTexture(textureProvider, mWorldToTileTags[i]);
         }
         
         
@@ -213,7 +213,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
         bgfx::setBuffer(0, mBufferTiles[0], bgfx::Access::Write);
         bgfx::setBuffer(1, mBufferCounter[0], bgfx::Access::ReadWrite);
         bgfx::dispatch(textureProvider.GetViewId(), mInitTilesCSProgram, 1, 1, 1);
-        /*
+        
         // allocate tiles
         float groupMin[4] = { float(groupMinx), float(groupMiny), float(groupMinz), 0.f };
         bgfx::setUniform(mGroupMinUniform, groupMin);
@@ -225,20 +225,16 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
         bgfx::setBuffer(3, mBufferCounter[0], bgfx::Access::ReadWrite);
         bgfx::setImage(4, mWorldToTileTags[0], 0, bgfx::Access::Write);
         bgfx::dispatch(textureProvider.GetViewId(), mAllocateTilesCSProgram, invocationx, invocationy, invocationz);
-        */
+        
         // clear density and velocity
-        //ClearTexture(textureProvider, mDensityTiles);
-        //ClearTexture(textureProvider, mVelocityTiles);
+        ClearTexture(textureProvider, mDensityTiles);
+        ClearTexture(textureProvider, mVelocityTiles);
     }
-    // Frame Init
-    //bgfx::setBuffer(0, mBufferCounter[0], bgfx::Access::ReadWrite);
-    //bgfx::dispatch(textureProvider.GetViewId(), mFrameInitCSProgram, 1, 1);
-    /*
     // dispatch indirect
     bgfx::setBuffer(0, mDispatchIndirect[0], bgfx::Access::ReadWrite);
     bgfx::setBuffer(1, mBufferCounter[0], bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1, 1);
-    /*
+    
     // density
     float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
     bgfx::setUniform(m_positionUniform, position);
