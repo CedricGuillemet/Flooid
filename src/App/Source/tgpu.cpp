@@ -270,7 +270,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setImage(4, mVelocityAdvectedTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAdvectTileCSProgram, mDispatchIndirect[0]);
-    
+    /*
     // free tiles
     bgfx::setBuffer(0, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferTiles[0], bgfx::Access::Read);
@@ -298,7 +298,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(3, mBufferCounter[0], bgfx::Access::ReadWrite);
     bgfx::setImage(4, mWorldToTileTags[0], 0, bgfx::Access::Write);
     bgfx::setImage(5, mVelocityAdvectedTiles, 0, bgfx::Access::Write);
-    bgfx::dispatch(textureProvider.GetViewId(), mDilateTilesCSProgram, (256 / 16) / 16, (256 / 16) / 16); 
+    bgfx::dispatch(textureProvider.GetViewId(), mDilateTilesCSProgram, (256 / 16) / 8, (256 / 16) / 8, (256 / 16) / 8);
     
     // dispatch indirect
     bgfx::setBuffer(0, mDispatchIndirect[0], bgfx::Access::ReadWrite);

@@ -36,6 +36,13 @@ public:
 
     void RenderBackground(TextureProvider& textureProvider);
     void Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToTiles, bgfx::TextureHandle tiles, bgfx::TextureHandle textureWorldToTileTags, Display* displayNode);
+    
+    bgfx::TextureHandle GetDebugSlice() const { return bgfx::getTexture(m_debugRenderTarget); }
+    void SetDebugSlice(float slice)
+    {
+        float debugDisplay2[4] = {slice, 0.f, 0.f, 0.f};
+        bgfx::setUniform(mDebugDisplayUniform, debugDisplay2);
+    }
 private:
     Camera m_camera;
     
@@ -64,5 +71,7 @@ private:
 
     bgfx::UniformHandle m_texTileUniform;
     bgfx::UniformHandle m_texWorldToTileUniform;
-
+    bgfx::UniformHandle mDebugDisplayUniform;
+    
+    bgfx::FrameBufferHandle m_debugRenderTarget;
 };

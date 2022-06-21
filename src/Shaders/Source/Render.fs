@@ -1,25 +1,25 @@
 $input v_texcoord0, v_positionWorld
 
-
 #include "bgfx_shader.sh"
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER2D(s_texTiles,  0);
-SAMPLER2D(s_texWorldToTile,  1);
+SAMPLER3D(s_texTiles,  0);
+SAMPLER3D(s_texWorldToTile,  1);
 
-vec4 SamplePage(vec2 worldTexCoord, float scale)
+vec4 SamplePage(vec3 worldTexCoord, float scale)
 {
-    vec4 page = texture2D(s_texWorldToTile, worldTexCoord.xy, 0);
-    vec2 localCoord = mod(worldTexCoord.xy / scale, 1./16.);
-    vec2 pageCoord = (page.xy * 255.) * 1./16.;
-    return texture2D(s_texTiles, pageCoord + localCoord, 0);
+    vec4 page = texture3D(s_texWorldToTile, worldTexCoord.xyz, 0);
+    vec3 localCoord = mod(worldTexCoord.xyz / scale, 1./16.);
+    vec3 pageCoord = (page.xyz * 255.) * 1./16.;
+    return texture3D(s_texTiles, pageCoord + localCoord);
 }
 
-SAMPLER2D(s_worldToTileTags, 5);
+SAMPLER3D(s_worldToTileTags, 5);
 
 uniform vec4 eyePosition;
 uniform vec4 debugDisplay; // grid, page allocation, texture type, debug level
+uniform vec4 debugDisplay2; // Z slice
 
 // 4 bands per hue gives a decent look
 #define LOGSPACE_QUANTIZATION_PER_HUE 4.0
@@ -47,11 +47,13 @@ vec3 logspace_color_map(float v, float scale/* = 1.0*/) {
  
 void main()
 {
-
     float scaling = pow(2., debugDisplay.w);
-    vec4 tag = texture2D(s_worldToTileTags, v_texcoord0.xy / scaling, 0);
-    vec2 localCoord = mod(v_texcoord0.xy, 1./16.);
-    localCoord = mod(v_texcoord0.xy / scaling, 1./16.);
+    
+    float slice = debugDisplay2.x;
+    vec3 texCoord = vec3(v_texcoord0.xy, slice);
+    vec4 tag = texture3D(s_worldToTileTags, texCoord.xyz / scaling, 0);
+    vec2 localCoord = mod(texCoord.xy, 1./16.);
+    localCoord = mod(texCoord.xy / scaling, 1./16.);
     //vec2 pageCoord = (page.xy * 255.) * 1./16.;
     vec4 tagColor = vec4(0., 0., 0., 1.);
     if (tag.x == 1./255.)
@@ -66,23 +68,9 @@ void main()
     // residual/jacobi
     if (debugDisplay.z >= 4. && debugDisplay.z <= 5.)
     {
-        float value = SamplePage(v_texcoord0.xy, scaling).x;
+        float value = SamplePage(texCoord.xyz, scaling).x;
         vec3 logColor = logspace_color_map(value, 1.);
         gl_FragColor = vec4(logColor.xyz, 1.);
-        //
-        #if 0
-        value = texture2D(s_texTiles, v_texcoord0.xy, 0).x;
-        logColor = logspace_color_map(value, 1.);
-        gl_FragColor = vec4(logColor.xyz, 1.);
-
-        vec2 worldTexCoord = v_texcoord0.xy / scaling;
-        vec4 page = texture2D(s_texWorldToTile, worldTexCoord, 0);
-        vec2 pageCoord = (page.xy * 255.) * 1./16.;
-        vec2 localCoord = mod(worldTexCoord.xy, 1./16.);
-        //gl_FragColor = vec4(page.x * 127., 0., 0., /*localCoord * 16.,*/ 1.);
-        //gl_FragColor = vec4(localCoord * 16., 0., 1.);
-        //gl_FragColor = vec4(pageCoord*4., 0., 1.);
-        #endif
     }
 else
     if (tag.x > 0.)
@@ -90,28 +78,28 @@ else
         // density
         if (abs(debugDisplay.z - 0.) < 0.001)
         {
-            vec4 color = SamplePage(v_texcoord0.xy, 1.);
+            vec4 color = SamplePage(texCoord.xyz, 1.);
             color.a = 1.;
             gl_FragColor = color;
         }
         // velocity
         else if (abs(debugDisplay.z - 1.) < 0.001)
         {
-            vec4 direction = SamplePage(v_texcoord0.xy, 1.);
+            vec4 direction = SamplePage(texCoord.xyz, 1.);
             vec4 color = direction * 0.5 + 0.5;
             gl_FragColor = vec4(color.xy, 0., 1.);
         }
         // divergence
         else if (abs(debugDisplay.z - 3.) < 0.001)
         {
-            float pressure = SamplePage(v_texcoord0.xy, 1.).x;// * 10. + 0.5;
+            float pressure = SamplePage(texCoord.xyz, 1.).x;// * 10. + 0.5;
             vec3 logColor = logspace_color_map(pressure, 1.);
             gl_FragColor = vec4(logColor.xyz, 1.);
         }
         // gradient
         else if (abs(debugDisplay.z - 6.) < 0.001)
         {
-            vec2 gradient = SamplePage(v_texcoord0.xy, 1.).xy + 0.5;
+            vec2 gradient = SamplePage(texCoord.xyz, 1.).xy + 0.5;
             gl_FragColor = vec4(gradient, 0., 1.);
         }
     } 

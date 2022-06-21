@@ -35,6 +35,8 @@ public:
     */
 
     TGPU mGPU;
+    
+    float mSlice = 0.5f;
 protected:
     //FlooidUI m_ui;
 };

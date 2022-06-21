@@ -135,6 +135,10 @@ void Renderer::Init()
     mTexWorldToTile = bgfx::createUniform("s_texWorldToTile", bgfx::UniformType::Sampler); //
     mTexWorldToTileTag = bgfx::createUniform("s_worldToTileTags", bgfx::UniformType::Sampler); //
     mTexTilesUniform = bgfx::createUniform("s_texTiles", bgfx::UniformType::Sampler);
+    
+    m_debugRenderTarget = bgfx::createFrameBuffer(256, 256, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_RT);
+    
+    mDebugDisplayUniform = bgfx::createUniform("debugDisplay2", bgfx::UniformType::Vec4);
 }
 
 
@@ -197,33 +201,26 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 
     
     // 3D Cube
-
-    //bgfx::setTexture(0, m_texDensityUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
-
     bgfx::setTexture(0, m_texTileUniform, tiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texWorldToTileUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
-
     bgfx::setVertexBuffer(0, m_vbhCube);
     bgfx::setIndexBuffer(m_ibhCube);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
     bgfx::submit(0, m_renderVolumeProgram);
-     /*
 
-    //mCPU.Tick(textureProvider);
+    // 2D debug
 
-   
-
-
+    auto debugViewId = textureProvider.GetViewId() + 1;
+    bgfx::setViewFrameBuffer(debugViewId, m_debugRenderTarget);
+    bgfx::setViewRect(debugViewId, 0, 0, 256, 256);
     bgfx::setTexture(1, mTexWorldToTile, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(0, mTexTilesUniform, tiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(5, mTexWorldToTileTag, textureWorldToTileTags, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
 
-    
-    //bgfx::setTexture(0, m_texDensityUniform, mCPU.mTexture, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP);
     bgfx::setVertexBuffer(0, m_vbh);
     bgfx::setIndexBuffer(m_ibh);
-    bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
-    bgfx::submit(0, m_renderProgram);*/
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
+    bgfx::submit(debugViewId, m_renderProgram);
 }
 
 void Renderer::Render(TextureProvider& textureProvider, Texture* texture, Display* displayNode)

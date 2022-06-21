@@ -152,10 +152,13 @@ void Flooid::UI()
 {
     //m_ui.UI(m_renderer.GetCamera());
 
-    ImGui::SetNextWindowPos(ImVec2(0.0f, 100.0f), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(200, 600), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 10.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(280, 700), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Parameters", NULL, 0);
     mGPU.UI();
+    ImGui::SliderFloat("Slice", &mSlice, 0.f, 1.f);
+    m_renderer.SetDebugSlice(mSlice);
+    ImGui::Image((ImTextureID)m_renderer.GetDebugSlice().idx, {256, 256});
     ImGui::End();
 }
