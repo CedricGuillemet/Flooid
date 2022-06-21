@@ -10,8 +10,8 @@ NUM_THREADS(8, 8, 8)
 void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
-    uint tile = bufferTilesCoarser[gl_WorkGroupID.y];
-    uint tileAddress = bufferAddressTilesCoarser[gl_WorkGroupID.y];
+    uint tile = bufferTilesCoarser[gl_WorkGroupID.y/2];
+    uint tileAddress = bufferAddressTilesCoarser[gl_WorkGroupID.y/2];
 
     ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF));
 

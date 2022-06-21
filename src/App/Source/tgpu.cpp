@@ -224,7 +224,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
         bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Write);
         bgfx::setBuffer(3, mBufferCounter[0], bgfx::Access::ReadWrite);
         bgfx::setImage(4, mWorldToTileTags[0], 0, bgfx::Access::Write);
-        bgfx::dispatch(textureProvider.GetViewId(), mAllocateTilesCSProgram, invocationx * 2, invocationy * 2, invocationz * 2);
+        bgfx::dispatch(textureProvider.GetViewId(), mAllocateTilesCSProgram, invocationx, invocationy, invocationz);
         
         // clear density and velocity
         ClearTexture(textureProvider, mDensityTiles);
@@ -252,7 +252,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenTileCSProgram, mDispatchIndirect[0]);
-    /*
+    
     // advect density
     bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Read);
     bgfx::setImage(1, mVelocityTiles, 0, bgfx::Access::Read);
@@ -261,7 +261,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setImage(4, mDensityAdvectedTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAdvectTileCSProgram, mDispatchIndirect[0]);
-
+    
     // advect velocity
     bgfx::setImage(0, mVelocityTiles, 0, bgfx::Access::Read);
     bgfx::setImage(1, mVelocityTiles, 0, bgfx::Access::Read);
@@ -312,7 +312,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setImage(4, mDivergenceTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDivergenceTileCSProgram, mDispatchIndirect[0]);
-    
+    /*
     // VCycle
     VCycle(textureProvider, mDivergenceTiles, 0, MaxLevel - 1);
  
@@ -329,6 +329,9 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
 
     std::swap(mGradientTiles, mVelocityTiles);
     std::swap(mDensityTiles, mDensityAdvectedTiles);*/
+
+    std::swap(mVelocityTiles, mVelocityAdvectedTiles);
+    std::swap(mDensityTiles, mDensityAdvectedTiles);
 }
 
 void TGPU::VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int level, int maxLevel)

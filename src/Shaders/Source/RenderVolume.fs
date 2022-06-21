@@ -137,7 +137,7 @@ void main()
     vec3 dir = vec3(0., 1., 0.);
     vec3 lightColor = vec3(0.9, 0.8, 0.9) * 2.;
     
-    float absorption = 0.1;
+    float absorption = 0.5;
     int MAX_STEPS = 40;
     
     // with shadow term
@@ -148,7 +148,7 @@ void main()
      */
     
      
-    float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS, 1.);
+    float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS, 0.);
     gl_FragColor = vec4(1., 1., 1., max(1. - exp(-transmitance * absorption), 0.01));
      
      /*

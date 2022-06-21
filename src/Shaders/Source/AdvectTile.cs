@@ -48,17 +48,16 @@ void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 
-	uint tile = bufferTiles[gl_WorkGroupID.y];
-	uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y];
+	uint tile = bufferTiles[gl_WorkGroupID.y/2];
+	uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y/2];
 
 	ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF));
 
 	vec4 velocity = FetchInVelocity(invocationCoord);
-	vec3 uvAdvected = vec3(invocationCoord.xyz) - velocity.xyz * 0.1;
+	vec3 uvAdvected = vec3(invocationCoord.xyz)  - velocity.xyz * 0.1;
 	vec4 value = SampleBilerpTile3D(uvAdvected);
 
 
 	ivec3 destOut = GetOutAddr(tile, coord);
-
 	imageStore(s_advectedOut, destOut, value);
 }

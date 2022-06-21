@@ -14,8 +14,8 @@ void main()
 {
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
     
-    uint tile = bufferTiles[gl_WorkGroupID.y];
-    uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y];
+    uint tile = bufferTiles[gl_WorkGroupID.y/2];
+    uint tileAddress = bufferAddressTiles[gl_WorkGroupID.y/2];
 
     ivec3 outBase;
     vec3 voxelWorldPos;
