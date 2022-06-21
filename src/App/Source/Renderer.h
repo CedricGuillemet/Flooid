@@ -60,4 +60,9 @@ private:
     bgfx::UniformHandle mTexWorldToTile; // s_texWorldToPage
     bgfx::UniformHandle mTexTilesUniform;
     bgfx::UniformHandle mTexWorldToTileTag;
+
+
+    bgfx::UniformHandle m_texTileUniform;
+    bgfx::UniformHandle m_texWorldToTileUniform;
+
 };

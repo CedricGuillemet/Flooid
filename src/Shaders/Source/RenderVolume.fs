@@ -4,33 +4,41 @@ $input v_texcoord0, v_positionWorld
 #include "CommonFS.shader"
 #include "Common.shader"
 
-SAMPLER3D(texDensity, 0);
+SAMPLER3D(s_texTiles,  0);
+SAMPLER3D(s_texWorldToTile,  1);
 
 uniform vec4 eyePosition;
 uniform vec4 directional;
 
-
+vec4 SampleTile(vec3 worldTexCoord, float scale)
+{
+    vec4 page = texture3D(s_texWorldToTile, worldTexCoord.xyz);
+    vec3 localCoord = mod(worldTexCoord.xyz / scale, 1./16.);
+    vec3 tileCoord = (page.xyz * 255.) * 1./16.;
+    return texture3D(s_texTiles, tileCoord + localCoord);
+}
 
 float GetAccum(vec3 rayOrigin, vec3 rayDir, int steps, float jitter)
 {
     float accum = 0.;
     float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps, steps), rayOrigin.yx * float(steps))) * jitter;
-    //vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
-    //if (abs(boxIntersection.y) > abs(boxIntersection.x))
+    vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
+    if (abs(boxIntersection.y) > abs(boxIntersection.x))
     {
-        float step = 1./*(boxIntersection.y - boxIntersection.x)*/ / float(steps);
+        float step = (boxIntersection.y - boxIntersection.x) / float(steps);
         
         for(int i = 0; i < steps; i ++)
         {
-            vec3 rayPos = rayOrigin + rayDir * (/*boxIntersection.x + */step * (float(i) + 0.5 + jitterScale));
-            float density = texture3D(texDensity, rayPos, 0).x;
+            vec3 rayPos = rayOrigin + rayDir * (boxIntersection.x + step * (float(i) + 0.5 + jitterScale));
+            //float density = texture3D(texDensity, rayPos, 0).x;
+            float density = SampleTile(rayPos, 1.).x;
             
             accum += density;
         }
     }
     return accum;
 }
-
+/*
 vec2 March(vec3 rayOrigin, vec3 rayDir, int steps, float absorption)
 {
     float lightenergy = 0.;
@@ -118,7 +126,7 @@ vec2 GetAccumEst(vec3 rayOrigin, vec3 rayDir, int steps, float jitter)
     }
     return vec2(accum, 0.);
 }
-
+*/
 
 void main()
 {
@@ -139,9 +147,9 @@ void main()
     gl_FragColor = vec4(result, 1. - transmitanceEnergy.x);
      */
     
-     /*
-    float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS);
-    gl_FragColor = vec4(1., 1., 1., 1. - exp(-transmitance * absorption));*/
+     
+    float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS, 1.);
+    gl_FragColor = vec4(1., 1., 1., max(1. - exp(-transmitance * absorption), 0.01));
      
      /*
      vec2 estimate = GetAccumEst(rayOrigin, rayDir, MAX_STEPS, 0.8);
@@ -149,10 +157,11 @@ void main()
      float l = mix(0.8, 1., max((exp(-estimate.y)), 0.)) * transparency;
      gl_FragColor = vec4(l, l, l, transparency);
      */
-     gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+     //gl_FragColor = vec4(1.0,0.0,1.0,1.0);
 
-     
+     /*
      // complexity
-     //float transmitance = GetAccumEst(rayOrigin, rayDir, MAX_STEPS, 0.6);
-     //gl_FragColor = vec4(transmitance/255., 0., 0., 1.);
+     float transmitance = GetAccumEst(rayOrigin, rayDir, MAX_STEPS, 0.6);
+     gl_FragColor = vec4(transmitance/255., 0., 0., 1.);
+     */
 }

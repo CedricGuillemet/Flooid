@@ -24,9 +24,10 @@ void main()
     float linDistance = length(position.xyz - voxelWorldPos.xyz);
     float value = step(0., position.w - linDistance);
 
-
     vec4 density = imageLoad(s_texOut, outBase);
     //density += vec4(value, value, value, 1.);
     density = max(density, vec4(value, value, value, value));
+    //density = vec4(1., 1., 1., 1.);
+    //density = vec4(voxelWorldPos.xyz, 0.);
     imageStore(s_texOut, outBase, density);
 }

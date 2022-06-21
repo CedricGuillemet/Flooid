@@ -122,6 +122,12 @@ void Renderer::Init()
     m_renderVolumeProgram = App::LoadProgram("RenderVolume_vs", "RenderVolume_fs");
     m_groundProgram = App::LoadProgram("Ground_vs", "Ground_fs");
     m_texDensityUniform = bgfx::createUniform("s_texDensity", bgfx::UniformType::Sampler);
+
+
+    m_texTileUniform = bgfx::createUniform("s_texTiles", bgfx::UniformType::Sampler);
+    m_texWorldToTileUniform = bgfx::createUniform("s_texWorldToTile", bgfx::UniformType::Sampler);
+
+
     m_eyePositionUniform = bgfx::createUniform("eyePosition", bgfx::UniformType::Vec4);
     m_directionalUniform = bgfx::createUniform("directional", bgfx::UniformType::Vec4);
 
@@ -192,7 +198,11 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
     
     // 3D Cube
 
-    bgfx::setTexture(0, m_texDensityUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+    //bgfx::setTexture(0, m_texDensityUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |  BGFX_SAMPLER_W_CLAMP);
+
+    bgfx::setTexture(0, m_texTileUniform, tiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1, m_texWorldToTileUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+
     bgfx::setVertexBuffer(0, m_vbhCube);
     bgfx::setIndexBuffer(m_ibhCube);
     bgfx::setState(state | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));

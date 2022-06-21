@@ -180,12 +180,12 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     groupMaxz -= modmz;
     groupMaxz += modmz ? 16 : 0;
 
-    groupMinx /= 8;
-    groupMiny /= 8;
-    groupMinz /= 8;
-    groupMaxx /= 8;
-    groupMaxy /= 8;
-    groupMaxz /= 8;
+    groupMinx /= 16;
+    groupMiny /= 16;
+    groupMinz /= 16;
+    groupMaxx /= 16;
+    groupMaxy /= 16;
+    groupMaxz /= 16;
 
     //float invhsq[4] = { 1.f / hsq, 0.f, 0.f, 0.f };
     //bgfx::setUniform(m_invhsqUniform, invhsq);
@@ -224,7 +224,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
         bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Write);
         bgfx::setBuffer(3, mBufferCounter[0], bgfx::Access::ReadWrite);
         bgfx::setImage(4, mWorldToTileTags[0], 0, bgfx::Access::Write);
-        bgfx::dispatch(textureProvider.GetViewId(), mAllocateTilesCSProgram, invocationx, invocationy, invocationz);
+        bgfx::dispatch(textureProvider.GetViewId(), mAllocateTilesCSProgram, invocationx * 2, invocationy * 2, invocationz * 2);
         
         // clear density and velocity
         ClearTexture(textureProvider, mDensityTiles);
@@ -245,7 +245,6 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mDensityGenTileCSProgram, mDispatchIndirect[0]);
 
     // velocity
-    /*
     float direction[4] = { 0.f, 1.f, 0.f, 0.f };
     bgfx::setUniform(m_directionUniform, direction);
 

@@ -17,7 +17,7 @@ void WorldPosFromTile(uint tile, uint tileAddress, ivec3 coord, out ivec3 outBas
     vec3 tileWorldPos = vec3(tilePos);
 
     // start of tile
-    outBase = ivec3(tile&0xF, (tile>>4)&0xF, (tile>>8)&0xF) * 16;
+    outBase = ivec3(tile & 0xF, (tile >> 4) & 0xF, (tile >> 8) & 0xF) * 16;
 
     // local offset in tile
     vec3 localOffset = vec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF);
@@ -28,6 +28,6 @@ void WorldPosFromTile(uint tile, uint tileAddress, ivec3 coord, out ivec3 outBas
 
 ivec3 GetOutAddr(uint tile, ivec3 coord)
 {
-    ivec3 destOut = ivec3(tile&0xF, (tile>>4) & 0xF, (tile>>8) & 0xF) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF);
+    ivec3 destOut = ivec3(tile & 0xF, (tile >> 4) & 0xF, (tile >> 8) & 0xF) * 16 + ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF);
     return destOut;
 }
