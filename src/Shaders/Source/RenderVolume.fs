@@ -148,7 +148,7 @@ void main()
      */
     
      
-    float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS, 0.);
+    float transmitance = GetAccum(rayOrigin, rayDir, MAX_STEPS, 1.);
     gl_FragColor = vec4(1., 1., 1., max(1. - exp(-transmitance * absorption), 0.01));
      
      /*

@@ -22,7 +22,7 @@ void main()
     float pBk = FetchInTile1(invocationCoord - DZ).x;
     float pF = FetchInTile1(invocationCoord + DZ).x;
 
-    float scale = 0.66;//0.5 / 1.; // 0.5 / gridscale
+    float scale = 0.8;//0.5 / 1.; // 0.5 / gridscale
     vec3 gradient = scale * vec3(pR - pL, pT - pB, pF - pBk);
 
     vec3 wc = FetchInTile2(invocationCoord).xyz;

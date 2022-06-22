@@ -26,7 +26,7 @@ void TGPU::Init(TextureProvider& textureProvider)
 */
     mDensityTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    mDivergenceTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+    mDivergenceTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::R32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mGradientTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     
     mTempTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
@@ -87,8 +87,8 @@ void TGPU::Init(TextureProvider& textureProvider)
         mWorldToTiles[i] = bgfx::createTexture3D(worldMapSize, worldMapSize, worldMapSize, false, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
         mWorldToTileTags[i] = bgfx::createTexture3D(worldMapSize, worldMapSize, worldMapSize, false, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
 
-        mJacobiTiles[i] = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-        mResidualTiles[i] = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
+        mJacobiTiles[i] = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::R32F, BGFX_TEXTURE_COMPUTE_WRITE);
+        mResidualTiles[i] = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::R32F, BGFX_TEXTURE_COMPUTE_WRITE);
     }
 }
 
