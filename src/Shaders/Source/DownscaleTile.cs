@@ -23,12 +23,20 @@ void main()
         FetchInTile1(coordr - DX)
         + FetchInTile1(coordr + DX)
         + FetchInTile1(coordr - DY)
-        + FetchInTile1(coordr + DY)) +
+        + FetchInTile1(coordr + DY)
+        + FetchInTile1(coordr - DZ)
+        + FetchInTile1(coordr + DZ)) +
         0.125 * 0.5 * (
-        FetchInTile1(coordr - DX - DY)
-        + FetchInTile1(coordr + DX - DY)
-        + FetchInTile1(coordr - DX + DY)
-        + FetchInTile1(coordr + DX + DY));
+        FetchInTile1(coordr - DX - DY - DZ)
+        + FetchInTile1(coordr + DX - DY - DZ)
+        + FetchInTile1(coordr - DX + DY - DZ)
+        + FetchInTile1(coordr + DX + DY - DZ)
+
+        + FetchInTile1(coordr - DX - DY + DZ)
+        + FetchInTile1(coordr + DX - DY + DZ)
+        + FetchInTile1(coordr - DX + DY + DZ)
+        + FetchInTile1(coordr + DX + DY + DZ)
+        );
 
 
     ivec3 destOut = GetOutAddr(tile, coord);

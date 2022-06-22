@@ -22,11 +22,13 @@ void main()
     ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF));
 
     vec4 res = FetchInTileRHS(invocationCoord) - (
-        4. * FetchInTileU(invocationCoord)
+        6. * FetchInTileU(invocationCoord)
         - FetchInTileU(invocationCoord - DX)
         - FetchInTileU(invocationCoord + DX)
         - FetchInTileU(invocationCoord - DY)
         - FetchInTileU(invocationCoord + DY)
+        - FetchInTileU(invocationCoord - DZ)
+        - FetchInTileU(invocationCoord + DZ)
         ) * invhsq.x;
 
     ivec3 destOut = GetOutAddr(tile, coord);

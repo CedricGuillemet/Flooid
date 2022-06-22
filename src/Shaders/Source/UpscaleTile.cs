@@ -20,18 +20,23 @@ void main()
     ivec3 invocationCoordLevel1 = invocationCoord / 2;
     vec3 invocationLevel1Fraction = vec3(invocationCoord.x & 1, invocationCoord.y & 1, invocationCoord.z & 1) * 0.5;
 
-    vec4 t00 = FetchInTile(invocationCoordLevel1);
-    vec4 t10 = FetchInTile(invocationCoordLevel1 + DX);
-    vec4 t01 = FetchInTile(invocationCoordLevel1 + DY);
-    vec4 t11 = FetchInTile(invocationCoordLevel1 + DX + DY);
-    
-    vec4 v = mix(mix(t00, t10, invocationLevel1Fraction.x), mix(t01, t11, invocationLevel1Fraction.x), invocationLevel1Fraction.y);
+    vec4 t000 = FetchInTile(invocationCoordLevel1);
+    vec4 t100 = FetchInTile(invocationCoordLevel1 + DX);
+    vec4 t010 = FetchInTile(invocationCoordLevel1 + DY);
+    vec4 t110 = FetchInTile(invocationCoordLevel1 + DX + DY);
+
+    vec4 t001 = FetchInTile(invocationCoordLevel1 + DZ);
+    vec4 t101 = FetchInTile(invocationCoordLevel1 + DX + DZ);
+    vec4 t011 = FetchInTile(invocationCoordLevel1 + DY + DZ);
+    vec4 t111 = FetchInTile(invocationCoordLevel1 + DX + DY + DZ);
+
+    vec4 v = mix(mix(mix(t000, t100, invocationLevel1Fraction.x), mix(t010, t110, invocationLevel1Fraction.x), invocationLevel1Fraction.y),
+                 mix(mix(t001, t101, invocationLevel1Fraction.x), mix(t011, t111, invocationLevel1Fraction.x), invocationLevel1Fraction.y), invocationLevel1Fraction.z);
 
     ivec3 destOut = GetOutAddr(tile, coord);
 
     float value = imageLoad(s_texOut, destOut).x;
     value += v;
-    
 
     imageStore(s_texOut, destOut, vec4(value, 0., 0., 0.));
 }

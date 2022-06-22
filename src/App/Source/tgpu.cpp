@@ -70,7 +70,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     
     for (int i = 0; i < MaxLevel; i++)
     {
-        mDispatchIndirect[i] = bgfx::createIndirectBuffer(1);
+        mDispatchIndirect[i] = bgfx::createIndirectBuffer(2);
         
         mBufferCounter[i] = bgfx::createDynamicIndexBuffer(3, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
         mBufferTiles[i] = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
@@ -280,7 +280,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferActiveTiles, bgfx::Access::ReadWrite);
     bgfx::setBuffer(6, mBufferFreedTiles, bgfx::Access::ReadWrite);
     bgfx::setBuffer(7, mBufferActiveTileAddresses, bgfx::Access::ReadWrite);
-    bgfx::dispatch(textureProvider.GetViewId(), mFreeTilesCSProgram, mDispatchIndirect[0]);
+    bgfx::dispatch(textureProvider.GetViewId(), mFreeTilesCSProgram, mDispatchIndirect[0], 1);
     
     // commit tiles
     bgfx::setBuffer(0, mBufferTiles[0], bgfx::Access::ReadWrite);

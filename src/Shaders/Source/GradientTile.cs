@@ -6,7 +6,7 @@ BUFFER_RO(bufferAddressTiles, uint, 3);
 IMAGE3D_WR(s_gradientOut, rgba32f, 4);
 BUFFER_RO(bufferTiles, uint, 5);
 
-NUM_THREADS(16, 16, 1)
+NUM_THREADS(8, 8, 8)
 void main()
 {
 	ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
