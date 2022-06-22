@@ -35,7 +35,7 @@ public:
     };
 
     void RenderBackground(TextureProvider& textureProvider);
-    void Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToTiles, bgfx::TextureHandle tiles, bgfx::TextureHandle textureWorldToTileTags, Display* displayNode);
+    void Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToTiles, bgfx::TextureHandle tiles, bgfx::TextureHandle densityTiles, bgfx::TextureHandle textureWorldToTileTags, Display* displayNode);
     
     bgfx::TextureHandle GetDebugSlice() const { return bgfx::getTexture(m_debugRenderTarget); }
     void SetDebugSlice(float slice)

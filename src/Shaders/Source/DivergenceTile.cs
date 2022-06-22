@@ -19,9 +19,12 @@ void main()
 	float wR = FetchInTile1(invocationCoord + DX).x;
 	float wB = FetchInTile1(invocationCoord - DY).y;
 	float wT = FetchInTile1(invocationCoord + DY).y;
-	
+
+	float wBk = FetchInTile1(invocationCoord - DZ).z;
+	float wF = FetchInTile1(invocationCoord + DZ).z;
+
 	float scale = 0.5 / 1.;
-	float divergence = scale * (wR - wL + wT - wB); 
+	float divergence = scale * (wR - wL + wT - wB + wF - wBk); 
 	
     ivec3 destOut = GetOutAddr(tile, coord);
 

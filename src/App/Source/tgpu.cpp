@@ -270,7 +270,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setImage(4, mVelocityAdvectedTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAdvectTileCSProgram, mDispatchIndirect[0]);
-    /*
+
     // free tiles
     bgfx::setBuffer(0, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferTiles[0], bgfx::Access::Read);
@@ -312,7 +312,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setImage(4, mDivergenceTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mDivergenceTileCSProgram, mDispatchIndirect[0]);
-    /*
+    
     // VCycle
     VCycle(textureProvider, mDivergenceTiles, 0, MaxLevel - 1);
  
@@ -328,9 +328,6 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::dispatch(textureProvider.GetViewId(), mGradientTileCSProgram, mDispatchIndirect[0]);
 
     std::swap(mGradientTiles, mVelocityTiles);
-    std::swap(mDensityTiles, mDensityAdvectedTiles);*/
-
-    std::swap(mVelocityTiles, mVelocityAdvectedTiles);
     std::swap(mDensityTiles, mDensityAdvectedTiles);
 }
 
@@ -462,6 +459,11 @@ bgfx::TextureHandle TGPU::GetDisplayTiles() const
     case 6: return mGradientTiles;
     }
     return { bgfx::kInvalidHandle };
+}
+
+bgfx::TextureHandle TGPU::GetDensityTiles() const
+{
+    return mDensityTiles;
 }
 
 bgfx::TextureHandle TGPU::GetDisplayTileIndirection() const

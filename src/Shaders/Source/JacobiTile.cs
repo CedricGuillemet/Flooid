@@ -20,15 +20,17 @@ void main()
     
     ivec3 invocationCoord = WorldCoordFromTile(tileAddress, ivec3(coord.x & 0xF, coord.y & 0xF, coord.z & 0xF));
 
-	float omega = 4.f / 5.f;
+	float omega = 6.f / 7.f;
 	
     vec4 u = FetchInTileU(invocationCoord);
-	vec4 value = u + omega * 0.25f * (-jacobiParameters.x * FetchInTileRHS(invocationCoord)
+	vec4 value = u + omega * (1./6.) * (-jacobiParameters.x * FetchInTileRHS(invocationCoord)
 		+ FetchInTileU(invocationCoord - DX) +
 		+FetchInTileU(invocationCoord + DX) +
 		+FetchInTileU(invocationCoord - DY) +
-		+FetchInTileU(invocationCoord + DY)
-		- 4.f * u
+		+FetchInTileU(invocationCoord + DY) + 
+		+FetchInTileU(invocationCoord - DZ) +
+		+FetchInTileU(invocationCoord + DZ)
+		- 6.f * u
 	);
     
     ivec3 destOut = GetOutAddr(tile, coord);

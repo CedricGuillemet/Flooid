@@ -16,6 +16,7 @@ public:
     void UI();
     bgfx::TextureHandle GetDisplayTiles() const;
     bgfx::TextureHandle GetDisplayTileIndirection() const;
+    bgfx::TextureHandle GetDensityTiles() const;
     bgfx::TextureHandle GetTags() const;
     int GetLevel() const;
     

@@ -16,4 +16,5 @@ vec4 FetchInTile2(ivec3 coord) FetchInTile_(s_texTile2, coord)
 
 #define DX ivec3(1, 0, 0)
 #define DY ivec3(0, 1, 0)
+#define DZ ivec3(0, 0, 1)
 

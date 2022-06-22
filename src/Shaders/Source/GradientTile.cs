@@ -19,15 +19,17 @@ void main()
     float pR = FetchInTile1(invocationCoord + DX).x;
     float pB = FetchInTile1(invocationCoord - DY).x;
     float pT = FetchInTile1(invocationCoord + DY).x;
+    float pBk = FetchInTile1(invocationCoord - DZ).x;
+    float pF = FetchInTile1(invocationCoord + DZ).x;
 
     float scale = 0.66;//0.5 / 1.; // 0.5 / gridscale
-    vec2 gradient = scale * vec2(pR - pL, pT - pB);
+    vec3 gradient = scale * vec3(pR - pL, pT - pB, pF - pBk);
 
-    vec2 wc = FetchInTile2(invocationCoord).xy;
-    vec2 value = wc - gradient;
+    vec3 wc = FetchInTile2(invocationCoord).xyz;
+    vec3 value = wc - gradient;
 
 
     ivec3 destOut = GetOutAddr(tile, coord);
 
-    imageStore(s_gradientOut, destOut, vec4(value, 0, 1));
+    imageStore(s_gradientOut, destOut, vec4(value, 0));
 }

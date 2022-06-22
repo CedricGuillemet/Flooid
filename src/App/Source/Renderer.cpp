@@ -192,7 +192,7 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 }
 
 
-void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToTiles, bgfx::TextureHandle tiles, bgfx::TextureHandle textureWorldToTileTags, Display* displayNode)
+void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle textureWorldToTiles, bgfx::TextureHandle tiles, bgfx::TextureHandle densityTiles, bgfx::TextureHandle textureWorldToTileTags, Display* displayNode)
 {
 
     RenderBackground(textureProvider);
@@ -201,7 +201,7 @@ void Renderer::Render(TextureProvider& textureProvider, bgfx::TextureHandle text
 
     
     // 3D Cube
-    bgfx::setTexture(0, m_texTileUniform, tiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(0, m_texTileUniform, densityTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setTexture(1, m_texWorldToTileUniform, textureWorldToTiles, BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setVertexBuffer(0, m_vbhCube);
     bgfx::setIndexBuffer(m_ibhCube);
