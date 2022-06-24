@@ -9,7 +9,8 @@
  - fix bugs
  - modularity : resolution virtual size, tile count
  
- - move all computation to vec3 instead of 2D
+ - vorticity
+
  
 shd:
  
