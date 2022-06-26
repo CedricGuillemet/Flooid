@@ -14,16 +14,7 @@ void TGPU::Init(TextureProvider& textureProvider)
 {
     const int tileSize = 16;
     const int masterSize = 256;
-    /*
-    mDensityTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    mVelocityTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    mDivergenceTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    mGradientTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    
-    mTempTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    mDensityAdvectedTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-    mVelocityAdvectedTiles = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-*/
+
     mDensityTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mVelocityTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
     mDivergenceTiles = bgfx::createTexture3D(masterSize, masterSize, masterSize, false, bgfx::TextureFormat::R32F, BGFX_TEXTURE_COMPUTE_WRITE);
@@ -51,6 +42,7 @@ void TGPU::Init(TextureProvider& textureProvider)
     mUpscaleTileCSProgram = App::LoadProgram("UpscaleTile_cs", nullptr);
     mClearCSProgram = App::LoadProgram("Clear_cs", nullptr);
     mClearTilesCSProgram = App::LoadProgram("ClearTiles_cs", nullptr);
+    mBuoyancyCSProgram = App::LoadProgram("buoyancyTile_cs", nullptr);
     
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
     m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
@@ -58,7 +50,8 @@ void TGPU::Init(TextureProvider& textureProvider)
     m_directionUniform = bgfx::createUniform("direction", bgfx::UniformType::Vec4);
     mTexWorldToTileUniform = bgfx::createUniform("s_texWorldToTile", bgfx::UniformType::Sampler);
     mDebugDisplayUniform = bgfx::createUniform("debugDisplay", bgfx::UniformType::Vec4);
-
+    mAdvectionFactorUniform = bgfx::createUniform("advectionFactor", bgfx::UniformType::Vec4);
+    
     uint32_t tileCount = (256/tileSize) * (256/tileSize) * (256/tileSize);
         
     mBufferActiveTiles = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
@@ -77,13 +70,7 @@ void TGPU::Init(TextureProvider& textureProvider)
         mBufferAddressTiles[i] = bgfx::createDynamicIndexBuffer(tileCount, BGFX_BUFFER_INDEX32 | BGFX_BUFFER_COMPUTE_READ_WRITE);
 
         int worldMapSize = (masterSize / tileSize) >> i;
-        /*
-        mWorldToTiles[i] = bgfx::createTexture2D(worldMapSize, worldMapSize, false, 0, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
-        mWorldToTileTags[i] = bgfx::createTexture2D(worldMapSize, worldMapSize, false, 0, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
 
-        mJacobiTiles[i] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-        mResidualTiles[i] = bgfx::createTexture2D(masterSize, masterSize, false, 0, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_COMPUTE_WRITE);
-         */
         mWorldToTiles[i] = bgfx::createTexture3D(worldMapSize, worldMapSize, worldMapSize, false, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_COMPUTE_WRITE);
         mWorldToTileTags[i] = bgfx::createTexture3D(worldMapSize, worldMapSize, worldMapSize, false, bgfx::TextureFormat::R8, BGFX_TEXTURE_COMPUTE_WRITE);
 
@@ -238,6 +225,9 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     // density
     float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
     bgfx::setUniform(m_positionUniform, position);
+    
+    float advectionDensityFactor[4] = {0.99f, 0.95f, 1.f, 1.f};
+    bgfx::setUniform(mAdvectionFactorUniform, advectionDensityFactor);
 
     bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
@@ -248,10 +238,22 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     float direction[4] = { 0.f, 1.f, 0.f, 0.f };
     bgfx::setUniform(m_directionUniform, direction);
 
+    float advectionVelocityFactor[4] = {0.999f, 0.999f, 0.999f, 1.f};
+    bgfx::setUniform(mAdvectionFactorUniform, advectionVelocityFactor);
+
     bgfx::setImage(0, mVelocityTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenTileCSProgram, mDispatchIndirect[0]);
+    
+    // buoyancy
+    bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToTiles[0], 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressTiles[0], bgfx::Access::Read);
+    bgfx::setImage(4, mVelocityTiles, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mBuoyancyCSProgram, mDispatchIndirect[0]);
+    
     
     // advect density
     bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Read);

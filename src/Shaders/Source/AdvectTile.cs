@@ -10,6 +10,8 @@ BUFFER_RO(bufferTiles, uint, 5);
 #define FetchInTile FetchInTile1
 #define FetchInVelocity FetchInTile2
 
+uniform vec4 advectionFactor;
+
 vec4 SampleBilerpTile2D(vec2 coord)
 {
 	ivec3 icoord = ivec3(floor(coord), 0);
@@ -56,6 +58,7 @@ void main()
 	vec4 velocity = FetchInVelocity(invocationCoord);
 	vec3 uvAdvected = vec3(invocationCoord.xyz)  - velocity.xyz * 0.1;
 	vec4 value = SampleBilerpTile3D(uvAdvected);
+    value *= advectionFactor * vec4(1., 0.9999, 1., 1.);
 
 
 	ivec3 destOut = GetOutAddr(tile, coord);

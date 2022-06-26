@@ -252,6 +252,16 @@
 #include "VorticityForce_cs_spv.h"
 #include "VorticityForce_cs_essl.h"
 #ifdef WIN32
+#include "buoyancyTile_cs_dx9.h"
+#include "buoyancyTile_cs_dx11.h"
+#endif
+#include "buoyancyTile_cs_glsl.h"
+#ifdef __APPLE__
+#include "buoyancyTile_cs_mtl.h"
+#endif
+#include "buoyancyTile_cs_spv.h"
+#include "buoyancyTile_cs_essl.h"
+#ifdef WIN32
 #include "Default_fs_dx9.h"
 #include "Default_fs_dx11.h"
 #endif

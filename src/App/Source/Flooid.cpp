@@ -6,10 +6,9 @@
 #include "GraphNode.h"
 
 /*
- - fix bugs
- - modularity : resolution virtual size, tile count
  
  - vorticity
+ - get pages (with allocations?) + indirect from a square
 
  
 shd:

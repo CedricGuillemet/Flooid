@@ -69,13 +69,14 @@ public:
     bgfx::ProgramHandle mUpscaleTileCSProgram;
     bgfx::ProgramHandle mDilateTilesCSProgram;
     bgfx::ProgramHandle mDivergenceTileCSProgram;
+    bgfx::ProgramHandle mBuoyancyCSProgram;
     
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mDebugDisplayUniform;
     bgfx::UniformHandle mTexWorldToTileUniform;
     bgfx::UniformHandle mInitTileCountUniform;
-
-
+    bgfx::UniformHandle mAdvectionFactorUniform;
+    
     bgfx::IndirectBufferHandle mDispatchIndirect[MaxLevel];
     
     int mDebugDisplay{0};

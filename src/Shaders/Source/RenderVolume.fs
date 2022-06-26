@@ -60,7 +60,7 @@ vec2 March(vec3 rayOrigin, vec3 rayDir, int steps, float absorption)
                 transmittance *= 1. - curDensity;
                 
                 // light
-                float shadowDist = GetAccum(rayPos, -directional.xyz, 3, 0.8);
+                float shadowDist = GetAccum(rayPos, -directional.xyz, 20, 0.8);
                 float shadowterm = exp(-shadowDist * absorption);
                 float absorbedlight = shadowterm * curDensity;
                 lightenergy += absorbedlight * transmittance;
@@ -76,6 +76,33 @@ vec2 March(vec3 rayOrigin, vec3 rayDir, int steps, float absorption)
         }
     }
     return vec2(transmittance, lightenergy);
+}
+
+vec2 MarchFireTest(vec3 rayOrigin, vec3 rayDir, int steps)
+{
+    float amount = 0.;
+    float transmittance = 1.;
+    float jitterScale = hash(vec4(rayOrigin.xy+vec2(steps, steps), rayOrigin.yx * float(steps))) * 0.3;
+    vec2 boxIntersection = intersectAABB(rayOrigin, rayDir, vec3(0., 0., 0.), vec3(1., 1., 1.));
+    if (abs(boxIntersection.y) > abs(boxIntersection.x))
+    {
+        float step = (boxIntersection.y - boxIntersection.x) / float(steps);
+        
+        for(int i = 0; i < steps; i ++)
+        {
+            vec3 rayPos = rayOrigin + rayDir * (boxIntersection.x + step * (float(i) + 0.5 + jitterScale));
+            //float density = texture3D(texDensity, rayPos, 0).x;
+            vec4 particles = SampleTile(rayPos, 1.);
+            float density = particles.x;
+            amount += density;
+            if (amount > 0.99)
+            {
+                return vec2(1., particles.y);
+            }
+        }
+        return vec2(amount, 0.);
+    }
+    return vec2(0., 0.);
 }
 /*
 
@@ -138,14 +165,19 @@ void main()
     vec3 dir = vec3(0., 1., 0.);
     vec3 lightColor = vec3(0.9, 0.8, 0.7) * 2.;
     
-    float absorption = 0.5;
-    int MAX_STEPS = 50;
+    float absorption = 0.1;
+    int MAX_STEPS = 100;
     
-    // with shadow term
-    
+    // crappy smoke
+    /*
     vec2 transmitanceEnergy = March(rayOrigin, rayDir, MAX_STEPS, absorption);
-    result = lightColor * transmitanceEnergy.y;
+    result = lightColor * pow(min(1. - transmitanceEnergy.x, 1.), 4.);
     gl_FragColor = vec4(result, 1. - transmitanceEnergy.x);
+     */
+    
+    // toon fire
+    vec2 transmitanceEnergy = MarchFireTest(rayOrigin, rayDir, MAX_STEPS);
+    gl_FragColor = vec4(max(transmitanceEnergy.y-0.3, 0.) * vec3(1., 0.5, 0.1) * 3., transmitanceEnergy.x);
     /*
     
      
