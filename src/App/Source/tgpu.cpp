@@ -2,7 +2,7 @@
 
 static const int TEX_SIZE = 256;
 
-Imm::vec3 densityCenter{ 0.5f, 0.2f, 0.5f };
+Imm::vec3 densityCenter{ 0.5f, 0.1f, 0.5f };
 Imm::vec3 densityExtend{ 0.05f, 0.05f, 0.05f };
 
 TGPU::TGPU()
@@ -232,38 +232,44 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(1, mBufferCounter[0], bgfx::Access::ReadWrite);
     bgfx::dispatch(textureProvider.GetViewId(), mDispatchIndirectCSProgram, 1, 1, 1);
     
-    // density
-    float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
-    bgfx::setUniform(m_positionUniform, position);
+    static int dt = 10;
     
-    float advectionDensityFactor[4] = {0.99f, 0.95f, 1.f, 1.f};
-    bgfx::setUniform(mAdvectionFactorUniform, advectionDensityFactor);
+    dt--;
+    //if (dt>0)
+    {
+        // density
+        float position[4] = { densityCenter.x, densityCenter.y, densityCenter.z, densityExtend.x };
+        bgfx::setUniform(m_positionUniform, position);
+        
+        float advectionDensityFactor[4] = {0.99f, 0.95f, 1.f, 1.f};
+        bgfx::setUniform(mAdvectionFactorUniform, advectionDensityFactor);
 
-    bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Write);
-    bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
-    bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Read);
-    bgfx::dispatch(textureProvider.GetViewId(), mDensityGenTileCSProgram, mDispatchIndirect[0]);
+        bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Write);
+        bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
+        bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Read);
+        bgfx::dispatch(textureProvider.GetViewId(), mDensityGenTileCSProgram, mDispatchIndirect[0]);
 
-    // velocity
-    float direction[4] = { 0.f, 1.f, 0.f, 0.f };
-    bgfx::setUniform(m_directionUniform, direction);
+        // velocity
+        float direction[4] = { 0.f, 1.f, 0.f, 0.f };
+        bgfx::setUniform(m_directionUniform, direction);
 
-    float advectionVelocityFactor[4] = {0.999f, 0.999f, 0.999f, 1.f};
-    bgfx::setUniform(mAdvectionFactorUniform, advectionVelocityFactor);
+        float advectionVelocityFactor[4] = {0.999f, 0.999f, 0.999f, 1.f};
+        bgfx::setUniform(mAdvectionFactorUniform, advectionVelocityFactor);
 
-    bgfx::setImage(0, mVelocityTiles, 0, bgfx::Access::Write);
-    bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
-    bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Read);
-    bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenTileCSProgram, mDispatchIndirect[0]);
-    
+        bgfx::setImage(0, mVelocityTiles, 0, bgfx::Access::Write);
+        bgfx::setBuffer(1, mBufferAddressTiles[0], bgfx::Access::Read);
+        bgfx::setBuffer(2, mBufferTiles[0], bgfx::Access::Read);
+        bgfx::dispatch(textureProvider.GetViewId(), mVelocityGenTileCSProgram, mDispatchIndirect[0]);
+    }
     // buoyancy
+    /*
     bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Read);
     bgfx::setImage(2, mWorldToTiles[0], 0, bgfx::Access::Read);
     bgfx::setBuffer(3, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setImage(4, mVelocityTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mBuoyancyCSProgram, mDispatchIndirect[0]);
-    
+    */
     
     // advect density
     bgfx::setImage(0, mDensityTiles, 0, bgfx::Access::Read);
@@ -364,7 +370,7 @@ void TGPU::VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int
 {
     const float hsq = float(level + 1);
     int ssteps = 4;
-    int steps = 60;
+    int steps = 80;
     
     if (level == maxLevel)
     {

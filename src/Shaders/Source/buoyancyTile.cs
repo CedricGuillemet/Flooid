@@ -22,8 +22,8 @@ void main()
     float wBk = FetchInTile1(invocationCoord - DZ).y;
     float wF = FetchInTile1(invocationCoord + DZ).y;
 
-    float M = -FetchInTile1(invocationCoord).y * 2.;
-    float scale = 2.0;
+    float M = FetchInTile1(invocationCoord).y;
+    float scale = 1.0;
     
     
     ivec3 destOut = GetOutAddr(tile, coord);

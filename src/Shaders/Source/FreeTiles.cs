@@ -25,6 +25,8 @@ void main()
 
     ivec3 tagPosition = TileAddress(tileAddress);
     
+    vec4 currentTag = imageLoad(s_worldToTileTags, tagPosition.xyz);
+    
     float threshold = 0.01;
     for (int z = 0; z < 16; z++)
     {
@@ -40,11 +42,21 @@ void main()
                     atomicFetchAndAdd(bufferCounter[1], 1, counter);
                     bufferActiveTiles[counter] = tile;
                     bufferActiveTileAdresses[counter] = tileAddress;
-                    imageStore(s_worldToTileTags, tagPosition.xyz, vec4(2, 0, 0, 0)/ 255.);
+                    imageStore(s_worldToTileTags, tagPosition.xyz, vec4(2., 0, 0, 0)/ 255.);
                     return;
                 }
             }
         }
+    }
+    
+    // keep dilated tile
+    if (currentTag.x == 1./255.)
+    {
+        uint counter;
+        atomicFetchAndAdd(bufferCounter[1], 1, counter);
+        bufferActiveTiles[counter] = tile;
+        bufferActiveTileAdresses[counter] = tileAddress;
+        return;
     }
 
     uint counter;
