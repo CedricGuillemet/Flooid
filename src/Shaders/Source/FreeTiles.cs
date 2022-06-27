@@ -46,11 +46,10 @@ void main()
             }
         }
     }
-    
+
     uint counter;
     atomicFetchAndAdd(bufferCounter[2], 1, counter);
     bufferFreedTiles[counter] = tile;
 
-    
     imageStore(s_worldToTileTags, tagPosition.xyz, vec4(0, 0, 0, 0));
 }

@@ -112,6 +112,16 @@
 #include "CommitFreeTiles_cs_spv.h"
 #include "CommitFreeTiles_cs_essl.h"
 #ifdef WIN32
+#include "CopyTile_cs_dx9.h"
+#include "CopyTile_cs_dx11.h"
+#endif
+#include "CopyTile_cs_glsl.h"
+#ifdef __APPLE__
+#include "CopyTile_cs_mtl.h"
+#endif
+#include "CopyTile_cs_spv.h"
+#include "CopyTile_cs_essl.h"
+#ifdef WIN32
 #include "DensityGenTile_cs_dx9.h"
 #include "DensityGenTile_cs_dx11.h"
 #endif

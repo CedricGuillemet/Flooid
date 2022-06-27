@@ -24,13 +24,13 @@ void main()
                         uint tile = AllocateTile(coord, 1.);
 
                         // clear tile
-                        for (int z = 0; z < 16; z++)
+                        for (int tz = 0; tz < 16; tz++)
                         {
-                            for (int y = 0; y < 16; y++)
+                            for (int ty = 0; ty < 16; ty++)
                             {
-                                for (int x = 0; x < 16; x++)
+                                for (int tx = 0; tx < 16; tx++)
                                 {
-                                    ivec3 destOut = GetOutAddr(tile, ivec3(x, y, z));
+                                    ivec3 destOut = GetOutAddr(tile, ivec3(tx, ty, tz));
                                     imageStore(s_texTiles, destOut, vec4(0, 0, 0, 0));
                                 }
                             }

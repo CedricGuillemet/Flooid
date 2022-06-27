@@ -37,7 +37,7 @@ public:
 
     // vcycle
     
-    static const int MaxLevel = 4;
+    static const int MaxLevel = 1;
     bgfx::TextureHandle mWorldToTiles[MaxLevel];
     bgfx::TextureHandle mDivergenceTiles;
     bgfx::TextureHandle mTempTiles;
@@ -70,6 +70,7 @@ public:
     bgfx::ProgramHandle mDilateTilesCSProgram;
     bgfx::ProgramHandle mDivergenceTileCSProgram;
     bgfx::ProgramHandle mBuoyancyCSProgram;
+    bgfx::ProgramHandle mCopyTileCSProgram;
     
     bgfx::UniformHandle mGroupMinUniform;
     bgfx::UniformHandle mDebugDisplayUniform;

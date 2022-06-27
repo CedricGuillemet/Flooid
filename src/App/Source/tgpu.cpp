@@ -2,7 +2,7 @@
 
 static const int TEX_SIZE = 256;
 
-Imm::vec3 densityCenter{ 0.5f, 0.1f, 0.5f };
+Imm::vec3 densityCenter{ 0.5f, 0.2f, 0.5f };
 Imm::vec3 densityExtend{ 0.05f, 0.05f, 0.05f };
 
 TGPU::TGPU()
@@ -43,7 +43,8 @@ void TGPU::Init(TextureProvider& textureProvider)
     mClearCSProgram = App::LoadProgram("Clear_cs", nullptr);
     mClearTilesCSProgram = App::LoadProgram("ClearTiles_cs", nullptr);
     mBuoyancyCSProgram = App::LoadProgram("buoyancyTile_cs", nullptr);
-    
+    mCopyTileCSProgram = App::LoadProgram("CopyTile_cs", nullptr);
+
     m_jacobiParametersUniform = bgfx::createUniform("jacobiParameters", bgfx::UniformType::Vec4);
     m_invhsqUniform = bgfx::createUniform("invhsq", bgfx::UniformType::Vec4);
     m_positionUniform = bgfx::createUniform("position", bgfx::UniformType::Vec4);
@@ -180,6 +181,15 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     int invocationy = groupMaxy - groupMiny;
     int invocationz = groupMaxz - groupMinz;
 
+    /*
+    groupMinx = 2;
+    groupMiny = 0;
+    groupMinz = 1;
+
+    invocationx = 13;
+    invocationy = 15;
+    invocationz = 14;
+    */
     //
 
     static bool initialized = false;
@@ -272,7 +282,7 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setImage(4, mVelocityAdvectedTiles, 0, bgfx::Access::Write);
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mAdvectTileCSProgram, mDispatchIndirect[0]);
-
+    
     // free tiles
     bgfx::setBuffer(0, mBufferAddressTiles[0], bgfx::Access::Read);
     bgfx::setBuffer(1, mBufferTiles[0], bgfx::Access::Read);
@@ -329,8 +339,25 @@ void TGPU::TestTiles(TextureProvider& textureProvider)
     bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
     bgfx::dispatch(textureProvider.GetViewId(), mGradientTileCSProgram, mDispatchIndirect[0]);
 
-    std::swap(mGradientTiles, mVelocityTiles);
-    std::swap(mDensityTiles, mDensityAdvectedTiles);
+    //std::swap(mGradientTiles, mVelocityTiles);
+    //std::swap(mDensityTiles, mDensityAdvectedTiles);
+
+    // copy velocity
+    bgfx::setImage(0, mGradientTiles, 0, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToTiles[0], 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressTiles[0], bgfx::Access::Read);
+    bgfx::setImage(4, mVelocityTiles, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mCopyTileCSProgram, mDispatchIndirect[0]);
+
+    // copy density
+    bgfx::setImage(0, mDensityAdvectedTiles, 0, bgfx::Access::Read);
+    bgfx::setImage(2, mWorldToTiles[0], 0, bgfx::Access::Read);
+    bgfx::setBuffer(3, mBufferAddressTiles[0], bgfx::Access::Read);
+    bgfx::setImage(4, mDensityTiles, 0, bgfx::Access::Write);
+    bgfx::setBuffer(5, mBufferTiles[0], bgfx::Access::Read);
+    bgfx::dispatch(textureProvider.GetViewId(), mCopyTileCSProgram, mDispatchIndirect[0]);
+
 }
 
 void TGPU::VCycle(TextureProvider& textureProvider, bgfx::TextureHandle rhs, int level, int maxLevel)

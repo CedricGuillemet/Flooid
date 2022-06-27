@@ -15,6 +15,6 @@ void main()
     ivec4 tag = imageLoad(s_worldToTileTags, addr);
     if (tag.x == 0)
     {
-        AllocateTile(addr, 1.);
+        AllocateTile(addr, 2.);
     }
 }
